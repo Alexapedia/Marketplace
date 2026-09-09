@@ -1,0 +1,71 @@
+.page-h {
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  opacity: 0.75;
+  font-size: 13px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.chart-card {
+  max-width: 720px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 48px;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.bar-label {
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c6a667, #e8d5a3);
+}
+
+.bar-count {
+  text-align: end;
+  font-size: 13px;
+}
+
+.muted {
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .bar-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

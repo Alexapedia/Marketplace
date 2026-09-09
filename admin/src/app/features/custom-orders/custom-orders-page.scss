@@ -1,0 +1,6 @@
+.wrap { min-height: calc(100vh - 120px); }
+.drawer { width: min(440px, 94vw); padding: 16px; }
+.drawer-h { display: flex; justify-content: space-between; align-items: center; }
+.form { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.full { width: 100%; }
+.atts a { display: block; font-size: 12px; word-break: break-all; }

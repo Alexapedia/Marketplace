@@ -1,0 +1,4 @@
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.wide { grid-column: 1 / -1; }
+.full { width: 100%; margin-top: 8px; }
+@media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }

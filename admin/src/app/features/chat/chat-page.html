@@ -1,0 +1,35 @@
+<h2>{{ 'chat.title' | t }}</h2>
+<app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && conversations().length === 0" (retry)="loadList()" />
+@if (!loading() && !error() && conversations().length) {
+  <div class="split">
+    <mat-nav-list class="list">
+      @for (c of conversations(); track entityId(c)) {
+        <button mat-list-item type="button" [class.active]="entityId(c) === activeId()" (click)="select(c)">
+          <span matListItemTitle>{{ label(c) }}</span>
+          <span matListItemLine>{{ c.lastMessage || (c.lastMessageAt | date: 'short') }}</span>
+        </button>
+      }
+    </mat-nav-list>
+    <div class="thread">
+      @if (!activeId()) {
+        <p class="muted">{{ 'chat.emptyThread' | t }}</p>
+      } @else {
+        <div class="msgs" #thread>
+          @for (m of messages(); track entityId(m) || $index) {
+            <div class="bubble" [class.staff]="m.senderRole !== 'customer'">
+              <div>{{ m.text }}</div>
+              <small>{{ m.createdAt | date: 'short' }}</small>
+            </div>
+          }
+        </div>
+        <div class="composer">
+          <mat-form-field appearance="outline" class="grow">
+            <mat-label>{{ 'chat.placeholder' | t }}</mat-label>
+            <input matInput [ngModel]="draft()" (ngModelChange)="draft.set($event)" (keyup.enter)="send()" />
+          </mat-form-field>
+          <button mat-flat-button (click)="send()" [disabled]="sending()">{{ 'common.send' | t }}</button>
+        </div>
+      }
+    </div>
+  </div>
+}

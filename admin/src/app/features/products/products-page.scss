@@ -1,0 +1,25 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+h2 {
+  margin: 0;
+}
+
+.search {
+  width: min(360px, 100%);
+}
+
+.table-wrap {
+  overflow: auto;
+  background: var(--mat-sys-surface-container-lowest);
+  border-radius: 12px;
+}
+
+.full {
+  width: 100%;
+}

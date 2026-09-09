@@ -1,0 +1,404 @@
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { AuditService } from '../audit/audit.service';
+import { CUSTOM_ORDER_STATUSES } from '../common/constants';
+import { paginationMeta } from '../common/dto/pagination.dto';
+import { AuthUser } from '../common/types/auth-user';
+import { toObjectId } from '../common/utils/mongo';
+import { NotificationsService } from '../notifications/notifications.service';
+import { OrdersService } from '../orders/orders.service';
+import {
+  Conversation,
+  ConversationDocument,
+} from '../schemas/conversation.schema';
+import {
+  CustomOrder,
+  CustomOrderDocument,
+  Proposal,
+} from '../schemas/custom-order.schema';
+import { Message, MessageDocument } from '../schemas/message.schema';
+import { User, UserDocument } from '../schemas/user.schema';
+import {
+  AdminUpdateCustomOrderDto,
+  ConfirmProposalDto,
+  CreateCustomOrderDto,
+  CreateMessageDto,
+  CreateProposalDto,
+  RejectProposalDto,
+} from './dto/custom-order.dto';
+
+@Injectable()
+export class CustomOrdersService {
+  constructor(
+    @InjectModel(CustomOrder.name)
+    private readonly customModel: Model<CustomOrderDocument>,
+    @InjectModel(Conversation.name)
+    private readonly conversationModel: Model<ConversationDocument>,
+    @InjectModel(Message.name)
+    private readonly messageModel: Model<MessageDocument>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly orders: OrdersService,
+    private readonly notifications: NotificationsService,
+    private readonly audit: AuditService,
+  ) {}
+
+  private parseMaybeJson(value: unknown) {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  async create(
+    userId: string,
+    dto: CreateCustomOrderDto,
+    attachmentUrls: string[] = [],
+  ) {
+    return this.customModel.create({
+      userId: new Types.ObjectId(userId),
+      categoryId: toObjectId(dto.categoryId, 'categoryId'),
+      fields: this.parseMaybeJson(dto.fields) ?? {},
+      description: dto.description,
+      attachments: attachmentUrls,
+      status: dto.status === 'draft' ? 'draft' : 'submitted',
+    });
+  }
+
+  async listMine(userId: string, page: number, limit: number) {
+    const filter = { userId: new Types.ObjectId(userId) };
+    const [items, total] = await Promise.all([
+      this.customModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      this.customModel.countDocuments(filter),
+    ]);
+    return { data: items, meta: paginationMeta(total, page, limit) };
+  }
+
+  async findMine(userId: string, id: string) {
+    const doc = await this.customModel.findOne({
+      _id: toObjectId(id),
+      userId: new Types.ObjectId(userId),
+    });
+    if (!doc) {
+      throw new NotFoundException('Custom order not found');
+    }
+    return doc;
+  }
+
+  private findProposal(order: CustomOrderDocument, proposalId: string) {
+    const proposal = order.proposals.find(
+      (p) => String((p as Proposal & { _id?: Types.ObjectId })._id) === proposalId,
+    );
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+    return proposal;
+  }
+
+  async confirm(userId: string, id: string, dto: ConfirmProposalDto) {
+    const order = await this.findMine(userId, id);
+    const proposal = this.findProposal(order, dto.proposalId);
+    if (proposal.status !== 'sent') {
+      throw new BadRequestException('Proposal is not awaiting confirmation');
+    }
+    proposal.status = 'confirmed';
+    proposal.respondedAt = new Date();
+    order.status = 'confirmed';
+    await order.save();
+
+    const user = await this.userModel.findById(userId);
+    const created = await this.orders.createFromProposal({
+      userId,
+      customOrderId: String(order._id),
+      productName: proposal.productName,
+      image: proposal.images?.[0],
+      unitPrice: proposal.price,
+      quantity: proposal.quantity || 1,
+      address: dto.address,
+      userName: user?.name,
+      userPhone: user?.phone,
+    });
+
+    await this.notifications.createAndOptionallyPush({
+      userId,
+      title: { en: 'Custom order confirmed', ar: 'تم تأكيد الطلب الخاص' },
+      body: {
+        en: `Order ${created.orderNumber} was created from your quote`,
+        ar: `تم إنشاء الطلب ${created.orderNumber} من عرض السعر`,
+      },
+      type: 'custom_order_confirmed',
+      data: { customOrderId: String(order._id), orderId: String(created._id) },
+    });
+
+    return { customOrder: order, order: created };
+  }
+
+  async reject(userId: string, id: string, dto: RejectProposalDto) {
+    const order = await this.findMine(userId, id);
+    const proposal = this.findProposal(order, dto.proposalId);
+    if (proposal.status !== 'sent') {
+      throw new BadRequestException('Proposal is not awaiting confirmation');
+    }
+    proposal.status = 'rejected';
+    proposal.customerResponse = dto.reason;
+    proposal.respondedAt = new Date();
+    order.status = dto.nextStatus === 'rejected' ? 'rejected' : 'need_more_details';
+    await order.save();
+    return order;
+  }
+
+  async ensureConversation(customOrder: CustomOrderDocument) {
+    let convo = await this.conversationModel.findOne({
+      customOrderId: customOrder._id,
+    });
+    if (!convo) {
+      convo = await this.conversationModel.create({
+        userId: customOrder.userId,
+        customOrderId: customOrder._id,
+        lastMessageAt: new Date(),
+        unreadByCustomer: 0,
+        unreadByStaff: 0,
+      });
+    }
+    return convo;
+  }
+
+  async listMessages(user: AuthUser, customOrderId: string) {
+    const order =
+      user.type === 'staff'
+        ? await this.findAdmin(customOrderId)
+        : await this.findMine(user.userId, customOrderId);
+    const convo = await this.ensureConversation(order);
+    const messages = await this.messageModel
+      .find({ conversationId: convo._id })
+      .sort({ createdAt: 1 });
+
+    if (user.type === 'staff') {
+      convo.unreadByStaff = 0;
+    } else {
+      convo.unreadByCustomer = 0;
+    }
+    await convo.save();
+    await this.messageModel.updateMany(
+      { conversationId: convo._id, readAt: { $exists: false } },
+      { readAt: new Date() },
+    );
+    return messages;
+  }
+
+  async postMessage(
+    user: AuthUser,
+    customOrderId: string,
+    dto: CreateMessageDto,
+    attachmentUrls: string[] = [],
+  ) {
+    const order =
+      user.type === 'staff'
+        ? await this.findAdmin(customOrderId)
+        : await this.findMine(user.userId, customOrderId);
+    const convo = await this.ensureConversation(order);
+    const message = await this.messageModel.create({
+      conversationId: convo._id,
+      senderId: new Types.ObjectId(user.userId),
+      senderRole: user.role,
+      type: dto.type || (attachmentUrls.length ? 'file' : 'text'),
+      text: dto.text,
+      attachments: attachmentUrls,
+    });
+    convo.lastMessageAt = new Date();
+    if (user.type === 'staff') {
+      convo.unreadByCustomer += 1;
+      convo.unreadByStaff = 0;
+    } else {
+      convo.unreadByStaff += 1;
+      convo.unreadByCustomer = 0;
+    }
+    await convo.save();
+    return message;
+  }
+
+  async listAdmin(query: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const filter: Record<string, unknown> = {};
+    if (query.status) {
+      filter.status = query.status;
+    }
+    const [items, total] = await Promise.all([
+      this.customModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate('userId', 'name email phone')
+        .populate('categoryId'),
+      this.customModel.countDocuments(filter),
+    ]);
+    return { data: items, meta: paginationMeta(total, page, limit) };
+  }
+
+  async findAdmin(id: string) {
+    const doc = await this.customModel
+      .findById(toObjectId(id))
+      .populate('userId', 'name email phone')
+      .populate('categoryId');
+    if (!doc) {
+      throw new NotFoundException('Custom order not found');
+    }
+    return doc;
+  }
+
+  async updateAdmin(id: string, dto: AdminUpdateCustomOrderDto) {
+    if (
+      dto.status &&
+      !CUSTOM_ORDER_STATUSES.includes(
+        dto.status as (typeof CUSTOM_ORDER_STATUSES)[number],
+      )
+    ) {
+      throw new BadRequestException('Invalid status');
+    }
+    const doc = await this.customModel.findByIdAndUpdate(toObjectId(id), dto, {
+      new: true,
+    });
+    if (!doc) {
+      throw new NotFoundException('Custom order not found');
+    }
+    return doc;
+  }
+
+  async sendProposal(id: string, dto: CreateProposalDto, actorId: string) {
+    const order = await this.findAdmin(id);
+    const nextVersion =
+      order.proposals.reduce((max, p) => Math.max(max, p.version || 0), 0) + 1;
+    order.proposals.forEach((p) => {
+      if (p.status === 'sent') {
+        p.status = 'replaced';
+      }
+    });
+    order.proposals.push({
+      version: nextVersion,
+      productName: dto.productName,
+      images: dto.images ?? [],
+      description: dto.description,
+      specifications: dto.specifications,
+      price: dto.price,
+      quantity: dto.quantity ?? 1,
+      estimatedDays: dto.estimatedDays,
+      notes: dto.notes,
+      status: 'sent',
+    } as never);
+    order.status = 'waiting_confirmation';
+    await order.save();
+
+    const convo = await this.ensureConversation(order);
+    await this.messageModel.create({
+      conversationId: convo._id,
+      senderId: new Types.ObjectId(actorId),
+      senderRole: 'staff',
+      type: 'proposal',
+      text: `Proposal v${nextVersion}: ${dto.productName}`,
+    });
+    convo.lastMessageAt = new Date();
+    convo.unreadByCustomer += 1;
+    await convo.save();
+
+    const customerId = String(order.userId._id ?? order.userId);
+    await this.notifications.createAndOptionallyPush({
+      userId: customerId,
+      title: { en: 'New quote', ar: 'عرض سعر جديد' },
+      body: {
+        en: 'A new proposal is waiting for your confirmation',
+        ar: 'يوجد عرض سعر بانتظار تأكيدك',
+      },
+      type: 'custom_order_proposal',
+      data: { customOrderId: String(order._id) },
+    });
+
+    await this.audit.log({
+      actorId,
+      action: 'custom-order.proposal',
+      entity: 'CustomOrder',
+      entityId: String(order._id),
+      newValue: { version: nextVersion, price: dto.price },
+    });
+
+    return order;
+  }
+
+  async listChats(page: number, limit: number) {
+    const [items, total] = await Promise.all([
+      this.conversationModel
+        .find()
+        .sort({ lastMessageAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate('userId', 'name email')
+        .populate('customOrderId'),
+      this.conversationModel.countDocuments(),
+    ]);
+    return { data: items, meta: paginationMeta(total, page, limit) };
+  }
+
+  async getChat(id: string) {
+    const convo = await this.conversationModel
+      .findById(toObjectId(id))
+      .populate('userId', 'name email')
+      .populate('customOrderId');
+    if (!convo) {
+      throw new NotFoundException('Conversation not found');
+    }
+    return convo;
+  }
+
+  async listChatMessages(conversationId: string) {
+    const convo = await this.getChat(conversationId);
+    const messages = await this.messageModel
+      .find({ conversationId: convo._id })
+      .sort({ createdAt: 1 });
+    convo.unreadByStaff = 0;
+    await convo.save();
+    return messages;
+  }
+
+  async postChatMessage(
+    user: AuthUser,
+    conversationId: string,
+    dto: CreateMessageDto,
+    attachmentUrls: string[] = [],
+  ) {
+    const convo = await this.getChat(conversationId);
+    if (user.type !== 'staff') {
+      throw new ForbiddenException();
+    }
+    const message = await this.messageModel.create({
+      conversationId: convo._id,
+      senderId: new Types.ObjectId(user.userId),
+      senderRole: user.role,
+      type: dto.type || (attachmentUrls.length ? 'file' : 'text'),
+      text: dto.text,
+      attachments: attachmentUrls,
+    });
+    convo.lastMessageAt = new Date();
+    convo.unreadByCustomer += 1;
+    convo.unreadByStaff = 0;
+    await convo.save();
+    return message;
+  }
+}

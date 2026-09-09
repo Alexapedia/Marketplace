@@ -1,0 +1,47 @@
+<h2>{{ 'reports.title' | t }}</h2>
+<div class="filters">
+  <mat-form-field appearance="outline">
+    <mat-label>{{ 'reports.from' | t }}</mat-label>
+    <input matInput type="date" [(ngModel)]="from" />
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>{{ 'reports.to' | t }}</mat-label>
+    <input matInput type="date" [(ngModel)]="to" />
+  </mat-form-field>
+  <button mat-flat-button (click)="load()">{{ 'reports.apply' | t }}</button>
+</div>
+<app-async-state [loading]="loading()" [error]="error()" [empty]="false" (retry)="load()" />
+@if (!loading() && !error() && data(); as d) {
+  <div class="nums">
+    <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.orders' | t }}<strong>{{ (d.totals?.orders ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.revenue' | t }}<strong>{{ (d.totals?.revenue ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'nav.customOrders' | t }}<strong>{{ (d.totals?.customOrders ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.customers' | t }}<strong>{{ (d.totals?.customers ?? 0) | number }}</strong></mat-card-content></mat-card>
+  </div>
+  <div class="grid">
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>{{ 'dashboard.byStatus' | t }}</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @for (b of bars(d.ordersByStatus); track b.label) {
+          <div class="bar-row"><span>{{ b.label }}</span><div class="track"><div class="fill" [style.width.%]="b.pct"></div></div><span>{{ b.count }}</span></div>
+        }
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>{{ 'reports.topProducts' | t }}</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @for (p of d.topProducts ?? []; track $index) {
+          <div class="bar-row"><span>{{ productName(p.name) }}</span><span>{{ p.quantity }} · {{ p.revenue }}</span></div>
+        }
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>{{ 'reports.rejected' | t }}</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @for (b of bars(d.rejectedReasons); track b.label) {
+          <div class="bar-row"><span>{{ b.label }}</span><div class="track"><div class="fill" [style.width.%]="b.pct"></div></div><span>{{ b.count }}</span></div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

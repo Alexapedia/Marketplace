@@ -1,0 +1,50 @@
+<h2 class="page-h">{{ 'dashboard.title' | t }}</h2>
+
+<app-async-state
+  [loading]="loading()"
+  [error]="error()"
+  [empty]="false"
+  (retry)="load()"
+/>
+
+@if (!loading() && !error()) {
+  <div class="cards">
+    @for (card of cards(); track card.key) {
+      <mat-card appearance="outlined" class="stat">
+        <mat-card-content>
+          <div class="stat-top">
+            <span>{{ card.key | t }}</span>
+            <mat-icon>{{ card.icon }}</mat-icon>
+          </div>
+          <div class="stat-value">
+            @if (card.money) {
+              {{ card.value | number: '1.0-0' }}
+            } @else {
+              {{ card.value | number: '1.0-0' }}
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  <mat-card appearance="outlined" class="chart-card">
+    <mat-card-header>
+      <mat-card-title>{{ 'dashboard.byStatus' | t }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (bars().length === 0) {
+        <p class="muted">{{ 'common.empty' | t }}</p>
+      }
+      @for (bar of bars(); track bar.status) {
+        <div class="bar-row">
+          <span class="bar-label">{{ bar.status }}</span>
+          <div class="bar-track">
+            <div class="bar-fill" [style.width.%]="bar.pct"></div>
+          </div>
+          <span class="bar-count">{{ bar.count }}</span>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+}

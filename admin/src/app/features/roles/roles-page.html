@@ -1,0 +1,32 @@
+<h2>{{ 'roles.title' | t }}</h2>
+<app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && roles().length === 0" (retry)="load()" />
+@if (!loading() && !error()) {
+  <div class="grid">
+    @for (role of roles(); track entityId(role)) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>{{ role.name }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-chip-set>
+            @for (p of role.permissions; track p) {
+              <mat-chip>{{ p }}</mat-chip>
+            }
+          </mat-chip-set>
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>{{ 'roles.permissions' | t }}</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [ngModel]="drafts()[entityId(role)]"
+              (ngModelChange)="setDraft(entityId(role), $event)"
+            ></textarea>
+          </mat-form-field>
+          <button mat-flat-button (click)="save(role)" [disabled]="role.isSystem && role.name === 'super_admin'">
+            {{ 'roles.save' | t }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

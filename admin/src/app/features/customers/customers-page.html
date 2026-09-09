@@ -1,0 +1,39 @@
+<div class="head">
+  <h2>{{ 'customers.title' | t }}</h2>
+</div>
+<mat-form-field appearance="outline" class="search">
+  <mat-label>{{ 'common.search' | t }}</mat-label>
+  <input matInput #q (keyup.enter)="onSearch(q.value)" (blur)="onSearch(q.value)" />
+  <mat-icon matSuffix>search</mat-icon>
+</mat-form-field>
+<app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && rows().length === 0" (retry)="load()" />
+@if (!loading() && !error() && rows().length) {
+  <table mat-table [dataSource]="rows()" class="full">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | t }}</th>
+      <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+    </ng-container>
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>Email</th>
+      <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+    </ng-container>
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef>{{ 'customers.phone' | t }}</th>
+      <td mat-cell *matCellDef="let row">{{ row.phone }}</td>
+    </ng-container>
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>{{ 'common.status' | t }}</th>
+      <td mat-cell *matCellDef="let row"><mat-chip>{{ row.status }}</mat-chip></td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | t }}</th>
+      <td mat-cell *matCellDef="let row">
+        <button mat-button (click)="profile(row)">{{ 'customers.profile' | t }}</button>
+        <button mat-button (click)="toggle(row)">{{ row.status === 'blocked' ? ('common.unblock' | t) : ('common.block' | t) }}</button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="cols"></tr>
+    <tr mat-row *matRowDef="let row; columns: cols"></tr>
+  </table>
+  <mat-paginator [length]="meta().total" [pageSize]="meta().limit" [pageIndex]="meta().page - 1" (page)="page($event)" />
+}

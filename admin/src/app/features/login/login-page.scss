@@ -1,0 +1,89 @@
+.login {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(198, 166, 103, 0.18), transparent 50%),
+    radial-gradient(900px 400px at 100% 100%, rgba(198, 166, 103, 0.12), transparent 45%),
+    #1c1a17;
+  color: #f4efe6;
+  position: relative;
+}
+
+.lang {
+  position: absolute;
+  top: 20px;
+  inset-inline-end: 20px;
+  background: transparent;
+  color: #c6a667;
+  border: 1px solid rgba(198, 166, 103, 0.4);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.panel {
+  width: min(420px, calc(100% - 32px));
+  padding: 36px 32px 28px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(40, 36, 31, 0.95), rgba(28, 26, 23, 0.98));
+  border: 1px solid rgba(198, 166, 103, 0.28);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #1c1a17;
+  background: linear-gradient(135deg, #e8d5a3, #c6a667);
+  margin-bottom: 16px;
+}
+
+h1 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.sub {
+  color: rgba(244, 239, 230, 0.72);
+  margin: 8px 0 24px;
+}
+
+.full {
+  width: 100%;
+}
+
+.submit {
+  width: 100%;
+  height: 44px;
+  margin-top: 4px;
+  --mdc-filled-button-container-color: #c6a667;
+  --mdc-filled-button-label-text-color: #1c1a17;
+}
+
+.hint {
+  text-align: center;
+  opacity: 0.55;
+  font-size: 12px;
+  margin-top: 16px;
+}
+
+.error {
+  color: #e8b4b4;
+  font-size: 13px;
+  margin: -4px 0 12px;
+}
+
+:host ::ng-deep .mat-mdc-form-field {
+  --mdc-outlined-text-field-outline-color: rgba(198, 166, 103, 0.35);
+  --mdc-outlined-text-field-focus-outline-color: #c6a667;
+  --mdc-outlined-text-field-label-text-color: rgba(244, 239, 230, 0.7);
+  --mdc-outlined-text-field-input-text-color: #f4efe6;
+  --mat-form-field-outlined-input-text-color: #f4efe6;
+}

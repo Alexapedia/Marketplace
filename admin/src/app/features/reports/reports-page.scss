@@ -1,0 +1,7 @@
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.nums { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin: 12px 0 20px; }
+.nums strong { display: block; font-size: 22px; margin-top: 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.bar-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; align-items: center; margin: 8px 0; font-size: 13px; }
+.track { height: 8px; background: var(--mat-sys-surface-container); border-radius: 99px; overflow: hidden; }
+.fill { height: 100%; background: #c6a667; }

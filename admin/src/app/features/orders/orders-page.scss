@@ -1,0 +1,6 @@
+.wrap { min-height: calc(100vh - 120px); }
+.drawer { width: min(420px, 92vw); padding: 16px; }
+.drawer-h { display: flex; justify-content: space-between; align-items: center; }
+.full { width: 100%; }
+.item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+h2 { margin-top: 0; }

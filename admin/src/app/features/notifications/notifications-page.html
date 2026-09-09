@@ -1,0 +1,45 @@
+<h2>{{ 'notifications.title' | t }}</h2>
+<mat-card appearance="outlined">
+  <mat-card-header><mat-card-title>{{ 'notifications.compose' | t }}</mat-card-title></mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="send()" class="grid">
+      <mat-form-field appearance="outline"><mat-label>{{ 'notifications.titleEn' | t }}</mat-label><input matInput formControlName="titleEn" /></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>{{ 'notifications.titleAr' | t }}</mat-label><input matInput formControlName="titleAr" /></mat-form-field>
+      <mat-form-field appearance="outline" class="wide"><mat-label>{{ 'notifications.bodyEn' | t }}</mat-label><textarea matInput rows="3" formControlName="bodyEn"></textarea></mat-form-field>
+      <mat-form-field appearance="outline" class="wide"><mat-label>{{ 'notifications.bodyAr' | t }}</mat-label><textarea matInput rows="3" formControlName="bodyAr"></textarea></mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'notifications.target' | t }}</mat-label>
+        <mat-select formControlName="target">
+          <mat-option value="all">{{ 'notifications.targetAll' | t }}</mat-option>
+          <mat-option value="userIds">{{ 'notifications.targetUsers' | t }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      @if (form.controls.target.value === 'userIds') {
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>{{ 'notifications.userIds' | t }}</mat-label>
+          <input matInput formControlName="userIds" />
+        </mat-form-field>
+      }
+      <button mat-flat-button type="submit" [disabled]="sending()">{{ 'common.send' | t }}</button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+@if (showHistory()) {
+  <h3>{{ 'notifications.history' | t }}</h3>
+  <app-async-state [loading]="historyLoading()" [error]="historyError()" [empty]="!historyLoading() && history().length === 0" (retry)="loadHistory()" />
+  @if (!historyLoading() && history().length) {
+    <table mat-table [dataSource]="history()" class="full">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | t }}</th>
+        <td mat-cell *matCellDef="let row">{{ row.title | loc }}</td>
+      </ng-container>
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'short' }}</td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="cols"></tr>
+      <tr mat-row *matRowDef="let row; columns: cols"></tr>
+    </table>
+  }
+}

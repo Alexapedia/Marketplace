@@ -1,0 +1,5 @@
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.stack { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
+.block { margin-top: 16px; }
+.row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 8px; }
+@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }

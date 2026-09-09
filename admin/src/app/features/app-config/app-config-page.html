@@ -1,0 +1,63 @@
+<h2>{{ 'appConfig.title' | t }}</h2>
+<app-async-state [loading]="loading()" [error]="error()" [empty]="false" (retry)="load()" />
+@if (!loading() && !error()) {
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <div class="cols">
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>{{ 'appConfig.android' | t }}</mat-card-title></mat-card-header>
+        <mat-card-content class="stack">
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.latest' | t }}</mat-label><input matInput formControlName="androidLatest" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.minimum' | t }}</mat-label><input matInput formControlName="androidMinimum" /></mat-form-field>
+          <mat-slide-toggle formControlName="androidForce">{{ 'appConfig.forceUpdate' | t }}</mat-slide-toggle>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.storeUrl' | t }}</mat-label><input matInput formControlName="androidStore" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.messageEn' | t }}</mat-label><textarea matInput formControlName="androidMsgEn"></textarea></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.messageAr' | t }}</mat-label><textarea matInput formControlName="androidMsgAr"></textarea></mat-form-field>
+        </mat-card-content>
+      </mat-card>
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>{{ 'appConfig.ios' | t }}</mat-card-title></mat-card-header>
+        <mat-card-content class="stack">
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.latest' | t }}</mat-label><input matInput formControlName="iosLatest" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.minimum' | t }}</mat-label><input matInput formControlName="iosMinimum" /></mat-form-field>
+          <mat-slide-toggle formControlName="iosForce">{{ 'appConfig.forceUpdate' | t }}</mat-slide-toggle>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.storeUrl' | t }}</mat-label><input matInput formControlName="iosStore" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.messageEn' | t }}</mat-label><textarea matInput formControlName="iosMsgEn"></textarea></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>{{ 'appConfig.messageAr' | t }}</mat-label><textarea matInput formControlName="iosMsgAr"></textarea></mat-form-field>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card appearance="outlined" class="block">
+      <mat-card-header><mat-card-title>{{ 'appConfig.banners' | t }}</mat-card-title></mat-card-header>
+      <mat-card-content formArrayName="banners">
+        @for (b of banners.controls; track $index) {
+          <div class="row" [formGroupName]="$index">
+            <mat-form-field appearance="outline"><mat-label>Image</mat-label><input matInput formControlName="image" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Link</mat-label><input matInput formControlName="link" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>EN</mat-label><input matInput formControlName="titleEn" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>AR</mat-label><input matInput formControlName="titleAr" /></mat-form-field>
+          </div>
+        }
+        <button mat-stroked-button type="button" (click)="addBanner()">{{ 'common.create' | t }}</button>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="block">
+      <mat-card-header><mat-card-title>{{ 'appConfig.onboarding' | t }}</mat-card-title></mat-card-header>
+      <mat-card-content formArrayName="onboarding">
+        @for (s of onboarding.controls; track $index) {
+          <div class="row" [formGroupName]="$index">
+            <mat-form-field appearance="outline"><mat-label>Image</mat-label><input matInput formControlName="image" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Title EN</mat-label><input matInput formControlName="titleEn" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Title AR</mat-label><input matInput formControlName="titleAr" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Body EN</mat-label><input matInput formControlName="bodyEn" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Body AR</mat-label><input matInput formControlName="bodyAr" /></mat-form-field>
+          </div>
+        }
+        <button mat-stroked-button type="button" (click)="addOnboarding()">{{ 'common.create' | t }}</button>
+      </mat-card-content>
+    </mat-card>
+
+    <button mat-flat-button type="submit" [disabled]="saving()">{{ 'common.save' | t }}</button>
+  </form>
+}

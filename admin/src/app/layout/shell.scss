@@ -1,0 +1,78 @@
+.shell {
+  height: 100%;
+}
+
+.sidenav {
+  width: 268px;
+  background: var(--pm-sidebar);
+  border: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px 12px;
+}
+
+.mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #1c1a17;
+  background: linear-gradient(135deg, #e8d5a3, #c6a667);
+}
+
+.brand-name {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.brand-sub {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.page-title {
+  font-weight: 500;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.content {
+  padding: 20px 24px 40px;
+  min-height: calc(100% - 64px);
+}
+
+a.active {
+  background: color-mix(in srgb, #c6a667 18%, transparent);
+}
+
+.user-meta {
+  padding: 4px 16px;
+  font-size: 13px;
+}
+
+.muted {
+  opacity: 0.65;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+  .content {
+    padding: 16px 12px 32px;
+  }
+}
