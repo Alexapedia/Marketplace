@@ -5,16 +5,16 @@ import '../../core/models/color_model.dart';
 
 ThemeData light(AppColors c) {
   final base = ColorScheme.light(
-    primary: c.primary,
-    onPrimary: Colors.white,
+    primary: AppColors.blackColor,
+    onPrimary: AppColors.whiteColor,
     primaryContainer: c.primaryContainer,
-    onPrimaryContainer: c.primaryDark,
-    secondary: c.secondary,
-    onSecondary: c.primary,
+    onPrimaryContainer: AppColors.blackColor,
+    secondary: AppColors.blackColor,
+    onSecondary: AppColors.whiteColor,
     secondaryContainer: c.secondaryContainer,
     onSecondaryContainer: c.onSecondaryContainerLight,
     tertiary: c.tertiary,
-    onTertiary: Colors.white,
+    onTertiary: AppColors.whiteColor,
     error: c.error,
     onError: c.onError,
     surface: c.surfaceLight,
@@ -22,8 +22,8 @@ ThemeData light(AppColors c) {
     surfaceContainerHighest: c.surfaceContainerLight,
     outline: c.border,
     outlineVariant: c.divider,
-    shadow: c.primary.withValues(alpha: 0.10),
-    scrim: c.primary.withValues(alpha: 0.50),
+    shadow: AppColors.blackColor.withValues(alpha: 0.10),
+    scrim: AppColors.blackColor.withValues(alpha: 0.50),
   );
 
   return ThemeData(
@@ -32,6 +32,8 @@ ThemeData light(AppColors c) {
     extensions: {c},
     colorScheme: base,
     scaffoldBackgroundColor: c.backgroundLight,
+    dividerColor: c.divider,
+    iconTheme: IconThemeData(color: c.textPrimaryLight),
     appBarTheme: AppBarTheme(
       backgroundColor: c.surfaceLight,
       foregroundColor: c.textPrimaryLight,
@@ -68,8 +70,8 @@ ThemeData light(AppColors c) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: c.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.blackColor,
+        foregroundColor: AppColors.whiteColor,
         elevation: 4,
         minimumSize: const Size(double.infinity, 54),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -104,9 +106,14 @@ ThemeData light(AppColors c) {
     cardTheme: CardThemeData(
       color: c.cardLight,
       elevation: 2,
-      shadowColor: c.primary.withValues(alpha: 0.08),
+      shadowColor: AppColors.blackColor.withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: EdgeInsets.zero,
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: c.surfaceLight,
+      selectedItemColor: AppColors.blackColor,
+      unselectedItemColor: c.hint,
     ),
     chipTheme: ChipThemeData(
       backgroundColor: c.surfaceContainerLight,
@@ -116,8 +123,8 @@ ThemeData light(AppColors c) {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: c.gold,
-      foregroundColor: c.primary,
+      backgroundColor: AppColors.blackColor,
+      foregroundColor: AppColors.whiteColor,
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
@@ -127,8 +134,8 @@ ThemeData light(AppColors c) {
       ),
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: c.primaryDark,
-      contentTextStyle: const TextStyle(color: Colors.white),
+      backgroundColor: AppColors.blackColor,
+      contentTextStyle: const TextStyle(color: AppColors.whiteColor),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),

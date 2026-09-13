@@ -121,11 +121,7 @@ class _AppButtonState extends State<AppButton>
                 : widget.bgColor ?? (widget.isGradient ? null : primary),
             gradient: widget.isOutlined || widget.bgColor != null || !widget.isGradient
                 ? null
-                : LinearGradient(
-                    colors: [primary, gold],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                : appColors.primaryGradient,
             borderRadius: BorderRadius.circular(radius),
             border: widget.isOutlined
                 ? Border.all(color: widget.bgColor ?? gold, width: 1.8)

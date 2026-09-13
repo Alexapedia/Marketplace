@@ -23,8 +23,8 @@ class AuthBg extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [appColors.backgroundDark, appColors.surfaceDark]
-                    : [appColors.roseSoftLight, theme.colorScheme.surface],
+                    ? [AppColors.blackColor, appColors.surfaceDark]
+                    : [appColors.roseSoftLight, AppColors.whiteColor],
               ),
             ),
           ),
@@ -38,7 +38,7 @@ class AuthBg extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    appColors.gold.withValues(alpha: 0.22),
+                    appColors.gold.withValues(alpha: isDark ? 0.18 : 0.12),
                     Colors.transparent,
                   ],
                 ),

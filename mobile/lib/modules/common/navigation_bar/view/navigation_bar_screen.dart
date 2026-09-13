@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/routing/app_router_keys.dart';
-import '../../../../core/models/color_model.dart';
 import '../../../../core/utils/functions/require_auth.dart';
 import '../controller/navigation_bar_cubit.dart';
 import 'widgets/bottom_navbar_item.dart';
@@ -14,7 +13,7 @@ class NavigationBarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
+    final theme = Theme.of(context);
     return BlocBuilder<NavigationBarCubit, NavigationBarState>(
       builder: (context, state) {
         final controller = context.read<NavigationBarCubit>();
@@ -30,7 +29,8 @@ class NavigationBarScreen extends StatelessWidget {
             ),
             icon: const Icon(Icons.auto_awesome),
             label: Text('custom_order'.tr()),
-            backgroundColor: gold,
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           bottomNavigationBar: BottomNavbarItem(

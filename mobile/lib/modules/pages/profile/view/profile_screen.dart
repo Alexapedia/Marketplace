@@ -16,7 +16,6 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
     return Scaffold(
       appBar: AppBar(title: Text('profile'.tr())),
       body: BlocBuilder<AppControllerCubit, AppControllerState>(
@@ -29,9 +28,9 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [Theme.of(context).colorScheme.primary, gold],
-                  ),
+                  gradient: Theme.of(context)
+                      .extension<AppColors>()!
+                      .brandGradient,
                 ),
                 child: Row(
                   children: [

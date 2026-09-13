@@ -8,11 +8,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/routing/app_router_keys.dart';
 import '../../../../core/components/app_button.dart';
+import '../../../../core/components/app_logo.dart';
 import '../../../../core/components/app_text_field.dart';
 import '../../../../core/components/auth_bg.dart';
 import '../../../../core/components/loading_item.dart';
 import '../../../../core/components/text_with_hero.dart';
-import '../../../../core/models/color_model.dart';
 import '../../../../core/repository/firebase/firebase_service.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/validate.dart';
@@ -24,7 +24,6 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final gold = theme.extension<AppColors>()!.gold;
     final cubit = LoginCubit.get(context);
 
     return AuthBg(
@@ -46,21 +45,7 @@ class LoginScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      width: 76,
-                      height: 76,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [theme.colorScheme.primary, gold],
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.storefront_rounded,
-                        color: Colors.white,
-                        size: 36,
-                      ),
-                    ),
+                    const AppLogo(height: 88),
                     const SizedBox(height: 18),
                     HeroText(
                       tag: 'login',

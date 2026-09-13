@@ -9,6 +9,7 @@ import 'package:badges/badges.dart' as badges;
 
 import '../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../config/routing/app_router_keys.dart';
+import '../../../../core/components/app_logo.dart';
 import '../../../../core/components/failed_shape.dart';
 import '../../../../core/components/image_item.dart';
 import '../../../../core/components/product_card.dart';
@@ -45,10 +46,7 @@ class _HomeBody extends StatelessWidget {
           slivers: [
             SliverAppBar(
               floating: true,
-              title: Text(
-                'PlaceMarket',
-                style: TextStyle(fontWeight: FontWeight.w800, color: gold),
-              ),
+              title: const AppLogo(height: 32),
               actions: [
                 IconButton(
                   onPressed: () => requireAuth(
@@ -207,22 +205,10 @@ class _BannersState extends State<_Banners> {
           height: 160,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).extension<AppColors>()!.gold,
-              ],
-            ),
+            gradient: Theme.of(context).extension<AppColors>()!.brandGradient,
           ),
-          child: Center(
-            child: Text(
-              'PlaceMarket',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+          child: const Center(
+            child: AppLogo(height: 72, onDarkSurface: true),
           ),
         ),
       );
@@ -294,7 +280,6 @@ class _BannersState extends State<_Banners> {
 class _CustomCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
     return GestureDetector(
       onTap: () => requireAuth(
         context,
@@ -304,12 +289,7 @@ class _CustomCta extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              gold.withValues(alpha: 0.85),
-            ],
-          ),
+          gradient: Theme.of(context).extension<AppColors>()!.brandGradient,
         ),
         child: Row(
           children: [

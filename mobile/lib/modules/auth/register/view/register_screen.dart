@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/routing/app_router_keys.dart';
 import '../../../../core/components/app_button.dart';
+import '../../../../core/components/app_logo.dart';
 import '../../../../core/components/app_text_field.dart';
 import '../../../../core/components/auth_bg.dart';
 import '../../../../core/components/loading_item.dart';
@@ -34,6 +35,8 @@ class RegisterScreen extends StatelessWidget {
                   icon: const Icon(Icons.arrow_back_ios_new_rounded),
                 ),
               ),
+              const AppLogo(height: 72),
+              const SizedBox(height: 16),
               Text(
                 'register'.tr(),
                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),

@@ -5,12 +5,12 @@ import '../../core/models/color_model.dart';
 
 ThemeData dark(AppColors c) {
   final base = ColorScheme.dark(
-    primary: c.gold,
-    onPrimary: c.primaryDark,
-    primaryContainer: c.primaryDark,
-    onPrimaryContainer: c.primaryContainer,
-    secondary: c.secondary,
-    onSecondary: c.primaryDark,
+    primary: AppColors.whiteColor,
+    onPrimary: AppColors.blackColor,
+    primaryContainer: c.surfaceContainerDark,
+    onPrimaryContainer: AppColors.whiteColor,
+    secondary: AppColors.whiteColor,
+    onSecondary: AppColors.blackColor,
     secondaryContainer: c.secondaryContainerDark,
     onSecondaryContainer: c.secondaryContainer,
     tertiary: c.tertiaryLight,
@@ -32,6 +32,8 @@ ThemeData dark(AppColors c) {
     extensions: {c},
     colorScheme: base,
     scaffoldBackgroundColor: c.backgroundDark,
+    dividerColor: c.borderDark,
+    iconTheme: IconThemeData(color: c.textPrimaryDark),
     appBarTheme: AppBarTheme(
       backgroundColor: c.surfaceDark,
       foregroundColor: c.textPrimaryDark,
@@ -65,8 +67,8 @@ ThemeData dark(AppColors c) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: c.gold,
-        foregroundColor: c.primaryDark,
+        backgroundColor: AppColors.whiteColor,
+        foregroundColor: AppColors.blackColor,
         minimumSize: const Size(double.infinity, 54),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
@@ -75,6 +77,11 @@ ThemeData dark(AppColors c) {
       color: c.cardDark,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: c.surfaceDark,
+      selectedItemColor: AppColors.whiteColor,
+      unselectedItemColor: c.hintDark,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -89,12 +96,20 @@ ThemeData dark(AppColors c) {
       ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: c.gold,
-      foregroundColor: c.primaryDark,
+      backgroundColor: AppColors.whiteColor,
+      foregroundColor: AppColors.blackColor,
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.whiteColor,
+        side: const BorderSide(color: AppColors.whiteColor, width: 1.5),
+        minimumSize: const Size(double.infinity, 54),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: c.snackBarBgDark,
-      contentTextStyle: const TextStyle(color: Colors.white),
+      contentTextStyle: const TextStyle(color: AppColors.whiteColor),
       behavior: SnackBarBehavior.floating,
     ),
   );

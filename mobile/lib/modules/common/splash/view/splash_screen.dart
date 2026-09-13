@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import '../../../../config/routing/app_router_keys.dart';
 import '../../../../core/connection/concept/end_points.dart';
 import '../../../../core/connection/interfaces/api_consumer.dart';
 import '../../../../core/models/app_models.dart';
+import '../../../../core/components/app_logo.dart';
 import '../../../../core/models/color_model.dart';
 import '../../../../core/repository/package_handler/router_handler.dart';
 import '../../../../core/utils/constant/app_enum.dart';
@@ -114,73 +114,58 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: colors.onboardingBG),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedBuilder(
-                animation: _logoController,
-                builder: (context, child) {
-                  final curve = CurvedAnimation(
-                    parent: _logoController,
-                    curve: Curves.elasticOut,
-                  );
-                  return Transform.scale(
-                    scale: curve.value.clamp(0.0, 1.0),
-                    child: Transform.rotate(
-                      angle: (1 - _logoController.value) * math.pi * 0.4,
-                      child: child,
+      backgroundColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedBuilder(
+              animation: _logoController,
+              builder: (context, child) {
+                final curve = CurvedAnimation(
+                  parent: _logoController,
+                  curve: Curves.elasticOut,
+                );
+                return Transform.scale(
+                  scale: curve.value.clamp(0.0, 1.0),
+                  child: child,
+                );
+              },
+              child: const AppLogo(height: 148),
+            ),
+            const SizedBox(height: 20),
+            FadeTransition(
+              opacity: _textController,
+              child: Column(
+                children: [
+                  Text(
+                    'app_name'.tr(),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? AppColors.whiteColor
+                          : AppColors.blackColor,
+                      letterSpacing: 0.6,
                     ),
-                  );
-                },
-                child: Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colors.gold.withValues(alpha: 0.15),
-                    border: Border.all(color: colors.gold, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.gold.withValues(alpha: 0.4),
-                        blurRadius: 32,
-                      ),
-                    ],
                   ),
-                  child: Icon(Icons.storefront_rounded, color: colors.gold, size: 48),
-                ),
-              ),
-              const SizedBox(height: 24),
-              FadeTransition(
-                opacity: _textController,
-                child: Column(
-                  children: [
-                    Text(
-                      'PlaceMarket',
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        color: colors.gold,
-                        letterSpacing: 1.4,
-                      ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'app_tagline'.tr(),
+                    style: TextStyle(
+                      color: (isDark
+                              ? AppColors.whiteColor
+                              : AppColors.blackColor)
+                          .withValues(alpha: 0.72),
+                      letterSpacing: 1.2,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'app_tagline'.tr(),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

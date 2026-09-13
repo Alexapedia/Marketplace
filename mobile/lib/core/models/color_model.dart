@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../utils/functions/color_convert.dart';
 
 class AppColors extends ThemeExtension<AppColors> {
+  static const Color blackColor = Color(0xff071345);
+  static const Color whiteColor = Colors.white;
   final Color primary;
   final Color primaryLight;
   final Color primaryDark;
@@ -85,51 +87,58 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.gold,
   });
 
-  static final AppColors defaults = AppColors.fromJson({});
+  static final AppColors lightDefaults = AppColors.fromJson({});
+  static final AppColors darkDefaults = AppColors.fromJson({}, dark: true);
+  static final AppColors defaults = lightDefaults;
 
-  factory AppColors.fromJson(Map<String, dynamic> json) {
-    Color c(String k, String f) => (json[k] ?? f).toString().toColor();
+  factory AppColors.fromJson(Map<String, dynamic> json, {bool dark = false}) {
+    Color c(String k, String light, String darkHex) =>
+        (json[k] ?? (dark ? darkHex : light)).toString().toColor();
 
     return AppColors(
-      primary: c('primary', '#1C1A17'),
-      primaryLight: c('primaryLight', '#3A3630'),
-      primaryDark: c('primaryDark', '#0E0D0B'),
-      primaryContainer: c('primaryContainer', '#EFE8DC'),
-      secondary: c('secondary', '#C6A667'),
-      secondaryContainer: c('secondaryContainer', '#F3E8D0'),
-      tertiary: c('tertiary', '#8A7354'),
-      backgroundLight: c('backgroundLight', '#F7F4EF'),
-      backgroundDark: c('backgroundDark', '#121212'),
-      surfaceLight: c('surfaceLight', '#FFFcf7'),
-      surfaceDark: c('surfaceDark', '#1C1C1C'),
-      surfaceContainerLight: c('surfaceContainerLight', '#EFEBE3'),
-      surfaceContainerDark: c('surfaceContainerDark', '#2A2A2A'),
-      cardLight: c('cardLight', '#FFFFFF'),
-      cardDark: c('cardDark', '#1E1E1E'),
-      textPrimaryLight: c('textPrimaryLight', '#1C1A17'),
-      textPrimaryDark: c('textPrimaryDark', '#F7F4EF'),
-      textSecondary: c('textSecondary', '#6B645C'),
-      hint: c('hint', '#9A9288'),
-      border: c('border', '#E4DDD2'),
-      divider: c('divider', '#EDE7DC'),
-      error: c('error', '#BA1A1A'),
-      onError: c('onError', '#FFFFFF'),
-      success: c('success', '#2E7D32'),
-      warning: c('warning', '#E65100'),
-      gradientStart: c('gradientStart', '#1C1A17'),
-      gradientEnd: c('gradientEnd', '#C6A667'),
-      onSecondaryContainerLight: c('onSecondaryContainerLight', '#3E2E10'),
-      secondaryContainerDark: c('secondaryContainerDark', '#5D4A22'),
-      tertiaryLight: c('tertiaryLight', '#E2C992'),
-      onTertiaryLight: c('onTertiaryLight', '#3A2C14'),
-      errorDark: c('errorDark', '#FFB4AB'),
-      onErrorDark: c('onErrorDark', '#690005'),
-      borderDark: c('borderDark', '#3A3A3A'),
-      hintDark: c('hintDark', '#A39A90'),
-      snackBarBgDark: c('snackBarBgDark', '#2A241C'),
-      roseSoftLight: c('roseSoftLight', '#F7F4EF'),
-      pinkAccent: c('pinkAccent', '#C6A667'),
-      gold: c('gold', '#C6A667'),
+      primary: c('primary', '#071345', '#FFFFFF'),
+      primaryLight: c('primaryLight', '#1A2C72', '#8B9AD4'),
+      primaryDark: c('primaryDark', '#050B28', '#071345'),
+      primaryContainer: c('primaryContainer', '#E8EBF6', '#1A2B6B'),
+      secondary: c('secondary', '#071345', '#FFFFFF'),
+      secondaryContainer: c('secondaryContainer', '#E8EBF6', '#C5CEE8'),
+      tertiary: c('tertiary', '#3D4F8A', '#8B9AD4'),
+      backgroundLight: c('backgroundLight', '#FFFFFF', '#FFFFFF'),
+      backgroundDark: c('backgroundDark', '#071345', '#071345'),
+      surfaceLight: c('surfaceLight', '#FFFFFF', '#FFFFFF'),
+      surfaceDark: c('surfaceDark', '#0B1850', '#0B1850'),
+      surfaceContainerLight: c('surfaceContainerLight', '#F4F6FB', '#F4F6FB'),
+      surfaceContainerDark: c('surfaceContainerDark', '#14245C', '#14245C'),
+      cardLight: c('cardLight', '#FFFFFF', '#FFFFFF'),
+      cardDark: c('cardDark', '#0E1C54', '#0E1C54'),
+      textPrimaryLight: c('textPrimaryLight', '#071345', '#071345'),
+      textPrimaryDark: c('textPrimaryDark', '#FFFFFF', '#FFFFFF'),
+      textSecondary: c('textSecondary', '#5C678C', '#C5CEE8'),
+      hint: c('hint', '#8E96B3', '#8E96B3'),
+      border: c('border', '#D9DEEE', '#D9DEEE'),
+      divider: c('divider', '#EEEFF5', '#2A3A72'),
+      error: c('error', '#BA1A1A', '#BA1A1A'),
+      onError: c('onError', '#FFFFFF', '#FFFFFF'),
+      success: c('success', '#2E7D32', '#2E7D32'),
+      warning: c('warning', '#E65100', '#E65100'),
+      gradientStart: c('gradientStart', '#071345', '#FFFFFF'),
+      gradientEnd: c('gradientEnd', '#1A2C72', '#E8EBF6'),
+      onSecondaryContainerLight: c(
+        'onSecondaryContainerLight',
+        '#071345',
+        '#FFFFFF',
+      ),
+      secondaryContainerDark: c('secondaryContainerDark', '#1A2B6B', '#1A2B6B'),
+      tertiaryLight: c('tertiaryLight', '#C5CEE8', '#C5CEE8'),
+      onTertiaryLight: c('onTertiaryLight', '#071345', '#071345'),
+      errorDark: c('errorDark', '#FFB4AB', '#FFB4AB'),
+      onErrorDark: c('onErrorDark', '#690005', '#690005'),
+      borderDark: c('borderDark', '#2A3A72', '#2A3A72'),
+      hintDark: c('hintDark', '#9AA3C4', '#A8B2D4'),
+      snackBarBgDark: c('snackBarBgDark', '#0A1648', '#0A1648'),
+      roseSoftLight: c('roseSoftLight', '#F7F8FC', '#071345'),
+      pinkAccent: c('pinkAccent', '#071345', '#FFFFFF'),
+      gold: c('gold', '#071345', '#FFFFFF'),
     );
   }
 
@@ -283,16 +292,16 @@ class AppColors extends ThemeExtension<AppColors> {
     end: Alignment.bottomRight,
   );
 
-  LinearGradient get onboardingBG => LinearGradient(
-    colors: [
-      textPrimaryLight,
-      primaryDark,
-      primary,
-      Color(0xFF2A241C),
-      backgroundDark,
-    ],
+  LinearGradient get brandGradient => const LinearGradient(
+    colors: [blackColor, Color(0xFF122060)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
+  );
+
+  LinearGradient get onboardingBG => const LinearGradient(
+    colors: [blackColor, Color(0xFF0C1A52), Color(0xFF152868)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    stops: [0.0, 0.55, 1.0],
   );
 }

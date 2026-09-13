@@ -17,9 +17,8 @@ class PlaceMarketApp extends StatelessWidget {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
-  static final AppColors _colors = AppColors.defaults;
-  static final ThemeData _lightTheme = light(_colors);
-  static final ThemeData _darkTheme = dark(_colors);
+  static final ThemeData _lightTheme = light(AppColors.lightDefaults);
+  static final ThemeData _darkTheme = dark(AppColors.darkDefaults);
 
   @override
   Widget build(BuildContext context) {
