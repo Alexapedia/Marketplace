@@ -7,6 +7,7 @@ import '../../../../../core/components/order_status_timeline.dart';
 import '../../../../../core/components/review_card.dart';
 import '../../../../../core/components/star_rating.dart';
 import '../../../../../core/models/catalog_models.dart';
+import '../../../../../core/utils/constant/app_string.dart';
 import '../../../../../core/utils/functions/status_label.dart';
 import '../../controller/order_details_cubit.dart';
 import 'order_info_card.dart';
@@ -55,7 +56,7 @@ class OrderDetailsBody extends StatelessWidget {
           children: [
             OrderKv(
               label: 'total'.tr(),
-              value: '${order.total.toStringAsFixed(0)} ${'currency'.tr()}',
+              value: '${order.total.toStringAsFixed(0)} ${AppString.currency}',
             ),
             OrderKv(label: 'payment_method'.tr(), value: order.paymentMethod),
             if (order.address != null && order.address!.display.isNotEmpty)

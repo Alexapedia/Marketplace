@@ -19,6 +19,11 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { ThemeService } from '../core/theme/theme.service';
 import { AppNotification, loc, StaffRole } from '../core/models/models';
 import { asList } from '../shared/ui.service';
+import {
+  bindNotificationSoundUnlock,
+  listenForPushSound,
+  playNotificationSound,
+} from '../core/firebase/notification-sound';
 
 interface NavItem {
   path: string;
@@ -59,6 +64,7 @@ export class Shell implements OnDestroy {
   readonly inbox = signal<AppNotification[]>([]);
   readonly unread = signal(0);
   private inboxTimer?: ReturnType<typeof setInterval>;
+  private inboxReady = false;
 
   readonly isTablet = toSignal(
     this.bp.observe('(max-width: 1024px)').pipe(map((r) => r.matches)),
@@ -186,6 +192,8 @@ export class Shell implements OnDestroy {
   }
 
   constructor() {
+    bindNotificationSoundUnlock();
+    listenForPushSound();
     this.bp.observe('(max-width: 1024px)').subscribe((r) => {
       this.sidenavOpened.set(!r.matches);
     });
@@ -201,8 +209,13 @@ export class Shell implements OnDestroy {
     this.inboxApi.inbox({ limit: 8 }).subscribe({
       next: (res) => {
         const items = asList(res.data);
+        const nextUnread = items.filter((n) => !n.readAt).length;
+        if (this.inboxReady && nextUnread > this.unread()) {
+          playNotificationSound();
+        }
         this.inbox.set(items);
-        this.unread.set(items.filter((n) => !n.readAt).length);
+        this.unread.set(nextUnread);
+        this.inboxReady = true;
       },
       error: () => undefined,
     });

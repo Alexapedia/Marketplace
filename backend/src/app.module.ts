@@ -21,6 +21,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { CustomOrdersModule } from './custom-orders/custom-orders.module';
 import { DatabaseModule } from './database/database.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { FirebaseModule } from './firebase/firebase.module';
 import { HealthController } from './health/health.controller';
 import { HomeModule } from './home/home.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -43,6 +44,7 @@ import { UploadsModule } from './uploads/uploads.module';
       throttlers: [{ name: 'default', ttl: 60000, limit: 300 }],
     }),
     DatabaseModule,
+    FirebaseModule,
     AuditModule,
     AuthModule,
     CatalogModule,

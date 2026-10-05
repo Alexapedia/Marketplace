@@ -1,5 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../../config/app_controller/app_controller_cubit.dart';
+import '../functions/currency_label.dart';
+import '../functions/service_locator.dart';
+
 class AppString {
   static const String appName = 'Zezo Store';
   static const String localeEn = 'en';
@@ -24,5 +28,12 @@ class AppString {
   static const String unexpectedError = 'Unexpected error occurred';
   static const String error403Marker = '403';
 
-  static String get currency => 'currency'.tr();
+  static String get currency {
+    try {
+      final state = sl.get<AppControllerCubit>().state;
+      return currencyLabel(state.currency, state.localeCode);
+    } catch (_) {
+      return 'currency'.tr();
+    }
+  }
 }

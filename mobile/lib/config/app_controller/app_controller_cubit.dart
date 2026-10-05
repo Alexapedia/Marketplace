@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/connection/concept/end_points.dart';
 import '../../core/connection/interfaces/api_consumer.dart';
 import '../../core/models/app_models.dart';
+import '../../core/repository/push/push_notification_service.dart';
 import '../../core/utils/constant/app_enum.dart';
 import '../../core/utils/constant/storage_key.dart';
 import '../../core/utils/functions/app_toast.dart';
@@ -34,6 +35,7 @@ class AppControllerCubit extends Cubit<AppControllerState> {
     await loadSession();
     await loadConfig();
     unawaited(trackVisit());
+    PushNotificationService.instance.consumePending();
   }
 
   Future<void> trackVisit() async {
@@ -63,6 +65,7 @@ class AppControllerCubit extends Cubit<AppControllerState> {
       await getCountOfCartItems();
       await getCountOfUnReadNot();
       await loadFavorites();
+      await PushNotificationService.instance.registerToken();
     } else {
       emit(state.copyWith(isGuest: true, favoriteIds: const [], favoritesReady: true));
     }
@@ -100,7 +103,13 @@ class AppControllerCubit extends Cubit<AppControllerState> {
       StorageKey.themeModeLight => ThemeMode.light,
       _ => ThemeMode.system,
     };
-    emit(state.copyWith(themeMode: themeMode));
+    final lang = PreferenceUtils.getString(StorageKey.lang, 'en');
+    emit(
+      state.copyWith(
+        themeMode: themeMode,
+        localeCode: lang.isEmpty ? 'en' : lang,
+      ),
+    );
   }
 
   void setTheme(ThemeMode mode) {
@@ -129,6 +138,9 @@ class AppControllerCubit extends Cubit<AppControllerState> {
         state.copyWith(
           supportEmail: asString(settings['supportEmail']),
           supportPhone: asString(settings['supportPhone']),
+          currency: asString(settings['currency']).toUpperCase().isEmpty
+              ? 'SAR'
+              : asString(settings['currency']).toUpperCase(),
         ),
       );
     });

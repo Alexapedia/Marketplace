@@ -1,0 +1,56 @@
+<div class="auth-screen">
+  <aside class="auth-brand">
+    <div class="auth-brand-inner">
+      <div class="auth-mark" aria-hidden="true">
+        <i></i>
+        <i></i>
+        <span>Z</span>
+      </div>
+      <p class="auth-kicker">{{ 'brand' | t }}</p>
+      <h1>{{ 'heroTitle' | t }}</h1>
+      <p class="auth-line">{{ 'authLine' | t }}</p>
+      <ul class="auth-points">
+        <li>{{ 'trustCod' | t }}</li>
+        <li>{{ 'deliveryEta' | t }}</li>
+        <li>{{ 'returns14' | t }}</li>
+      </ul>
+    </div>
+  </aside>
+
+  <section class="auth-stage">
+    <div class="auth-tools">
+      <a class="auth-ghost" routerLink="/">{{ 'browseStore' | t }}</a>
+      <div class="auth-tools-end">
+        <button class="auth-chip" type="button" (click)="i18n.toggle()">
+          {{ i18n.lang() === 'en' ? 'العربية' : 'English' }}
+        </button>
+        <button class="auth-chip" type="button" (click)="theme.toggle()" aria-label="theme">
+          {{ theme.mode() === 'dark' ? '☀' : '◐' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="auth-sheet">
+      @if (mode === 'login' || mode === 'register') {
+        <div class="auth-tabs">
+          <a routerLink="/login" routerLinkActive="on">{{ 'login' | t }}</a>
+          <a routerLink="/register" routerLinkActive="on">{{ 'register' | t }}</a>
+        </div>
+      }
+      <h2>{{ titleKey | t }}</h2>
+      <p class="auth-lead">{{ leadKey | t }}</p>
+      <ng-content />
+      <p class="auth-switch">
+        @if (mode === 'login') {
+          {{ 'noAccount' | t }}
+          <a routerLink="/register">{{ 'register' | t }}</a>
+        } @else if (mode === 'register') {
+          {{ 'haveAccount' | t }}
+          <a routerLink="/login">{{ 'login' | t }}</a>
+        } @else {
+          <a routerLink="/login">{{ 'login' | t }}</a>
+        }
+      </p>
+    </div>
+  </section>
+</div>

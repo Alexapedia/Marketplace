@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { FirebaseAdminService } from '../firebase/firebase-admin.service';
 import {
   Notification,
   NotificationDocument,
@@ -17,7 +17,7 @@ export class NotificationsService {
     private readonly notificationModel: Model<NotificationDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    private readonly config: ConfigService,
+    private readonly firebase: FirebaseAdminService,
   ) {}
 
   async createAndOptionallyPush(params: {
@@ -37,17 +37,34 @@ export class NotificationsService {
       batchId: params.batchId,
     });
 
-    const enabled = this.config.get<string>('FIREBASE_ENABLED') === 'true';
-    if (enabled) {
+    try {
       const user = await this.userModel
         .findById(params.userId)
-        .select('fcmTokens')
+        .select('fcmTokens language')
         .lean();
-      if (user?.fcmTokens?.length) {
-        this.logger.debug(
-          `FCM stub: would push to ${user.fcmTokens.length} token(s) for user ${params.userId}`,
-        );
+      const tokens = user?.fcmTokens ?? [];
+      if (this.firebase.enabled && tokens.length) {
+        const lang = user?.language === 'ar' ? 'ar' : 'en';
+        const data = this.toStringMap({
+          type: params.type,
+          notificationId: String(doc._id),
+          ...(params.data ?? {}),
+        });
+        const invalid = await this.firebase.sendToTokens(tokens, {
+          title: params.title[lang] || params.title.en,
+          body: params.body[lang] || params.body.en,
+          data,
+          clickPath: this.clickPath(params.type, params.data),
+        });
+        if (invalid.length) {
+          await this.userModel.updateOne(
+            { _id: params.userId },
+            { $pull: { fcmTokens: { $in: invalid } } },
+          );
+        }
       }
+    } catch (err) {
+      this.logger.warn(`Push failed: ${(err as Error).message}`);
     }
 
     return doc;
@@ -115,7 +132,9 @@ export class NotificationsService {
   }) {
     let userIds: string[] = params.userIds ?? [];
     if (params.target === 'all') {
-      const users = await this.userModel.find({ status: 'active' }).select('_id');
+      const users = await this.userModel
+        .find({ status: 'active', role: 'customer' })
+        .select('_id');
       userIds = users.map((u) => String(u._id));
     }
     let sent = 0;
@@ -171,5 +190,31 @@ export class NotificationsService {
         totalPages: Math.max(1, Math.ceil(totalGroups.length / limit)),
       },
     };
+  }
+
+  private clickPath(type: string, data?: Record<string, unknown>) {
+    const orderId = String(data?.orderId ?? '');
+    const customOrderId = String(data?.customOrderId ?? '');
+    if (type === 'new_order') return '/orders';
+    if (type === 'new_custom_order') return '/custom-orders';
+    if (type === 'order_status') {
+      return orderId ? `/orders/${orderId}` : '/orders';
+    }
+    if (
+      type === 'custom_order_proposal' ||
+      type === 'custom_order_confirmed'
+    ) {
+      return customOrderId ? `/custom/${customOrderId}` : '/custom';
+    }
+    return '/notifications';
+  }
+
+  private toStringMap(data: Record<string, unknown>) {
+    const out: Record<string, string> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value == null) continue;
+      out[key] = String(value);
+    }
+    return out;
   }
 }

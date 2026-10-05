@@ -58,9 +58,11 @@ class _SplashViewState extends State<_SplashView>
   Widget build(BuildContext context) {
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF071345), Color(0xFF1C3190)],
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [Color(0xFF071345), Color(0xFF1C3190)]
+                : [Color.fromARGB(255, 255, 255, 255), Color.fromARGB(255, 255, 255, 255), Color.fromARGB(162, 7, 19, 69)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

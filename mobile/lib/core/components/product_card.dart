@@ -7,6 +7,7 @@ import '../../config/app_controller/app_controller_cubit.dart';
 import '../../config/routing/app_router_keys.dart';
 import '../models/catalog_models.dart';
 import '../models/color_model.dart';
+import '../utils/constant/app_string.dart';
 import '../utils/functions/responsive.dart';
 import 'image_item.dart';
 import 'star_rating.dart';
@@ -169,7 +170,7 @@ class ProductCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${product.displayPrice.toStringAsFixed(0)} ${'currency'.tr()}',
+                                  '${product.displayPrice.toStringAsFixed(0)} ${AppString.currency}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(

@@ -1,14 +1,16 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, Injector, signal } from '@angular/core';
 import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { ApiClient } from '../api/api-client';
 import { User } from '../models/models';
 import { CartService } from '../cart/cart.service';
+import { FirebasePushService } from '../firebase/firebase-push.service';
 import { TOKEN_KEY } from './token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(ApiClient);
   private readonly cart = inject(CartService);
+  private readonly injector = inject(Injector);
 
   readonly token = signal<string | null>(this.readToken());
   readonly user = signal<User | null>(null);
@@ -32,6 +34,7 @@ export class AuthService {
         );
       }),
       tap(() => this.cart.refresh()),
+      tap(() => void this.injector.get(FirebasePushService).start()),
     );
   }
 
@@ -50,6 +53,7 @@ export class AuthService {
       }),
       map((res) => res.data.user),
       tap(() => this.cart.refresh()),
+      tap(() => void this.injector.get(FirebasePushService).start()),
     );
   }
 
@@ -65,7 +69,7 @@ export class AuthService {
     return this.api.get<User>('/auth/me').pipe(map((res) => res.data));
   }
 
-  updateMe(body: Partial<User>): Observable<User> {
+  updateMe(body: Partial<User> & { fcmToken?: string }): Observable<User> {
     return this.api.patch<User>('/auth/me', body).pipe(
       tap((res) => this.user.set(res.data)),
       map((res) => res.data),
@@ -92,6 +96,9 @@ export class AuthService {
         return of(false);
       }),
       tap(() => this.ready.set(true)),
+      tap((ok) => {
+        if (ok) void this.injector.get(FirebasePushService).start();
+      }),
     );
   }
 

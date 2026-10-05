@@ -6,6 +6,7 @@ import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/app_text_field.dart';
 import '../../../../../core/models/color_model.dart';
 import '../../../../../core/models/custom_order_models.dart';
+import '../../../../../core/utils/constant/app_string.dart';
 import '../../../addresses/view/widgets/pick_address_sheet.dart';
 import '../../controller/custom_order_details_cubit.dart';
 
@@ -42,7 +43,7 @@ class ProposalCard extends StatelessWidget {
             ),
           ),
           Text(
-            '${proposal.price.toStringAsFixed(0)} ${'currency'.tr()}',
+            '${proposal.price.toStringAsFixed(0)} ${AppString.currency}',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,

@@ -1,47 +1,68 @@
 # Firebase setup
 
-PlaceMarket can run with **email/password JWT only**. Enable Firebase when you have a project.
+PlaceMarket uses Firebase for Crashlytics, FCM push, and optional Google/Apple login.
 
-## 1. Create / reuse a Firebase project
+## 1. Mobile apps (already added)
 
-1. Open [Firebase Console](https://console.firebase.google.com).
-2. Add Android app `RK.Alexapedia.zezo_store` and download `google-services.json` into `mobile/android/app/`.
-3. Add iOS app with the bundle id from Xcode and put `GoogleService-Info.plist` in `mobile/ios/Runner/`.
-4. Enable Authentication providers: Email/Password, Google, Apple.
-5. Enable Cloud Messaging.
-6. Create a Storage bucket if you later move uploads off local disk.
+- Android: `mobile/android/app/google-services.json`
+- iOS: `mobile/ios/Runner/GoogleService-Info.plist`
+- FlutterFire options: `mobile/lib/firebase_options.dart`
+
+Enable in Firebase Console:
+
+1. Authentication: Email/Password, Google, Apple.
+2. Cloud Messaging.
+3. Crashlytics.
 
 ## 2. Backend service account
 
-1. Project settings → Service accounts → Generate new private key.
-2. Do **not** commit the JSON.
-3. In `backend/.env`:
+Keep the JSON **out of git**. Locally it lives at `backend/serviceAccount.json` (gitignored).
+
+`backend/.env`:
 
 ```
 FIREBASE_ENABLED=true
-FIREBASE_PROJECT_ID=...
+FIREBASE_PROJECT_ID=market-place-cfe60
 FIREBASE_CLIENT_EMAIL=...
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIREBASE_CREDENTIALS_PATH=./serviceAccount.json
 ```
 
-`POST /api/v1/auth/firebase` with `{ "idToken": "..." }` upserts the customer and returns a PlaceMarket JWT.
+Order status changes and admin campaigns send a real FCM push (with sound) plus an in-app inbox row. Rejecting an order requires a reason; that reason is included in the customer notification and shown on order details.
 
-## 3. Google Sign-In
+## 3. Web push (admin + customer website)
 
-- Android: SHA-1 / SHA-256 of the debug and release keystores in Firebase.
-- iOS: URL scheme from `REVERSED_CLIENT_ID`.
-- Enable Google provider in Firebase Auth.
+Need a **Web** app in the same Firebase project, then two values:
 
-## 4. Apple Sign-In
+### firebaseConfig (`appId` especially)
 
-- Apple Developer: App ID with Sign in with Apple.
-- Firebase Auth → Apple provider.
-- iOS capability Sign in with Apple in Xcode.
+1. [Firebase Console](https://console.firebase.google.com) → project `market-place-cfe60`
+2. Project settings (gear) → **Your apps** → Add app → **Web** (`</>`)
+3. Register **two** web apps if you want (Admin + Storefront), or reuse one
+4. Copy the `firebaseConfig` object
 
-## 5. FCM / APNs
+Paste `appId` (and apiKey if it differs) into:
 
-- Upload APNs key (.p8) to Firebase Cloud Messaging.
-- Android needs `google-services.json` (already listed above).
-- The app registers an FCM token via `PATCH /auth/me` `{ "fcmToken": "..." }`.
+- `admin/src/environments/environment.ts`
+- `web/src/environments/environment.ts`
+- `admin/public/firebase-messaging-sw.js`
+- `web/public/firebase-messaging-sw.js`
 
-Until Firebase is configured, the mobile app still starts: Firebase init is wrapped in try/catch and Google/Apple buttons show an error instead of crashing.
+### VAPID key
+
+1. Project settings → **Cloud Messaging**
+2. **Web Push certificates**
+3. Generate a key pair if none exists
+4. Copy the **Key pair** string into `vapidKey` in both environment files
+
+Until `appId` and `vapidKey` are set, web push is skipped; mobile FCM still works.
+
+## 4. iOS APNs
+
+Upload an APNs `.p8` key later under Cloud Messaging. Android does not need that.
+
+## 5. Google / Apple Sign-In
+
+- Android: SHA-1 / SHA-256 of debug and release keystores
+- iOS: URL scheme from `REVERSED_CLIENT_ID`
+- Apple: App ID with Sign in with Apple + Firebase Apple provider

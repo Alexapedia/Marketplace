@@ -22,5 +22,6 @@ mixin LoginSessionMixin on Cubit<LoginState> {
     }
     emit(state.copyWith(loginStatus: RequestStatus.loaded));
     await sl.get<AppControllerCubit>().exitGuestMode();
+    await PushNotificationService.instance.registerToken();
   }
 }

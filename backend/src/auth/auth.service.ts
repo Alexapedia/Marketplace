@@ -21,6 +21,7 @@ import {
 } from '../schemas/password-reset.schema';
 import { Role, RoleDocument } from '../schemas/role.schema';
 import { User, UserDocument } from '../schemas/user.schema';
+import { FirebaseAdminService } from '../firebase/firebase-admin.service';
 import { FirebaseAuthDto } from './dto/firebase-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -37,6 +38,7 @@ export class AuthService {
     @InjectModel(Role.name) private readonly roleModel: Model<RoleDocument>,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly firebaseAdmin: FirebaseAdminService,
   ) {}
 
   private staffType(role: string): 'customer' | 'staff' {
@@ -127,31 +129,16 @@ export class AuthService {
   }
 
   async firebase(dto: FirebaseAuthDto) {
-    const enabled = this.config.get<string>('FIREBASE_ENABLED') === 'true';
-    if (!enabled) {
+    if (!this.firebaseAdmin.enabled) {
       throw new HttpException(
         'Firebase auth is disabled',
         HttpStatus.NOT_IMPLEMENTED,
       );
     }
 
-    const { cert, getApps, initializeApp } = await import('firebase-admin/app');
-    const { getAuth } = await import('firebase-admin/auth');
-    if (!getApps().length) {
-      initializeApp({
-        credential: cert({
-          projectId: this.config.get<string>('FIREBASE_PROJECT_ID'),
-          clientEmail: this.config.get<string>('FIREBASE_CLIENT_EMAIL'),
-          privateKey: this.config
-            .get<string>('FIREBASE_PRIVATE_KEY')
-            ?.replace(/\\n/g, '\n'),
-        }),
-      });
-    }
-
     let decoded: { uid: string; email?: string; name?: string };
     try {
-      decoded = await getAuth().verifyIdToken(dto.idToken);
+      decoded = await this.firebaseAdmin.verifyIdToken(dto.idToken);
     } catch {
       throw new UnauthorizedException('Invalid Firebase token');
     }

@@ -15,6 +15,10 @@ export class AuthApi {
     return this.api.get<User>('/auth/me');
   }
 
+  updateMe(body: { fcmToken?: string }): Observable<ApiResult<User>> {
+    return this.api.patch<User>('/auth/me', body);
+  }
+
   logout(): Observable<ApiResult<unknown>> {
     return this.api.post<unknown>('/auth/logout');
   }

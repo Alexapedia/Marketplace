@@ -192,6 +192,7 @@ class NotificationModel {
   final DateTime? createdAt;
   final String? type;
   final String? referenceId;
+  final Map<String, dynamic> data;
 
   const NotificationModel({
     this.id = '',
@@ -201,18 +202,27 @@ class NotificationModel {
     this.createdAt,
     this.type,
     this.referenceId,
+    this.data = const {},
   });
 
   factory NotificationModel.fromJson(dynamic json) {
     final map = asMap(json);
+    final data = asMap(map['data']);
     return NotificationModel(
       id: asString(map['_id'] ?? map['id']),
       title: localized(map['title']),
       body: localized(map['body'] ?? map['message']),
-      isRead: asBool(map['isRead'] ?? map['read']),
+      isRead: asBool(map['isRead'] ?? map['read']) ||
+          asString(map['readAt']).isNotEmpty,
       createdAt: DateTime.tryParse(asString(map['createdAt'])),
       type: map['type']?.toString(),
-      referenceId: (map['referenceId'] ?? map['orderId'])?.toString(),
+      referenceId: asString(
+        data['orderId'] ??
+            data['customOrderId'] ??
+            map['referenceId'] ??
+            map['orderId'],
+      ),
+      data: data,
     );
   }
 }

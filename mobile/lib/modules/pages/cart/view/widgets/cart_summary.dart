@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/models/color_model.dart';
+import '../../../../../core/utils/constant/app_string.dart';
 
 class CartSummary extends StatelessWidget {
   const CartSummary({
@@ -48,7 +49,7 @@ class CartSummary extends StatelessWidget {
               Text('total'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
               const Spacer(),
               Text(
-                '${total.toStringAsFixed(0)} ${'currency'.tr()}',
+                '${total.toStringAsFixed(0)} ${AppString.currency}',
                 style: TextStyle(
                   color: gold,
                   fontWeight: FontWeight.w800,

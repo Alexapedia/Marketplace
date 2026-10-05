@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/components/star_rating.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/models/color_model.dart';
+import '../../../../../core/utils/constant/app_string.dart';
 import '../../controller/product_details_cubit.dart';
 import 'product_info_tile.dart';
 import 'product_related_grid.dart';
@@ -49,7 +50,7 @@ class ProductInfo extends StatelessWidget {
         Row(
           children: [
             Text(
-              '${product.displayPrice.toStringAsFixed(0)} ${'currency'.tr()}',
+              '${product.displayPrice.toStringAsFixed(0)} ${AppString.currency}',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,

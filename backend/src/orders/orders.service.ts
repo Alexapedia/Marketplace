@@ -403,16 +403,14 @@ export class OrdersService implements OnModuleInit {
 
     await this.notifications.createAndOptionallyPush({
       userId: String(order.userId._id ?? order.userId),
-      title: {
-        en: 'Order update',
-        ar: 'تحديث الطلب',
-      },
-      body: {
-        en: `Order ${order.orderNumber} is now ${dto.status}`,
-        ar: `الطلب ${order.orderNumber} أصبح ${dto.status}`,
-      },
+      ...this.statusNotification(dto.status, order.orderNumber, dto.rejectionReason),
       type: 'order_status',
-      data: { orderId: String(order._id), status: dto.status },
+      data: {
+        orderId: String(order._id),
+        status: dto.status,
+        orderNumber: order.orderNumber,
+        ...(dto.rejectionReason ? { rejectionReason: dto.rejectionReason } : {}),
+      },
     });
 
     return order;
@@ -441,6 +439,57 @@ export class OrdersService implements OnModuleInit {
         quantity: item.quantity,
       })),
       1,
+    );
+  }
+
+  private statusNotification(
+    status: string,
+    orderNumber: string,
+    reason?: string,
+  ) {
+    const n = orderNumber;
+    const copies: Record<string, { title: { en: string; ar: string }; body: { en: string; ar: string } }> = {
+      accepted: {
+        title: { en: 'Order confirmed', ar: 'تم تأكيد الطلب' },
+        body: { en: `Order ${n} was confirmed.`, ar: `تم تأكيد الطلب ${n}.` },
+      },
+      preparing: {
+        title: { en: 'Preparing your order', ar: 'جاري تجهيز طلبك' },
+        body: { en: `We started preparing order ${n}.`, ar: `بدأنا تجهيز الطلب ${n}.` },
+      },
+      ready: {
+        title: { en: 'Order is ready', ar: 'طلبك جاهز' },
+        body: { en: `Order ${n} is ready.`, ar: `الطلب ${n} جاهز.` },
+      },
+      out_for_delivery: {
+        title: { en: 'Order on the way', ar: 'الطلب في الطريق' },
+        body: { en: `Order ${n} is out for delivery.`, ar: `الطلب ${n} خرج للتوصيل.` },
+      },
+      delivered: {
+        title: { en: 'Order delivered', ar: 'تم توصيل الطلب' },
+        body: { en: `Order ${n} was delivered.`, ar: `تم توصيل الطلب ${n}.` },
+      },
+      completed: {
+        title: { en: 'Order completed', ar: 'اكتمل الطلب' },
+        body: { en: `Order ${n} is complete.`, ar: `اكتمل الطلب ${n}.` },
+      },
+      cancelled: {
+        title: { en: 'Order cancelled', ar: 'تم إلغاء الطلب' },
+        body: { en: `Order ${n} was cancelled.`, ar: `تم إلغاء الطلب ${n}.` },
+      },
+      rejected: {
+        title: { en: 'Order rejected', ar: 'تم رفض الطلب' },
+        body: {
+          en: reason ? `Order ${n} was rejected: ${reason}` : `Order ${n} was rejected.`,
+          ar: reason ? `تم رفض الطلب ${n}: ${reason}` : `تم رفض الطلب ${n}.`,
+        },
+      },
+    };
+    return (
+      copies[status] ?? {
+        title: { en: 'Order update', ar: 'تحديث الطلب' },
+        body: { en: `Order ${n} is now ${status}.`, ar: `الطلب ${n} أصبح ${status}.` },
+      }
     );
   }
 

@@ -95,6 +95,7 @@ export interface AppPublicConfig {
     supportEmail?: string;
     supportPhone?: string;
     deliveryFee?: number;
+    currency?: string;
   };
 }
 

@@ -12,6 +12,8 @@ import { AppConfigApi } from '../../core/api/app-config.api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { AppConfig, OnboardingSlide } from '../../core/models/models';
+import { CURRENCY_CODES } from '../../core/config/currency';
+import { StoreConfigService } from '../../core/config/store-config.service';
 import { AsyncState } from '../../shared/async-state';
 import { ImageUploader } from '../../shared/image-uploader';
 import { errMessage, UiService } from '../../shared/ui.service';
@@ -39,7 +41,9 @@ export class AppConfigPage implements OnInit {
   private readonly api = inject(AppConfigApi);
   private readonly fb = inject(FormBuilder);
   private readonly ui = inject(UiService);
+  private readonly store = inject(StoreConfigService);
   readonly i18n = inject(I18nService);
+  readonly currencies = CURRENCY_CODES;
 
   @Input() section: 'all' | 'support' | 'upgrade' | 'onboarding' = 'all';
   @Input() embedded = false;
@@ -65,6 +69,7 @@ export class AppConfigPage implements OnInit {
     supportEmail: [''],
     supportPhone: [''],
     deliveryFee: [0],
+    currency: ['SAR'],
   });
 
   get onboarding(): FormArray<FormGroup> {
@@ -142,12 +147,14 @@ export class AppConfigPage implements OnInit {
         supportEmail: v.supportEmail,
         supportPhone: v.supportPhone,
         deliveryFee: Number(v.deliveryFee) || 0,
+        currency: v.currency || 'SAR',
       },
     };
     this.saving.set(true);
     this.api.update(payload).subscribe({
       next: () => {
         this.saving.set(false);
+        this.store.setCurrency(v.currency);
         this.ui.success(this.i18n.t('common.save'));
       },
       error: (err: unknown) => {
@@ -176,6 +183,7 @@ export class AppConfigPage implements OnInit {
       supportEmail: String(cfg.settings?.['supportEmail'] ?? ''),
       supportPhone: String(cfg.settings?.['supportPhone'] ?? ''),
       deliveryFee: Number(cfg.settings?.['deliveryFee'] ?? 0),
+      currency: String(cfg.settings?.['currency'] ?? 'SAR').toUpperCase() || 'SAR',
     });
     this.onboarding.clear();
     (cfg.onboarding ?? []).forEach((s) => this.onboarding.push(this.onboardingGroup(s)));

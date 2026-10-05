@@ -1,10 +1,10 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/models/color_model.dart';
+import '../../../../../core/utils/constant/app_string.dart';
 import '../../../../../core/utils/functions/status_label.dart';
 
 class OrderTile extends StatelessWidget {
@@ -30,7 +30,7 @@ class OrderTile extends StatelessWidget {
       title: Text('#$short'),
       subtitle: Text(statusLabel(order.status)),
       trailing: Text(
-        '${order.total.toStringAsFixed(0)} ${'currency'.tr()}',
+        '${order.total.toStringAsFixed(0)} ${AppString.currency}',
         style: TextStyle(color: gold, fontWeight: FontWeight.w800),
       ),
     );

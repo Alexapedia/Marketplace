@@ -1,22 +1,42 @@
-<div class="w">
-  <form class="panel auth" (submit)="submit($event)">
-    <h1>{{ 'login' | t }}</h1>
+<app-auth-layout mode="login">
+  <form class="auth-form" (submit)="submit($event)">
     @if (error()) {
-      <div class="error">{{ error() }}</div>
+      <div class="auth-error">{{ error() }}</div>
     }
-    <div class="field">
-      <label>{{ 'email' | t }}</label>
-      <input type="email" [(ngModel)]="email" name="email" required />
+    <div class="auth-field">
+      <label for="auth-email">{{ 'email' | t }}</label>
+      <input
+        id="auth-email"
+        type="email"
+        name="email"
+        autocomplete="username"
+        [(ngModel)]="email"
+        required
+      />
     </div>
-    <div class="field">
-      <label>{{ 'password' | t }}</label>
-      <input type="password" [(ngModel)]="password" name="password" required />
+    <div class="auth-field">
+      <div class="auth-label-row">
+        <label for="auth-password">{{ 'password' | t }}</label>
+        <a routerLink="/forgot">{{ 'forgotPassword' | t }}</a>
+      </div>
+      <div class="auth-pass">
+        <input
+          id="auth-password"
+          [type]="hide() ? 'password' : 'text'"
+          name="password"
+          autocomplete="current-password"
+          [(ngModel)]="password"
+          required
+        />
+        <app-auth-eye [masked]="hide()" (toggle)="hide.set(!hide())" />
+      </div>
     </div>
-    <button class="btn wide" type="submit">{{ 'login' | t }}</button>
-    <p class="muted" style="text-align: center; margin-top: 14px">
-      <a routerLink="/register">{{ 'register' | t }}</a>
-      ·
-      <a routerLink="/forgot">{{ 'forgotPassword' | t }}</a>
-    </p>
+    <button class="auth-btn" type="submit" [disabled]="loading()">
+      @if (loading()) {
+        <span class="auth-spin"></span>
+      } @else {
+        {{ 'login' | t }}
+      }
+    </button>
   </form>
-</div>
+</app-auth-layout>

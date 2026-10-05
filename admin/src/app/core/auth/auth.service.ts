@@ -1,6 +1,7 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, Injector, signal } from '@angular/core';
 import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { AuthApi } from '../api/auth.api';
+import { FirebasePushService } from '../firebase/firebase-push.service';
 import { STAFF_ROLES, StaffRole, User } from '../models/models';
 
 const TOKEN_KEY = 'pm_token';
@@ -8,6 +9,7 @@ const TOKEN_KEY = 'pm_token';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(AuthApi);
+  private readonly injector = inject(Injector);
 
   readonly token = signal<string | null>(this.readToken());
   readonly user = signal<User | null>(null);
@@ -34,6 +36,7 @@ export class AuthService {
           map((me) => me.data),
         );
       }),
+      tap(() => void this.injector.get(FirebasePushService).start()),
     );
   }
 
@@ -50,6 +53,9 @@ export class AuthService {
         return of(false);
       }),
       tap(() => this.ready.set(true)),
+      tap((ok) => {
+        if (ok) void this.injector.get(FirebasePushService).start();
+      }),
     );
   }
 

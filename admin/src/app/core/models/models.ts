@@ -261,6 +261,7 @@ export interface AppNotification {
   data?: Record<string, unknown>;
   createdAt?: string;
   readAt?: string | null;
+  sent?: number;
 }
 
 export interface VersionConfig {

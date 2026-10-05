@@ -1,22 +1,29 @@
-<div class="w">
-  <form class="panel auth" (submit)="submit($event)">
-    <h1>{{ 'forgotPassword' | t }}</h1>
-    <p class="muted">{{ 'forgotHint' | t }}</p>
+<app-auth-layout mode="forgot">
+  <form class="auth-form" (submit)="submit($event)">
     @if (error()) {
-      <div class="error">{{ error() }}</div>
+      <div class="auth-error">{{ error() }}</div>
     }
     @if (sent()) {
-      <div class="cod">{{ 'forgotSent' | t }}</div>
+      <div class="auth-ok">{{ 'forgotSent' | t }}</div>
+    } @else {
+      <div class="auth-field">
+        <label for="auth-email">{{ 'email' | t }}</label>
+        <input
+          id="auth-email"
+          type="email"
+          name="email"
+          autocomplete="email"
+          [(ngModel)]="email"
+          required
+        />
+      </div>
+      <button class="auth-btn" type="submit" [disabled]="loading()">
+        @if (loading()) {
+          <span class="auth-spin"></span>
+        } @else {
+          {{ 'sendReset' | t }}
+        }
+      </button>
     }
-    <div class="field">
-      <label>{{ 'email' | t }}</label>
-      <input type="email" [(ngModel)]="email" name="email" required />
-    </div>
-    <button class="btn wide" type="submit">{{ 'sendReset' | t }}</button>
-    <p class="muted" style="text-align: center; margin-top: 14px">
-      <a routerLink="/login">{{ 'login' | t }}</a>
-      ·
-      <a routerLink="/reset">{{ 'resetPassword' | t }}</a>
-    </p>
   </form>
-</div>
+</app-auth-layout>

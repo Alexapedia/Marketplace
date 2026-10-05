@@ -20,6 +20,7 @@ export class AppConfigService {
         version: {},
         settings: {
           deliveryFee: 0,
+          currency: 'SAR',
           supportPhone: '',
           supportEmail: '',
         },

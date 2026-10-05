@@ -43,6 +43,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
                     createdAt: e.createdAt,
                     type: e.type,
                     referenceId: e.referenceId,
+                    data: e.data,
                   )
                 : e)
             .toList(),

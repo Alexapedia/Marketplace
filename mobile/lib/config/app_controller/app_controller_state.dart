@@ -13,6 +13,7 @@ class AppControllerState extends Equatable {
     this.favoritesReady = false,
     this.supportEmail = '',
     this.supportPhone = '',
+    this.currency = 'SAR',
   });
 
   final int countOfUnReadNot;
@@ -26,6 +27,7 @@ class AppControllerState extends Equatable {
   final bool favoritesReady;
   final String supportEmail;
   final String supportPhone;
+  final String currency;
 
   bool get isDark => themeMode == ThemeMode.dark;
   bool isFavorite(String productId) => favoriteIds.contains(productId);
@@ -43,6 +45,7 @@ class AppControllerState extends Equatable {
     favoritesReady,
     supportEmail,
     supportPhone,
+    currency,
   ];
 
   AppControllerState copyWith({
@@ -57,6 +60,7 @@ class AppControllerState extends Equatable {
     bool? favoritesReady,
     String? supportEmail,
     String? supportPhone,
+    String? currency,
   }) => AppControllerState(
     countOfUnReadNot: countOfUnReadNot ?? this.countOfUnReadNot,
     cartItemsCount: cartItemsCount ?? this.cartItemsCount,
@@ -69,5 +73,6 @@ class AppControllerState extends Equatable {
     favoritesReady: favoritesReady ?? this.favoritesReady,
     supportEmail: supportEmail ?? this.supportEmail,
     supportPhone: supportPhone ?? this.supportPhone,
+    currency: currency ?? this.currency,
   );
 }

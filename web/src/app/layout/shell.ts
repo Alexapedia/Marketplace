@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
@@ -8,6 +8,12 @@ import { CartService } from '../core/cart/cart.service';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { ThemeService } from '../core/theme/theme.service';
+import { ApiClient } from '../core/api/api-client';
+import {
+  bindNotificationSoundUnlock,
+  listenForPushSound,
+  playNotificationSound,
+} from '../core/firebase/notification-sound';
 
 @Component({
   selector: 'app-shell',
@@ -15,17 +21,25 @@ import { ThemeService } from '../core/theme/theme.service';
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
-export class Shell {
+export class Shell implements OnDestroy {
   readonly year = new Date().getFullYear();
   readonly auth = inject(AuthService);
   readonly cart = inject(CartService);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
+  readonly unread = signal(0);
   private readonly router = inject(Router);
+  private readonly api = inject(ApiClient);
+  private unreadTimer?: ReturnType<typeof setInterval>;
+  private unreadReady = false;
 
   searchQ = '';
 
   constructor() {
+    bindNotificationSoundUnlock();
+    listenForPushSound();
+    this.refreshUnread();
+    this.unreadTimer = setInterval(() => this.refreshUnread(), 15000);
     this.router.events
       .pipe(
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
@@ -37,6 +51,29 @@ export class Shell {
           this.searchQ = q;
         }
       });
+  }
+
+  ngOnDestroy(): void {
+    if (this.unreadTimer) clearInterval(this.unreadTimer);
+  }
+
+  private refreshUnread(): void {
+    if (!this.auth.token()) {
+      this.unread.set(0);
+      this.unreadReady = false;
+      return;
+    }
+    this.api.get<{ count: number }>('/notifications/unread-count').subscribe({
+      next: (res) => {
+        const count = Number(res.data?.count ?? 0);
+        if (this.unreadReady && count > this.unread()) {
+          playNotificationSound();
+        }
+        this.unread.set(count);
+        this.unreadReady = true;
+      },
+      error: () => undefined,
+    });
   }
 
   onSearch(ev: Event): void {

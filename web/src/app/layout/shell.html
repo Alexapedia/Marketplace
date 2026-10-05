@@ -22,6 +22,12 @@
       </a>
       @if (auth.user()) {
         <a routerLink="/orders" routerLinkActive="active">{{ 'orders' | t }}</a>
+        <a routerLink="/notifications" routerLinkActive="active">
+          {{ 'notifications' | t }}
+          @if (unread()) {
+            <span class="badge">{{ unread() }}</span>
+          }
+        </a>
         <a
           routerLink="/account"
           routerLinkActive="active"

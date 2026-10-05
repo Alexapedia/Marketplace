@@ -8,6 +8,8 @@ import {
   IsString,
   Max,
   Min,
+  MinLength,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
@@ -83,8 +85,9 @@ export class ChangeOrderStatusDto {
   status: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
+  @ValidateIf((dto: ChangeOrderStatusDto) => dto.status === 'rejected')
   @IsString()
+  @MinLength(3)
   rejectionReason?: string;
 }
 

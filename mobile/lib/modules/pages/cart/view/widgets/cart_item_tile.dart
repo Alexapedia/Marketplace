@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/components/image_item.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/models/color_model.dart';
+import '../../../../../core/utils/constant/app_string.dart';
 import '../../../../../core/utils/functions/open_product.dart';
 import '../../controller/cart_cubit.dart';
 
@@ -63,7 +64,7 @@ class CartItemTile extends StatelessWidget {
                       ),
                     ),
                   Text(
-                    '${item.lineTotal.toStringAsFixed(0)} ${'currency'.tr()}',
+                    '${item.lineTotal.toStringAsFixed(0)} ${AppString.currency}',
                     style: TextStyle(color: gold, fontWeight: FontWeight.w800),
                   ),
                 ],
