@@ -22,8 +22,11 @@ import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../core/utils/functions/shared_preferance_utils.dart';
 
 part 'login_state.dart';
+part 'login_session_mixin.dart';
+part 'login_social_mixin.dart';
 
-class LoginCubit extends Cubit<LoginState> {
+class LoginCubit extends Cubit<LoginState>
+    with LoginSessionMixin, LoginSocialMixin {
   LoginCubit() : super(const LoginState());
 
   static LoginCubit get(context) => BlocProvider.of(context);
@@ -54,7 +57,7 @@ class LoginCubit extends Cubit<LoginState> {
         emit(state.copyWith(loginStatus: RequestStatus.failed));
       },
       (r) async {
-        await _persistSession(r.response);
+        await persistSession(r.response);
         if (context.mounted) {
           RouterHandler.navigate(
             context,
@@ -75,103 +78,6 @@ class LoginCubit extends Cubit<LoginState> {
         routerType: RouterType.goName,
       );
     }
-  }
-
-  Future<void> googleSignIn(BuildContext context) async {
-    if (!FirebaseService.initialized) {
-      AppToast('google_unavailable'.tr(), isError: true);
-      return;
-    }
-    try {
-      emit(state.copyWith(loginStatus: RequestStatus.loading));
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        emit(state.copyWith(loginStatus: RequestStatus.init));
-        return;
-      }
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      final userCred = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
-      final idToken = await userCred.user?.getIdToken();
-      if (idToken == null) throw Exception('no token');
-      if (!context.mounted) return;
-      await _firebaseBackend(context, idToken);
-    } catch (e) {
-      printState(e);
-      AppToast('auth_failed'.tr(), isError: true);
-      emit(state.copyWith(loginStatus: RequestStatus.failed));
-    }
-  }
-
-  Future<void> appleSignIn(BuildContext context) async {
-    if (!FirebaseService.initialized) {
-      AppToast('apple_unavailable'.tr(), isError: true);
-      return;
-    }
-    try {
-      emit(state.copyWith(loginStatus: RequestStatus.loading));
-      final provider = AppleAuthProvider();
-      final userCred = await FirebaseAuth.instance.signInWithProvider(provider);
-      final idToken = await userCred.user?.getIdToken();
-      if (idToken == null) throw Exception('no token');
-      if (!context.mounted) return;
-      await _firebaseBackend(context, idToken);
-    } catch (e) {
-      printState(e);
-      AppToast('auth_failed'.tr(), isError: true);
-      emit(state.copyWith(loginStatus: RequestStatus.failed));
-    }
-  }
-
-  Future<void> _firebaseBackend(BuildContext context, String idToken) async {
-    final response = await sl.get<ApiConsumer>().auth(
-      EndPoints.firebaseAuth,
-      body: {'idToken': idToken},
-    );
-    await response.fold(
-      (l) {
-        AppToast(l, isError: true);
-        emit(state.copyWith(loginStatus: RequestStatus.failed));
-      },
-      (r) async {
-        await _persistSession(r.response);
-        if (context.mounted) {
-          RouterHandler.navigate(
-            context,
-            AppRouterKeys.navigatorBarScreen,
-            routerType: RouterType.goName,
-          );
-        }
-      },
-    );
-  }
-
-  Future<void> _persistSession(dynamic json) async {
-    final token = extractToken(json);
-    final user = UserModel.fromJson(json);
-    await sl.get<HandleMultiCallLocal>().saveLocalData(
-      data: token,
-      keyType: LocalEnumKey.accessToken,
-    );
-    if (user.id.isNotEmpty) {
-      await sl.get<HandleMultiCallLocal>().saveLocalData(
-        data: user.id,
-        keyType: LocalEnumKey.userId,
-      );
-    }
-    if (user.name.isNotEmpty) {
-      await PreferenceUtils.setString(StorageKey.userFullName, user.name);
-    }
-    if (user.email.isNotEmpty) {
-      await PreferenceUtils.setString(StorageKey.userEmail, user.email);
-    }
-    emit(state.copyWith(loginStatus: RequestStatus.loaded));
-    await sl.get<AppControllerCubit>().exitGuestMode();
   }
 
   void togglePassword() {

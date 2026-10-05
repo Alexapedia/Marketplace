@@ -1,0 +1,28 @@
+<div class="w">
+  <form class="panel auth" (submit)="submit($event)">
+    <h1>{{ 'register' | t }}</h1>
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+    <div class="field">
+      <label>{{ 'name' | t }}</label>
+      <input [(ngModel)]="name" name="name" required />
+    </div>
+    <div class="field">
+      <label>{{ 'email' | t }}</label>
+      <input type="email" [(ngModel)]="email" name="email" required />
+    </div>
+    <div class="field">
+      <label>{{ 'password' | t }}</label>
+      <input type="password" [(ngModel)]="password" name="password" required minlength="8" />
+    </div>
+    <div class="field">
+      <label>{{ 'phone' | t }}</label>
+      <input type="tel" [(ngModel)]="phone" name="phone" />
+    </div>
+    <button class="btn wide" type="submit">{{ 'register' | t }}</button>
+    <p class="muted" style="text-align: center; margin-top: 14px">
+      <a routerLink="/login">{{ 'login' | t }}</a>
+    </p>
+  </form>
+</div>

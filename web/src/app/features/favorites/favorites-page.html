@@ -1,0 +1,12 @@
+<div class="w">
+  <app-page-bar [title]="('favorites' | t)" />
+  @if (!products().length) {
+    <p class="empty">{{ 'emptyFav' | t }}</p>
+  } @else {
+    <div class="grid">
+      @for (p of products(); track p._id || p.id) {
+        <app-product-card [product]="p" [liked]="true" />
+      }
+    </div>
+  }
+</div>

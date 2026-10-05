@@ -1,0 +1,21 @@
+<div class="w">
+  <form class="panel auth" (submit)="submit($event)">
+    <h1>{{ 'resetPassword' | t }}</h1>
+    <p class="muted">{{ 'resetHint' | t }}</p>
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+    <div class="field">
+      <label>{{ 'resetToken' | t }}</label>
+      <input [(ngModel)]="token" name="token" required />
+    </div>
+    <div class="field">
+      <label>{{ 'newPassword' | t }}</label>
+      <input type="password" [(ngModel)]="password" name="password" required minlength="8" />
+    </div>
+    <button class="btn wide" type="submit">{{ 'resetPassword' | t }}</button>
+    <p class="muted" style="text-align: center; margin-top: 14px">
+      <a routerLink="/login">{{ 'login' | t }}</a>
+    </p>
+  </form>
+</div>

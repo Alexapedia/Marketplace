@@ -32,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload): Promise<AuthUser> {
     const user = await this.userModel.findById(payload.sub);
-    if (!user || user.status === 'blocked') {
+    if (!user || user.status === 'blocked' || user.status === 'deleted') {
       throw new UnauthorizedException('Account unavailable');
     }
     const roleDoc = await this.roleModel.findOne({ name: user.role }).lean();

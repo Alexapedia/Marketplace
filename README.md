@@ -5,7 +5,8 @@ E-commerce and custom-orders platform from the full product scope:
 - **mobile** — Flutter customer app (iOS & Android)
 - **admin** — Angular 21 admin dashboard
 - **backend** — NestJS REST API (`/api/v1`) with MongoDB
-- **website** — customer web store, to be added later
+- **website** — customer web store (`web/`, Vite, http://localhost:5173)
+
 
 Catalog is ready for perfumes, watches, accessories, and clothing. Customers can shop standard products or submit structured custom requests, chat with staff, and confirm admin proposals. Release 1 payment method is Cash on Delivery; online payment is abstracted for later.
 
@@ -31,7 +32,12 @@ npm run start:dev
 cd ../admin
 npm start
 
-# 4. Mobile app
+# 4. Customer website  →  http://localhost:5173
+cd ../web
+npm install
+npm run dev
+
+# 5. Mobile app
 cd ../mobile
 flutter pub get
 flutter run
@@ -52,9 +58,11 @@ Register a customer from the mobile app or `POST /api/v1/auth/register`.
 | `mobile/` | Flutter, Bloc, Dio, go_router, easy_localization | Customer shopping, custom orders, chat, COD |
 | `admin/` | Angular 21, Angular Material | Operations: products, orders, proposals, force upgrade |
 | `backend/` | NestJS 11, MongoDB, JWT, Swagger | Auth, catalog, cart, orders, custom workflow, FCM-ready |
+| `web/` | Vite + TypeScript | Customer storefront (catalog, cart, COD) |
 
 ## Docs
 
+- [Customer apps (mobile + website)](docs/customer-apps.md)
 - [API contract](docs/API.md)
 - [Architecture](docs/architecture.md)
 - [Firebase setup](docs/firebase.md)
@@ -78,6 +86,6 @@ flutter run --dart-define=API_URL=http://192.168.1.10:3000/api/v1
 
 Firebase Auth, Google, Apple, and FCM are wired but optional until credentials are supplied. Email/password against the API works without Firebase.
 
-## Branding (pending)
+## Branding
 
-Logo, final colors, store names, delivery fees, and legal pages are listed in the original scope as later inputs. Current UI uses ink `#1C1A17` and gold `#C6A667`.
+Zezo Store uses navy `#071345` and white across mobile, admin, and the customer website.

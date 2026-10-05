@@ -23,12 +23,67 @@ export class AdminListQuery extends PaginationDto {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  channel?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  role?: string;
 }
 
 export class PatchCustomerDto {
   @ApiProperty({ enum: ['active', 'blocked'] })
   @IsIn(['active', 'blocked'])
   status: string;
+}
+
+export class CreateStaffDto {
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  password: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty()
+  @IsString()
+  role: string;
+}
+
+export class PatchStaffDto {
+  @ApiPropertyOptional({ enum: ['active', 'blocked'] })
+  @IsOptional()
+  @IsIn(['active', 'blocked'])
+  status?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  role?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  phone?: string;
 }
 
 export class SendNotificationDto {

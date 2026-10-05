@@ -1,0 +1,27 @@
+.lead {
+  margin: -6px 0 16px;
+  color: #5c678c;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.tabs button {
+  border: 1px solid color-mix(in srgb, #071345 12%, transparent);
+  background: #fff;
+  color: #071345;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabs button.on {
+  background: #071345;
+  color: #fff;
+  border-color: #071345;
+}

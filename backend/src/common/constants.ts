@@ -31,10 +31,14 @@ export const ALL_PERMISSIONS = [
   'notifications.write',
   'app-config.read',
   'app-config.write',
+  'ads.read',
+  'ads.write',
   'reports.read',
   'audit-logs.read',
   'roles.read',
   'roles.write',
+  'reviews.read',
+  'reviews.write',
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];

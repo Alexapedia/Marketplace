@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, superAdminGuard } from './core/auth/auth.guard';
+import { authGuard, guestGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -28,11 +28,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/categories/categories-page').then((m) => m.CategoriesPage),
       },
-      {
-        path: 'custom-fields',
-        loadComponent: () =>
-          import('./features/custom-fields/custom-fields-page').then((m) => m.CustomFieldsPage),
-      },
+      { path: 'custom-fields', redirectTo: 'settings' },
       {
         path: 'orders',
         loadComponent: () => import('./features/orders/orders-page').then((m) => m.OrdersPage),
@@ -56,10 +52,20 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/notifications/notifications-page').then((m) => m.NotificationsPage),
       },
+      { path: 'app-config', redirectTo: 'settings' },
       {
-        path: 'app-config',
+        path: 'settings',
         loadComponent: () =>
-          import('./features/app-config/app-config-page').then((m) => m.AppConfigPage),
+          import('./features/settings/settings-page').then((m) => m.SettingsPage),
+      },
+      {
+        path: 'ads',
+        loadComponent: () => import('./features/ads/ads-page').then((m) => m.AdsPage),
+      },
+      {
+        path: 'reviews',
+        loadComponent: () =>
+          import('./features/reviews/reviews-page').then((m) => m.ReviewsPage),
       },
       {
         path: 'reports',
@@ -70,11 +76,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/audit-logs/audit-logs-page').then((m) => m.AuditLogsPage),
       },
-      {
-        path: 'roles',
-        canActivate: [superAdminGuard],
-        loadComponent: () => import('./features/roles/roles-page').then((m) => m.RolesPage),
-      },
+      { path: 'roles', redirectTo: 'settings' },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

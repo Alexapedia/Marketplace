@@ -17,6 +17,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CustomOrder, entityId, PageMeta } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
+import { ImageUploader } from '../../shared/image-uploader';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
 
 @Component({
@@ -35,6 +36,7 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     MatCardModule,
     TranslatePipe,
     AsyncState,
+    ImageUploader,
   ],
   templateUrl: './custom-orders-page.html',
   styleUrl: './custom-orders-page.scss',
@@ -53,10 +55,20 @@ export class CustomOrdersPage implements OnInit {
   readonly selected = signal<CustomOrder | null>(null);
   readonly cols = ['id', 'status', 'createdAt', 'actions'];
   readonly entityId = entityId;
+  readonly status = signal('');
+  readonly statuses = [
+    'submitted',
+    'under_review',
+    'quote_sent',
+    'waiting_confirmation',
+    'confirmed',
+    'rejected',
+    'completed',
+  ];
 
+  readonly pics = signal<string[]>([]);
   readonly proposal = this.fb.nonNullable.group({
     productName: ['', Validators.required],
-    images: [''],
     specifications: [''],
     price: [0, Validators.required],
     quantity: [1],
@@ -71,7 +83,7 @@ export class CustomOrdersPage implements OnInit {
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit }).subscribe({
+    this.api.list({ page, limit, status: this.status() || undefined }).subscribe({
       next: (res) => {
         this.rows.set(asList(res.data));
         this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
@@ -110,7 +122,7 @@ export class CustomOrdersPage implements OnInit {
       return;
     }
     const v = this.proposal.getRawValue();
-    const images = v.images.split(/\n|,/).map((s) => s.trim()).filter(Boolean);
+    const images = this.pics();
     let specifications: Record<string, unknown> | string = v.specifications;
     try {
       specifications = v.specifications.trim().startsWith('{')
@@ -133,6 +145,15 @@ export class CustomOrdersPage implements OnInit {
         next: (res) => {
           this.ui.success(this.i18n.t('common.save'));
           this.selected.set(res.data);
+          this.pics.set([]);
+          this.proposal.reset({
+            productName: '',
+            specifications: '',
+            price: 0,
+            quantity: 1,
+            estimatedDays: 7,
+            notes: '',
+          });
           this.load();
         },
         error: (err: unknown) => this.ui.error(errMessage(err)),

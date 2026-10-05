@@ -8,6 +8,7 @@ class CustomOrderState extends Equatable {
     this.fields = const [],
     this.categoryId = '',
     this.images = const [],
+    this.answers = const {},
     this.error = '',
   });
   final RequestStatus status;
@@ -16,10 +17,21 @@ class CustomOrderState extends Equatable {
   final List<CustomFieldModel> fields;
   final String categoryId;
   final List<String> images;
+  final Map<String, dynamic> answers;
   final String error;
+
   @override
-  List<Object> get props =>
-      [status, submitStatus, categories, fields, categoryId, images, error];
+  List<Object> get props => [
+        status,
+        submitStatus,
+        categories,
+        fields,
+        categoryId,
+        images,
+        answers,
+        error,
+      ];
+
   CustomOrderState copyWith({
     RequestStatus? status,
     RequestStatus? submitStatus,
@@ -27,6 +39,7 @@ class CustomOrderState extends Equatable {
     List<CustomFieldModel>? fields,
     String? categoryId,
     List<String>? images,
+    Map<String, dynamic>? answers,
     String? error,
   }) =>
       CustomOrderState(
@@ -36,29 +49,8 @@ class CustomOrderState extends Equatable {
         fields: fields ?? this.fields,
         categoryId: categoryId ?? this.categoryId,
         images: images ?? this.images,
+        answers: answers ?? this.answers,
         error: error ?? this.error,
       );
 }
 
-class CustomOrderDetailsState extends Equatable {
-  const CustomOrderDetailsState({
-    this.status = RequestStatus.init,
-    this.order,
-    this.error = '',
-  });
-  final RequestStatus status;
-  final CustomOrderModel? order;
-  final String error;
-  @override
-  List<Object?> get props => [status, order, error];
-  CustomOrderDetailsState copyWith({
-    RequestStatus? status,
-    CustomOrderModel? order,
-    String? error,
-  }) =>
-      CustomOrderDetailsState(
-        status: status ?? this.status,
-        order: order ?? this.order,
-        error: error ?? this.error,
-      );
-}

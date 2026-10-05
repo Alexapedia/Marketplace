@@ -4,10 +4,12 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Connection, Model } from 'mongoose';
 import { ALL_PERMISSIONS } from '../common/constants';
+import { Ad, AdDocument } from '../schemas/ad.schema';
 import { AppConfig, AppConfigDocument } from '../schemas/app-config.schema';
 import { Category, CategoryDocument } from '../schemas/category.schema';
 import { CustomField, CustomFieldDocument } from '../schemas/custom-field.schema';
 import { Product, ProductDocument } from '../schemas/product.schema';
+import { Review, ReviewDocument } from '../schemas/review.schema';
 import { Role, RoleDocument } from '../schemas/role.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 
@@ -27,14 +29,21 @@ export class SeedService implements OnApplicationBootstrap {
     private readonly productModel: Model<ProductDocument>,
     @InjectModel(AppConfig.name)
     private readonly configModel: Model<AppConfigDocument>,
+    @InjectModel(Ad.name)
+    private readonly adModel: Model<AdDocument>,
+    @InjectModel(Review.name)
+    private readonly reviewModel: Model<ReviewDocument>,
     private readonly config: ConfigService,
   ) {}
 
   async onApplicationBootstrap() {
     await this.connection.asPromise();
+    await this.ensureReviewPermissions();
+    await this.ensureAdsPermissions();
     const empty = (await this.roleModel.countDocuments()) === 0;
     const force = this.config.get<string>('SEED') === 'true';
     if (!empty && !force) {
+      await this.seedAdsIfEmpty();
       return;
     }
     this.logger.log('Seeding database...');
@@ -44,7 +53,37 @@ export class SeedService implements OnApplicationBootstrap {
     await this.seedCustomFields(cats);
     await this.seedProducts(cats);
     await this.seedAppConfig();
+    await this.seedAdsIfEmpty();
+    await this.seedReviews();
     this.logger.log('Seed complete');
+  }
+
+  private async ensureReviewPermissions() {
+    const add = async (name: string, perms: string[]) => {
+      await this.roleModel.updateOne(
+        { name },
+        { $addToSet: { permissions: { $each: perms } } },
+      );
+    };
+    await add('admin', ['reviews.read', 'reviews.write']);
+    await add('support_agent', ['reviews.read', 'reviews.write']);
+    await add('order_manager', ['reviews.read']);
+    await add('product_manager', ['reviews.read']);
+    await add('marketing_manager', ['reviews.read', 'reviews.write']);
+    await add('super_admin', ['reviews.read', 'reviews.write']);
+  }
+
+  private async ensureAdsPermissions() {
+    const add = async (name: string, perms: string[]) => {
+      await this.roleModel.updateOne(
+        { name },
+        { $addToSet: { permissions: { $each: perms } } },
+      );
+    };
+    const perms = ['ads.read', 'ads.write'];
+    await add('admin', perms);
+    await add('marketing_manager', perms);
+    await add('super_admin', perms);
   }
 
   private async seedRoles() {
@@ -63,6 +102,8 @@ export class SeedService implements OnApplicationBootstrap {
           'custom-orders.read',
           'custom-orders.write',
           'customers.read',
+          'reviews.read',
+          'reviews.write',
         ],
       },
       {
@@ -73,6 +114,7 @@ export class SeedService implements OnApplicationBootstrap {
           'orders.write',
           'customers.read',
           'reports.read',
+          'reviews.read',
         ],
       },
       {
@@ -85,6 +127,7 @@ export class SeedService implements OnApplicationBootstrap {
           'categories.write',
           'custom-fields.read',
           'custom-fields.write',
+          'reviews.read',
         ],
       },
       {
@@ -94,6 +137,10 @@ export class SeedService implements OnApplicationBootstrap {
           'notifications.write',
           'app-config.read',
           'app-config.write',
+          'ads.read',
+          'ads.write',
+          'reviews.read',
+          'reviews.write',
         ],
       },
       { name: 'customer', permissions: [] },
@@ -413,16 +460,38 @@ export class SeedService implements OnApplicationBootstrap {
             {
               image: 'https://picsum.photos/seed/pm-banner1/1200/500',
               title: { en: 'Ramadan Edit', ar: 'إصدار رمضان' },
+              subtitle: {
+                en: 'Seasonal picks on the home feed',
+                ar: 'اختيارات الموسم على الصفحة الرئيسية',
+              },
               link: '/products?featured=true',
               sortOrder: 1,
               active: true,
+              placement: 'home',
             },
             {
               image: 'https://picsum.photos/seed/pm-banner2/1200/500',
               title: { en: 'New Arrivals', ar: 'وصل حديثاً' },
+              subtitle: {
+                en: 'Fresh drops between products',
+                ar: 'وصل حديثاً بين المنتجات',
+              },
               link: '/products?newArrival=true',
               sortOrder: 2,
               active: true,
+              placement: 'products',
+            },
+            {
+              image: 'https://picsum.photos/seed/pm-banner3/1200/500',
+              title: { en: 'Custom luxury', ar: 'فخامة حسب الطلب' },
+              subtitle: {
+                en: 'Shown on home and in product lists',
+                ar: 'يظهر في الرئيسية وقائمة المنتجات',
+              },
+              link: '/products?featured=true',
+              sortOrder: 3,
+              active: true,
+              placement: 'both',
             },
           ],
           onboarding: [
@@ -477,10 +546,122 @@ export class SeedService implements OnApplicationBootstrap {
             deliveryFee: 15,
             currency: 'SAR',
             supportPhone: '+966500000000',
+            supportEmail: 'support@zezostore.com',
           },
         },
       },
       { upsert: true },
     );
+  }
+
+  private async seedAdsIfEmpty() {
+    if ((await this.adModel.countDocuments()) > 0) return;
+    await this.adModel.insertMany([
+      {
+        image: 'https://picsum.photos/seed/pm-banner1/1200/500',
+        title: { en: 'Ramadan Edit', ar: 'إصدار رمضان' },
+        subtitle: {
+          en: 'Seasonal picks on the home feed',
+          ar: 'اختيارات الموسم على الصفحة الرئيسية',
+        },
+        link: '/products?featured=true',
+        sortOrder: 1,
+        active: true,
+        placement: 'home',
+      },
+      {
+        image: 'https://picsum.photos/seed/pm-banner2/1200/500',
+        title: { en: 'New Arrivals', ar: 'وصل حديثاً' },
+        subtitle: {
+          en: 'Fresh drops between products',
+          ar: 'وصل حديثاً بين المنتجات',
+        },
+        link: '/products?newArrival=true',
+        sortOrder: 2,
+        active: true,
+        placement: 'products',
+      },
+      {
+        image: 'https://picsum.photos/seed/pm-banner3/1200/500',
+        title: { en: 'Custom luxury', ar: 'فخامة حسب الطلب' },
+        subtitle: {
+          en: 'Shown on home and in product lists',
+          ar: 'يظهر في الرئيسية وقائمة المنتجات',
+        },
+        link: '/products?featured=true',
+        sortOrder: 3,
+        active: true,
+        placement: 'both',
+      },
+    ]);
+  }
+
+  private async seedReviews() {
+    if ((await this.reviewModel.countDocuments()) > 0) {
+      return;
+    }
+    const passwordHash = await bcrypt.hash('Customer@123', 10);
+    const people: {
+      name: string;
+      email: string;
+      rating: number;
+      targetType: 'app' | 'website';
+      comment: string;
+    }[] = [
+      {
+        name: 'Lina Hassan',
+        email: 'lina@example.com',
+        rating: 5,
+        targetType: 'app',
+        comment:
+          'Fast delivery and the perfume was exactly as pictured. Cash on delivery made it easy.',
+      },
+      {
+        name: 'Omar Farid',
+        email: 'omar@example.com',
+        rating: 4.5,
+        targetType: 'website',
+        comment:
+          'Clean shop and the watch I ordered looks premium. Would buy again.',
+      },
+      {
+        name: 'Sara Nabil',
+        email: 'sara@example.com',
+        rating: 5,
+        targetType: 'app',
+        comment:
+          'Loved being able to request a custom piece. Support replied quickly.',
+      },
+      {
+        name: 'Karim Adel',
+        email: 'karim@example.com',
+        rating: 4,
+        targetType: 'website',
+        comment: 'Good prices and the packaging felt careful. Recommended.',
+      },
+    ];
+    for (const person of people) {
+      let user = await this.userModel.findOne({ email: person.email });
+      if (!user) {
+        user = await this.userModel.create({
+          name: person.name,
+          email: person.email,
+          passwordHash,
+          role: 'customer',
+          status: 'active',
+          language: 'en',
+          theme: 'system',
+        });
+      }
+      await this.reviewModel.create({
+        userId: user._id,
+        targetType: person.targetType,
+        scope: person.targetType,
+        rating: person.rating,
+        comment: person.comment,
+        targetName: { en: 'Zezo Store', ar: 'متجر زيزو' },
+        hidden: false,
+      });
+    }
   }
 }

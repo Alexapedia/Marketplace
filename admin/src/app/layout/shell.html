@@ -1,4 +1,4 @@
-<mat-sidenav-container class="shell">
+<mat-sidenav-container class="shell" [class.analytics]="isDashboard()">
   <mat-sidenav
     [mode]="sidenavMode()"
     [opened]="sidenavOpened()"
@@ -6,18 +6,20 @@
     class="sidenav"
   >
     <div class="brand">
-      <div class="mark">P</div>
+      <div class="mark">Z</div>
       <div>
         <div class="brand-name">{{ 'brand' | t }}</div>
         <div class="brand-sub">{{ 'brandSub' | t }}</div>
       </div>
     </div>
-    <mat-nav-list>
+
+    <mat-nav-list class="nav">
       @for (item of visibleNav(); track item.path) {
         <a
           mat-list-item
           [routerLink]="item.path"
           routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
           (click)="closeIfOverlay()"
         >
           <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
@@ -25,6 +27,14 @@
         </a>
       }
     </mat-nav-list>
+
+    <div class="sidenav-user">
+      <div class="avatar">{{ initials() }}</div>
+      <div class="user-copy">
+        <strong>{{ auth.user()?.name }}</strong>
+        <span>{{ auth.user()?.email }}</span>
+      </div>
+    </div>
   </mat-sidenav>
 
   <mat-sidenav-content>
@@ -32,9 +42,37 @@
       <button mat-icon-button (click)="toggleNav()" aria-label="Menu">
         <mat-icon>menu</mat-icon>
       </button>
-      <span class="page-title">{{ pageTitle() | t }}</span>
+      @if (canGoBack()) {
+        <button mat-icon-button (click)="goBack()" [attr.aria-label]="'common.back' | t" [matTooltip]="'common.back' | t">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      }
+      <div class="title-block">
+        <span class="page-title">{{ pageTitle() | t }}</span>
+      </div>
       <span class="spacer"></span>
-      <button mat-button (click)="i18n.toggle()">
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="inboxMenu"
+        [matTooltip]="'nav.inbox' | t"
+        (menuOpened)="refreshInbox()"
+      >
+        <mat-icon [matBadge]="unread() || null" matBadgeColor="warn" matBadgeSize="small">notifications</mat-icon>
+      </button>
+      <mat-menu #inboxMenu="matMenu" class="inbox-menu">
+        @if (inbox().length === 0) {
+          <div class="user-meta muted">{{ 'common.empty' | t }}</div>
+        }
+        @for (item of inbox(); track item._id || item.id || $index) {
+          <button mat-menu-item (click)="openInboxItem(item)">
+            <span>
+              <strong>{{ inboxTitle(item) }}</strong>
+              <small>{{ inboxBody(item) }}</small>
+            </span>
+          </button>
+        }
+      </mat-menu>
+      <button mat-stroked-button class="lang-btn" (click)="i18n.toggle()">
         {{ i18n.lang() === 'en' ? 'العربية' : 'English' }}
       </button>
       <button
@@ -44,8 +82,8 @@
       >
         <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
-      <button mat-icon-button [matMenuTriggerFor]="userMenu">
-        <mat-icon>account_circle</mat-icon>
+      <button mat-icon-button class="user-btn" [matMenuTriggerFor]="userMenu">
+        <span class="avatar sm">{{ initials() }}</span>
       </button>
       <mat-menu #userMenu="matMenu">
         <div class="user-meta">{{ auth.user()?.name }}</div>

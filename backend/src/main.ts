@@ -7,9 +7,11 @@ import helmet from 'helmet';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module';
+import { SocketIoAdapter } from './chat/socket-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useWebSocketAdapter(new SocketIoAdapter(app));
   const config = app.get(ConfigService);
 
   app.setGlobalPrefix('api/v1');

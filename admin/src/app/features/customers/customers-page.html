@@ -1,13 +1,22 @@
 <div class="head">
-  <h2>{{ 'customers.title' | t }}</h2>
+  <h2 class="page-h">{{ 'customers.title' | t }}</h2>
 </div>
 <mat-form-field appearance="outline" class="search">
   <mat-label>{{ 'common.search' | t }}</mat-label>
   <input matInput #q (keyup.enter)="onSearch(q.value)" (blur)="onSearch(q.value)" />
   <mat-icon matSuffix>search</mat-icon>
 </mat-form-field>
+<mat-form-field appearance="outline" class="search">
+  <mat-label>{{ 'common.status' | t }}</mat-label>
+  <mat-select [value]="status()" (selectionChange)="filterStatus($event.value)">
+    <mat-option value="">{{ 'common.all' | t }}</mat-option>
+    <mat-option value="active">active</mat-option>
+    <mat-option value="blocked">blocked</mat-option>
+  </mat-select>
+</mat-form-field>
 <app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && rows().length === 0" (retry)="load()" />
 @if (!loading() && !error() && rows().length) {
+  <div class="table-wrap">
   <table mat-table [dataSource]="rows()" class="full">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | t }}</th>
@@ -23,7 +32,7 @@
     </ng-container>
     <ng-container matColumnDef="status">
       <th mat-header-cell *matHeaderCellDef>{{ 'common.status' | t }}</th>
-      <td mat-cell *matCellDef="let row"><mat-chip>{{ row.status }}</mat-chip></td>
+      <td mat-cell *matCellDef="let row"><mat-chip [class]="'st-' + row.status">{{ row.status }}</mat-chip></td>
     </ng-container>
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | t }}</th>
@@ -36,4 +45,5 @@
     <tr mat-row *matRowDef="let row; columns: cols"></tr>
   </table>
   <mat-paginator [length]="meta().total" [pageSize]="meta().limit" [pageIndex]="meta().page - 1" (page)="page($event)" />
+  </div>
 }

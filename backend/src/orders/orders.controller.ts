@@ -25,8 +25,9 @@ export class OrdersController {
     @CurrentUser() user: AuthUser,
     @Body() dto: CreateOrderDto,
     @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-client') client?: string,
   ) {
-    return this.orders.createFromCart(user.userId, dto, idempotencyKey);
+    return this.orders.createFromCart(user.userId, dto, idempotencyKey, client);
   }
 
   @Get()

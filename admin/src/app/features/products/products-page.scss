@@ -6,20 +6,41 @@
   margin-bottom: 8px;
 }
 
-h2 {
-  margin: 0;
-}
-
 .search {
   width: min(360px, 100%);
 }
 
-.table-wrap {
-  overflow: auto;
-  background: var(--mat-sys-surface-container-lowest);
-  border-radius: 12px;
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .full {
   width: 100%;
+}
+
+.thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #e8ebf6;
+  display: block;
+}
+
+.thumb.empty {
+  display: inline-block;
+}
+
+.plink {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #071345;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

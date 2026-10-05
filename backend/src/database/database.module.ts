@@ -1,5 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { Address, AddressSchema } from '../schemas/address.schema';
+import { Ad, AdSchema } from '../schemas/ad.schema';
 import { AppConfig, AppConfigSchema } from '../schemas/app-config.schema';
 import { AuditLog, AuditLogSchema } from '../schemas/audit-log.schema';
 import { Cart, CartSchema } from '../schemas/cart.schema';
@@ -16,15 +18,20 @@ import {
   PasswordResetSchema,
 } from '../schemas/password-reset.schema';
 import { Product, ProductSchema } from '../schemas/product.schema';
+import { Review, ReviewSchema } from '../schemas/review.schema';
 import { Role, RoleSchema } from '../schemas/role.schema';
 import { User, UserSchema } from '../schemas/user.schema';
+import { Visit, VisitSchema } from '../schemas/visit.schema';
 
 const models = [
+  { name: Address.name, schema: AddressSchema },
+  { name: Ad.name, schema: AdSchema },
   { name: User.name, schema: UserSchema },
   { name: Role.name, schema: RoleSchema },
   { name: Category.name, schema: CategorySchema },
   { name: CustomField.name, schema: CustomFieldSchema },
   { name: Product.name, schema: ProductSchema },
+  { name: Review.name, schema: ReviewSchema },
   { name: Favorite.name, schema: FavoriteSchema },
   { name: Cart.name, schema: CartSchema },
   { name: Order.name, schema: OrderSchema },
@@ -35,6 +42,7 @@ const models = [
   { name: AppConfig.name, schema: AppConfigSchema },
   { name: AuditLog.name, schema: AuditLogSchema },
   { name: PasswordReset.name, schema: PasswordResetSchema },
+  { name: Visit.name, schema: VisitSchema },
 ];
 
 @Global()

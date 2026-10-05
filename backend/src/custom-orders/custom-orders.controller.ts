@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
   Query,
@@ -63,8 +64,9 @@ export class CustomOrdersController {
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
     @Body() dto: ConfirmProposalDto,
+    @Headers('x-client') client?: string,
   ) {
-    return this.customOrders.confirm(user.userId, id, dto);
+    return this.customOrders.confirm(user.userId, id, dto, client);
   }
 
   @Post(':id/reject')

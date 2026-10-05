@@ -1,0 +1,131 @@
+<section class="hero">
+  <div class="w">
+    <div>
+      <h1>{{ heroTitle() }}</h1>
+      <p>{{ heroBody() }}</p>
+      <a class="btn" routerLink="/shop">{{ 'shopNow' | t }}</a>
+      <a class="btn o" routerLink="/shop" [queryParams]="{ newArrival: true }">{{ 'newArrivals' | t }}</a>
+    </div>
+    <div class="hero-media">
+      @if (heroImage()) {
+        <img [src]="heroImage()" alt="" />
+      } @else {
+        <div class="art"><i></i><i></i><div class="btl">Z</div></div>
+      }
+    </div>
+  </div>
+</section>
+
+<div class="w">
+  @if (ads().length > 1) {
+    <div class="ads-row">
+      @for (ad of ads(); track ad._id || $index) {
+        @if (adRoute(ad).external) {
+          <a class="ad-tile" [href]="adRoute(ad).path" target="_blank" rel="noopener">
+            @if (ad.image) {
+              <img [src]="media(ad.image)" alt="" />
+            }
+          </a>
+        } @else {
+          <a class="ad-tile" [routerLink]="adRoute(ad).path" [queryParams]="adRoute(ad).query">
+            @if (ad.image) {
+              <img [src]="media(ad.image)" alt="" />
+            }
+          </a>
+        }
+      }
+    </div>
+  }
+
+  <div class="trust">
+    <div>💵 {{ 'trustCod' | t }}<small>{{ 'trustCodSub' | t }}</small></div>
+    <div>🚚 {{ 'trustShip' | t }}<small>{{ 'trustShipSub' | t }}</small></div>
+    <div>✨ {{ 'trustCustom' | t }}<small>{{ 'trustCustomSub' | t }}</small></div>
+  </div>
+
+  <h2 class="sec">{{ 'categories' | t }}</h2>
+  <div class="cats">
+    @for (c of flatCats(); track c._id || c.id) {
+      <a [routerLink]="['/shop']" [queryParams]="{ category: c._id || c.id }">
+        @if (c.image) {
+          <img [src]="media(c.image)" alt="" />
+        } @else {
+          <span class="ph"></span>
+        }
+        {{ (c.names || c.name) | loc }}
+      </a>
+    }
+  </div>
+
+  @if (featured().length) {
+    <h2 class="sec">
+      {{ 'featured' | t }}
+      <a routerLink="/shop" [queryParams]="{ featured: true }">{{ 'seeAll' | t }}</a>
+    </h2>
+    <div class="grid">
+      @for (p of featured(); track p._id || p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  }
+
+  @if (arrivals().length) {
+    <h2 class="sec">
+      {{ 'arrivals' | t }}
+      <a routerLink="/shop" [queryParams]="{ newArrival: true }">{{ 'seeAll' | t }}</a>
+    </h2>
+    <div class="grid">
+      @for (p of arrivals(); track p._id || p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  }
+
+  @if (bestsellers().length) {
+    <h2 class="sec">
+      {{ 'bestsellers' | t }}
+      <a routerLink="/shop" [queryParams]="{ bestSeller: true }">{{ 'seeAll' | t }}</a>
+    </h2>
+    <div class="grid">
+      @for (p of bestsellers(); track p._id || p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  }
+
+  @if (highlights().length) {
+    <h2 class="sec">{{ 'customerReviews' | t }}</h2>
+    <div class="quotes">
+      @for (r of highlights(); track r._id || r.id) {
+        <article class="quote">
+          <div class="qh">
+            <strong>{{ r.userName || 'Customer' }}</strong>
+            <app-stars [value]="r.rating" />
+          </div>
+          <p>{{ r.comment || '' }}</p>
+        </article>
+      }
+    </div>
+  }
+
+  @if (auth.user()) {
+    <form class="rate-box" (submit)="submitSiteRating($event)">
+      <b>{{ 'rateSite' | t }}</b>
+      <select [(ngModel)]="siteRating" name="rating">
+        @for (n of [5, 4.5, 4, 3.5, 3, 2, 1]; track n) {
+          <option [value]="n">{{ n }}</option>
+        }
+      </select>
+      <input [(ngModel)]="siteComment" name="comment" [placeholder]="'comment' | t" />
+      <button class="btn" type="submit">{{ 'submitRating' | t }}</button>
+    </form>
+  }
+
+  <div class="cta">
+    <div>
+      <b style="font-size: 20px">{{ 'customCtaTitle' | t }}</b>
+      <p>{{ 'customCtaBody' | t }}</p>
+    </div>
+    <a class="btn" routerLink="/custom">{{ 'getApp' | t }}</a>
+  </div>
+</div>

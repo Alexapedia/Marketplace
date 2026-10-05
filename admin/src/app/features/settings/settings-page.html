@@ -1,0 +1,29 @@
+<h2 class="page-h">{{ 'nav.settings' | t }}</h2>
+<p class="lead">{{ 'settings.lead' | t }}</p>
+<div class="tabs" role="tablist">
+  @for (tab of tabs(); track tab.key) {
+    <button
+      type="button"
+      role="tab"
+      [class.on]="active() === tab.key"
+      (click)="select(tab.key)"
+    >
+      {{ tab.label | t }}
+    </button>
+  }
+</div>
+
+<div [hidden]="active() !== 'support' && active() !== 'upgrade' && active() !== 'onboarding'">
+  @if (canConfig()) {
+    <app-app-config-page [section]="configSection()" [embedded]="true" />
+  }
+</div>
+@if (active() === 'staff' && canStaff()) {
+  <app-staff-page />
+}
+@if (active() === 'roles' && canRoles()) {
+  <app-roles-page />
+}
+@if (active() === 'fields' && canFields()) {
+  <app-custom-fields-page />
+}

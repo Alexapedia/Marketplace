@@ -3,12 +3,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AddressesModule } from './addresses/addresses.module';
+import { AdsModule } from './ads/ads.module';
 import { AdminModule } from './admin/admin.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { AppConfigModule } from './app-config/app-config.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { CartModule } from './cart/cart.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { ChatModule } from './chat/chat.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -18,9 +22,11 @@ import { CustomOrdersModule } from './custom-orders/custom-orders.module';
 import { DatabaseModule } from './database/database.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { HealthController } from './health/health.controller';
+import { HomeModule } from './home/home.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { SeedModule } from './seed/seed.module';
 import { UploadsModule } from './uploads/uploads.module';
 
@@ -34,21 +40,27 @@ import { UploadsModule } from './uploads/uploads.module';
       }),
     }),
     ThrottlerModule.forRoot({
-      throttlers: [{ name: 'default', ttl: 60000, limit: 120 }],
+      throttlers: [{ name: 'default', ttl: 60000, limit: 300 }],
     }),
     DatabaseModule,
     AuditModule,
     AuthModule,
     CatalogModule,
+    AddressesModule,
+    AdsModule,
+    AnalyticsModule,
+    HomeModule,
     FavoritesModule,
     CartModule,
     OrdersModule,
     CustomOrdersModule,
+    ChatModule,
     NotificationsModule,
     UploadsModule,
     AppConfigModule,
     AdminModule,
     PaymentsModule,
+    ReviewsModule,
     SeedModule,
   ],
   controllers: [HealthController],

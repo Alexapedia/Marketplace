@@ -1,0 +1,50 @@
+<header>
+  <div class="w">
+    <a class="logo" routerLink="/">Zezo <b>Store</b></a>
+    <form class="hs" (submit)="onSearch($event)">
+      <input
+        name="q"
+        [(ngModel)]="searchQ"
+        (input)="liveSearch()"
+        [placeholder]="'search' | t"
+      />
+    </form>
+    <nav>
+      <a routerLink="/shop" routerLinkActive="active">{{ 'shop' | t }}</a>
+      @if (auth.user()) {
+        <a routerLink="/custom" routerLinkActive="active">{{ 'customOrders' | t }}</a>
+      }
+      <a routerLink="/cart">
+        {{ 'cart' | t }}
+        @if (cart.count()) {
+          <span class="badge">{{ cart.count() }}</span>
+        }
+      </a>
+      @if (auth.user()) {
+        <a routerLink="/orders" routerLinkActive="active">{{ 'orders' | t }}</a>
+        <a
+          routerLink="/account"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: false }"
+        >
+          {{ 'account' | t }}
+        </a>
+      }
+    </nav>
+    <button class="lang" type="button" (click)="toggleLang()">
+      {{ i18n.lang() === 'ar' ? 'EN' : 'ع' }}
+    </button>
+    <button class="lang" type="button" (click)="toggleTheme()" aria-label="theme">◐</button>
+    @if (auth.user()) {
+      <button class="lang" type="button" (click)="logout()">{{ 'logout' | t }}</button>
+    } @else {
+      <a class="btn" routerLink="/login">{{ 'login' | t }}</a>
+    }
+  </div>
+</header>
+
+<router-outlet />
+
+<footer>
+  <div class="w">{{ 'footerTag' | t }} © {{ year }}</div>
+</footer>

@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_http_formatter/dio_http_formatter.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../config/routing/app_router_keys.dart';
 import '../../../placemarket_app.dart';
@@ -29,9 +32,13 @@ class DioConsumer implements ApiConsumer {
 
   static const _guestSafePrefixes = [
     '/app/',
+    '/home',
+    '/ads',
+    '/analytics',
     '/categories',
     '/products',
     '/custom-fields',
+    '/reviews',
     '/auth/login',
     '/auth/register',
     '/auth/forgot-password',
@@ -39,10 +46,15 @@ class DioConsumer implements ApiConsumer {
     '/auth/firebase',
   ];
 
+  int _inflight = 0;
+  final List<Completer<void>> _waiters = [];
+  static const _maxConcurrent = 4;
+
   DioConsumer({required this.client}) {
     client.interceptors.addAll([
       _connectivityInterceptor(),
       _authInterceptor(),
+      if (kDebugMode) HttpFormatter(),
     ]);
 
     client.options
@@ -52,7 +64,7 @@ class DioConsumer implements ApiConsumer {
       ..responseType = ResponseType.plain
       ..followRedirects = false
       ..validateStatus = (status) {
-        return status != null && status < 500 && status != 401;
+        return status != null && status < 500 && status != 401 && status != 429;
       };
   }
 
@@ -62,7 +74,9 @@ class DioConsumer implements ApiConsumer {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      final response = await client.get(path, queryParameters: queryParameters);
+      final response = await _gated(
+        () => client.get(path, queryParameters: queryParameters),
+      );
       return handleResponseStatus(response);
     } on DioException catch (e) {
       return left(handleDioError(e).toString());
@@ -80,10 +94,12 @@ class DioConsumer implements ApiConsumer {
     bool formDataIsEnabled = false,
   }) async {
     try {
-      final response = await client.post(
-        path,
-        queryParameters: queryParameters,
-        data: body,
+      final response = await _gated(
+        () => client.post(
+          path,
+          queryParameters: queryParameters,
+          data: body,
+        ),
       );
       return handleResponseStatus(response);
     } on DioException catch (e) {
@@ -131,10 +147,12 @@ class DioConsumer implements ApiConsumer {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      final response = await client.put(
-        path,
-        queryParameters: queryParameters,
-        data: body,
+      final response = await _gated(
+        () => client.put(
+          path,
+          queryParameters: queryParameters,
+          data: body,
+        ),
       );
       return handleResponseStatus(response);
     } on DioException catch (e) {
@@ -152,10 +170,12 @@ class DioConsumer implements ApiConsumer {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      final response = await client.patch(
-        path,
-        queryParameters: queryParameters,
-        data: body,
+      final response = await _gated(
+        () => client.patch(
+          path,
+          queryParameters: queryParameters,
+          data: body,
+        ),
       );
       return handleResponseStatus(response);
     } on DioException catch (e) {
@@ -172,9 +192,8 @@ class DioConsumer implements ApiConsumer {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      final response = await client.delete(
-        path,
-        queryParameters: queryParameters,
+      final response = await _gated(
+        () => client.delete(path, queryParameters: queryParameters),
       );
       return handleResponseStatus(response);
     } on DioException catch (e) {
@@ -260,6 +279,7 @@ class DioConsumer implements ApiConsumer {
       onRequest: (options, handler) async {
         options.headers[AppString.headerAcceptLanguage] =
             PreferenceUtils.getString(StorageKey.lang, AppString.localeEn);
+        options.headers['X-Client'] = 'mobile';
         if (options.extra[AppString.requiresTokenKey] != false) {
           final token = await sl<HandleMultiCallLocal>().getLocalData(
             keyType: LocalEnumKey.accessToken,
@@ -312,5 +332,30 @@ class DioConsumer implements ApiConsumer {
         handler.next(options);
       },
     );
+  }
+
+  Future<Response<dynamic>> _gated(
+    Future<Response<dynamic>> Function() send,
+  ) async {
+    if (_inflight >= _maxConcurrent) {
+      final waiter = Completer<void>();
+      _waiters.add(waiter);
+      await waiter.future;
+    }
+    _inflight++;
+    try {
+      return await send();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        await Future<void>.delayed(const Duration(milliseconds: 700));
+        return await send();
+      }
+      rethrow;
+    } finally {
+      _inflight--;
+      if (_waiters.isNotEmpty) {
+        _waiters.removeAt(0).complete();
+      }
+    }
   }
 }

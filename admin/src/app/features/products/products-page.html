@@ -1,16 +1,27 @@
 <div class="head">
-  <h2>{{ 'products.title' | t }}</h2>
+  <h2 class="page-h">{{ 'products.title' | t }}</h2>
   <button mat-flat-button (click)="open()">
     <mat-icon>add</mat-icon>
     {{ 'products.create' | t }}
   </button>
 </div>
 
+<div class="filters">
 <mat-form-field appearance="outline" class="search">
   <mat-label>{{ 'common.search' | t }}</mat-label>
-  <input matInput #q (keyup.enter)="onSearch(q.value)" (blur)="onSearch(q.value)" />
+  <input matInput #q (input)="onSearch(q.value)" />
   <mat-icon matSuffix>search</mat-icon>
 </mat-form-field>
+<mat-form-field appearance="outline" class="search">
+  <mat-label>{{ 'common.status' | t }}</mat-label>
+  <mat-select [value]="status()" (selectionChange)="filterStatus($event.value)">
+    <mat-option value="">{{ 'common.all' | t }}</mat-option>
+    <mat-option value="published">{{ 'products.published' | t }}</mat-option>
+    <mat-option value="unpublished">{{ 'products.unpublished' | t }}</mat-option>
+    <mat-option value="archived">{{ 'products.archived' | t }}</mat-option>
+  </mat-select>
+</mat-form-field>
+</div>
 
 <app-async-state
   [loading]="loading()"
@@ -22,13 +33,29 @@
 @if (!loading() && !error() && rows().length) {
   <div class="table-wrap">
     <table mat-table [dataSource]="rows()" class="full">
+      <ng-container matColumnDef="image">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          @if (row.images?.[0]) {
+            <img class="thumb" [src]="row.images[0]" alt="" />
+          } @else {
+            <span class="thumb empty"></span>
+          }
+        </td>
+      </ng-container>
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | t }}</th>
-        <td mat-cell *matCellDef="let row">{{ localizedOf(row) | loc }}</td>
+        <td mat-cell *matCellDef="let row">
+          <button class="plink" type="button" (click)="open(row)">{{ localizedOf(row) | loc }}</button>
+        </td>
       </ng-container>
       <ng-container matColumnDef="price">
         <th mat-header-cell *matHeaderCellDef>{{ 'common.price' | t }}</th>
         <td mat-cell *matCellDef="let row">{{ row.price }}</td>
+      </ng-container>
+      <ng-container matColumnDef="rating">
+        <th mat-header-cell *matHeaderCellDef>{{ 'reviews.rating' | t }}</th>
+        <td mat-cell *matCellDef="let row">{{ row.ratingAvg ?? 0 }} ({{ row.ratingCount ?? 0 }})</td>
       </ng-container>
       <ng-container matColumnDef="stock">
         <th mat-header-cell *matHeaderCellDef>{{ 'common.stock' | t }}</th>
@@ -38,7 +65,7 @@
         <th mat-header-cell *matHeaderCellDef>{{ 'common.status' | t }}</th>
         <td mat-cell *matCellDef="let row">
           <mat-chip-set>
-            <mat-chip>{{ row.status }}</mat-chip>
+            <mat-chip [class]="'st-' + row.status">{{ row.status }}</mat-chip>
           </mat-chip-set>
         </td>
       </ng-container>

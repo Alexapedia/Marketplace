@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -58,6 +58,12 @@ export class AuthController {
   @Patch('me')
   updateMe(@CurrentUser() user: AuthUser, @Body() dto: UpdateMeDto) {
     return this.auth.updateMe(user.userId, dto);
+  }
+
+  @ApiBearerAuth()
+  @Delete('me')
+  deleteMe(@CurrentUser() user: AuthUser) {
+    return this.auth.deleteMe(user.userId);
   }
 
   @ApiBearerAuth()

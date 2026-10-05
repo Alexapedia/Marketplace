@@ -11,7 +11,14 @@ class AppToast {
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(
       SnackBar(
-        content: Text(message.tr()),
+        content: Text(
+          message.tr(),
+          style: TextStyle(
+            color: isError
+                ? Theme.of(context).colorScheme.onError
+                : Theme.of(context).colorScheme.onInverseSurface,
+          ),
+        ),
         backgroundColor: isError
             ? Theme.of(context).colorScheme.error
             : Theme.of(context).colorScheme.inverseSurface,

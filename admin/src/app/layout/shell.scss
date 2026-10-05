@@ -1,38 +1,113 @@
 .shell {
   height: 100%;
+  background: var(--zz-bg, #eef1f8);
 }
 
 .sidenav {
-  width: 268px;
-  background: var(--pm-sidebar);
+  width: 272px;
+  background: #071345;
   border: none;
+  color: #fff;
+}
+
+:host ::ng-deep .sidenav .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px 16px 12px;
+  padding: 22px 18px 18px;
+  color: #fff;
 }
 
-.mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.mark,
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  font-weight: 700;
-  color: #1c1a17;
-  background: linear-gradient(135deg, #e8d5a3, #c6a667);
+  font-weight: 800;
+  color: #c9a45c;
+  background: transparent;
+  border: 2px solid #c9a45c;
+  flex-shrink: 0;
+}
+
+.avatar.sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 12px;
 }
 
 .brand-name {
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .brand-sub {
   font-size: 12px;
+  opacity: 0.64;
+}
+
+.nav {
+  flex: 1;
+  overflow: auto;
+  padding: 4px 0 16px;
+}
+
+.sidenav a {
+  color: rgba(255, 255, 255, 0.82) !important;
+  border-radius: 12px;
+  margin: 3px 12px;
+  width: calc(100% - 24px) !important;
+}
+
+.sidenav a.active {
+  background: rgba(201, 164, 92, 0.16);
+  color: #fff !important;
+}
+
+:host ::ng-deep .sidenav .mat-mdc-list-item {
+  --mdc-list-list-item-container-shape: 12px;
+  height: 44px;
+}
+
+:host ::ng-deep .sidenav .mat-icon,
+:host ::ng-deep .sidenav .mdc-list-item__primary-text,
+:host ::ng-deep .sidenav .mat-mdc-list-item-title {
+  color: #fff !important;
+}
+
+.sidenav-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 12px 16px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.user-copy {
+  min-width: 0;
+  display: grid;
+}
+
+.user-copy strong,
+.user-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-copy span {
+  font-size: 11px;
   opacity: 0.7;
 }
 
@@ -40,25 +115,67 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
-  backdrop-filter: blur(12px);
+  height: 68px;
+  background: color-mix(in srgb, #ffffff 90%, transparent);
+  backdrop-filter: blur(16px);
+  color: #071345;
+  border-bottom: 1px solid color-mix(in srgb, #071345 8%, transparent);
+}
+
+.title-block {
+  display: grid;
 }
 
 .page-title {
-  font-weight: 500;
+  font-weight: 800;
+  font-size: 18px;
 }
 
 .spacer {
   flex: 1;
 }
 
-.content {
-  padding: 20px 24px 40px;
-  min-height: calc(100% - 64px);
+.lang-btn {
+  border-radius: 999px;
 }
 
-a.active {
-  background: color-mix(in srgb, #c6a667 18%, transparent);
+:host ::ng-deep .inbox-menu .mat-mdc-menu-item span {
+  display: grid;
+  gap: 2px;
+  white-space: normal;
+  max-width: 280px;
+}
+
+:host ::ng-deep .inbox-menu small {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.user-btn {
+  overflow: hidden;
+}
+
+.content {
+  padding: 28px 32px 56px;
+  min-height: calc(100% - 68px);
+}
+
+.shell.analytics {
+  background: #0b1024;
+}
+
+.shell.analytics .content {
+  padding: 16px 18px 28px;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(244, 162, 97, 0.12), transparent 55%),
+    radial-gradient(900px 420px at 100% 0%, rgba(123, 108, 255, 0.16), transparent 50%),
+    #0b1024;
+}
+
+.shell.analytics .topbar {
+  background: color-mix(in srgb, #0b1024 86%, transparent);
+  color: #eef1ff;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .user-meta {
@@ -71,8 +188,24 @@ a.active {
   margin-bottom: 8px;
 }
 
+:host-context(body.dark-theme) {
+  .shell {
+    background: #050b28;
+  }
+
+  .topbar {
+    background: color-mix(in srgb, #071345 88%, transparent);
+    color: #fff;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
 @media (max-width: 720px) {
   .content {
     padding: 16px 12px 32px;
+  }
+
+  .sidenav-user span {
+    display: none;
   }
 }

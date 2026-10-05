@@ -45,6 +45,8 @@ class BannerModel {
   final String? link;
   final String? productId;
   final String? categoryId;
+  final bool active;
+  final String placement;
 
   const BannerModel({
     this.id = '',
@@ -54,7 +56,17 @@ class BannerModel {
     this.link,
     this.productId,
     this.categoryId,
+    this.active = true,
+    this.placement = AdPlacement.home,
   });
+
+  bool get isHome =>
+      active &&
+      (placement == AdPlacement.home || placement == AdPlacement.both);
+
+  bool get isProducts =>
+      active &&
+      (placement == AdPlacement.products || placement == AdPlacement.both);
 
   factory BannerModel.fromJson(dynamic json) {
     final map = asMap(json);
@@ -66,7 +78,22 @@ class BannerModel {
       link: map['link']?.toString(),
       productId: map['productId']?.toString(),
       categoryId: map['categoryId']?.toString(),
+      active: asBool(map['active'], true),
+      placement: AdPlacement.normalize(map['placement']?.toString()),
     );
+  }
+}
+
+class AdPlacement {
+  static const String home = 'home';
+  static const String products = 'products';
+  static const String both = 'both';
+
+  static String normalize(String? raw) {
+    return switch (raw) {
+      products || both => raw!,
+      _ => home,
+    };
   }
 }
 
@@ -104,6 +131,11 @@ class AppConfigModel {
     this.onboarding = const [],
     this.settings = const {},
   });
+
+  List<BannerModel> get homeAds => banners.where((b) => b.isHome).toList();
+
+  List<BannerModel> get productAds =>
+      banners.where((b) => b.isProducts).toList();
 
   factory AppConfigModel.fromJson(dynamic json) {
     final map = asMap(unwrapData(json));

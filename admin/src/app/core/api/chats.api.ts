@@ -15,7 +15,7 @@ export class ChatsApi {
     return this.api.get<ChatMessage[]>(`/admin/chats/${id}/messages`);
   }
 
-  send(id: string, body: { text?: string; type?: string }): Observable<ApiResult<ChatMessage>> {
+  send(id: string, body: { text?: string; type?: string } | FormData): Observable<ApiResult<ChatMessage>> {
     return this.api.post<ChatMessage>(`/admin/chats/${id}/messages`, body);
   }
 }

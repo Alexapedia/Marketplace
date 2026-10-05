@@ -1,5 +1,3 @@
-<h2 class="page-h">{{ 'dashboard.title' | t }}</h2>
-
 <app-async-state
   [loading]="loading()"
   [error]="error()"
@@ -7,44 +5,207 @@
   (retry)="load()"
 />
 
-@if (!loading() && !error()) {
-  <div class="cards">
-    @for (card of cards(); track card.key) {
-      <mat-card appearance="outlined" class="stat">
-        <mat-card-content>
-          <div class="stat-top">
-            <span>{{ card.key | t }}</span>
-            <mat-icon>{{ card.icon }}</mat-icon>
-          </div>
-          <div class="stat-value">
-            @if (card.money) {
-              {{ card.value | number: '1.0-0' }}
-            } @else {
-              {{ card.value | number: '1.0-0' }}
-            }
-          </div>
-        </mat-card-content>
-      </mat-card>
-    }
-  </div>
+@if (!loading() && !error() && view(); as v) {
+  <section class="board">
+    <header class="board-h">
+      <div>
+        <p class="kicker">{{ 'brand' | t }} · {{ 'dashboard.snapshot' | t }}</p>
+        <h2>{{ 'dashboard.title' | t }}</h2>
+      </div>
+      <div class="meta">
+        <span class="live">{{ 'dashboard.live' | t }}</span>
+        <span>{{ now | date: 'd MMM y' }}</span>
+      </div>
+    </header>
 
-  <mat-card appearance="outlined" class="chart-card">
-    <mat-card-header>
-      <mat-card-title>{{ 'dashboard.byStatus' | t }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      @if (bars().length === 0) {
-        <p class="muted">{{ 'common.empty' | t }}</p>
-      }
-      @for (bar of bars(); track bar.status) {
-        <div class="bar-row">
-          <span class="bar-label">{{ bar.status }}</span>
-          <div class="bar-track">
-            <div class="bar-fill" [style.width.%]="bar.pct"></div>
-          </div>
-          <span class="bar-count">{{ bar.count }}</span>
+    <div class="layout">
+      <article class="panel pipeline">
+        <div class="panel-h">
+          <span>{{ 'dashboard.pipeline' | t }}</span>
+          <a routerLink="/orders">{{ v.orders }}</a>
         </div>
-      }
-    </mat-card-content>
-  </mat-card>
+        @for (bar of v.pipeline; track bar.label) {
+          <div class="hub">
+            <div class="hub-top">
+              <span>{{ label(bar.label) }}</span>
+              <strong>{{ bar.count }}</strong>
+            </div>
+            <div class="track"><i [style.width.%]="bar.pct"></i></div>
+          </div>
+        }
+      </article>
+
+      <article class="panel hero">
+        <div class="hero-top">
+          <div>
+            <p>{{ 'dashboard.revenue' | t }}</p>
+            <h3>{{ v.revenue | number: '1.0-0' }} <small>{{ 'dashboard.currency' | t }}</small></h3>
+            <span class="delta" [class.down]="v.trendRevenue < 0">
+              {{ v.trendRevenue >= 0 ? '+' : '' }}{{ v.trendRevenue | number: '1.0-0' }}
+              {{ 'dashboard.vsWeek' | t }}
+            </span>
+          </div>
+          <div class="hero-side">
+            <div>
+              <p>{{ 'dashboard.profit' | t }}</p>
+              <strong>{{ v.profit | number: '1.0-0' }}</strong>
+            </div>
+            <div>
+              <p>{{ 'dashboard.last14' | t }}</p>
+              <strong>{{ v.trendOrders >= 0 ? '+' : '' }}{{ v.trendOrders }}</strong>
+            </div>
+          </div>
+        </div>
+        <svg class="spark" [attr.viewBox]="'0 0 ' + v.area.w + ' ' + v.area.h" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f4a261" stop-opacity="0.55" />
+              <stop offset="100%" stop-color="#f4a261" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path [attr.d]="v.area.area" fill="url(#revFill)" />
+          <path [attr.d]="v.area.line" fill="none" stroke="#f4a261" stroke-width="2.5" />
+        </svg>
+      </article>
+
+      <div class="kpis">
+        <article class="panel mini">
+          <p>{{ 'dashboard.orders' | t }}</p>
+          <strong>{{ v.orders | number }}</strong>
+          <span>{{ v.open }} {{ 'dashboard.pending' | t }}</span>
+        </article>
+        <article class="panel mini">
+          <p>{{ 'dashboard.pendingCustom' | t }}</p>
+          <strong>{{ v.pendingCustom | number }}</strong>
+          <span>{{ 'dashboard.customByStatus' | t }}</span>
+        </article>
+        <article class="panel mini">
+          <p>{{ 'dashboard.customers' | t }}</p>
+          <strong>{{ v.customers | number }}</strong>
+          <span>{{ v.newCustomers }} {{ 'dashboard.newCustomers' | t }}</span>
+        </article>
+        <article class="panel mini">
+          <p>{{ 'dashboard.products' | t }}</p>
+          <strong>{{ v.products | number }}</strong>
+          <span>{{ v.lowStock }} {{ 'dashboard.lowStock' | t }}</span>
+        </article>
+      </div>
+
+      <article class="panel gauge area-fill">
+        <div class="panel-h">{{ 'dashboard.fulfillment' | t }}</div>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 108 108">
+            <circle cx="54" cy="54" r="42" />
+            <circle class="val coral" cx="54" cy="54" r="42" [attr.stroke-dasharray]="dash(v.fulfillment)" />
+          </svg>
+          <div class="ring-n">
+            <strong>{{ v.fulfillment }}%</strong>
+            <span>{{ 'dashboard.delivered' | t }}</span>
+          </div>
+        </div>
+        <p class="foot">{{ v.delivered }} / {{ v.orders }}</p>
+      </article>
+
+      <article class="panel gauge area-conv">
+        <div class="panel-h">{{ 'dashboard.conversion' | t }}</div>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 108 108">
+            <circle cx="54" cy="54" r="42" />
+            <circle class="val lilac" cx="54" cy="54" r="42" [attr.stroke-dasharray]="dash(v.conversion)" />
+          </svg>
+          <div class="ring-n">
+            <strong>{{ v.conversion }}%</strong>
+            <span>{{ 'dashboard.visits' | t }}</span>
+          </div>
+        </div>
+        <p class="foot">{{ v.orders }} / {{ v.visits || 0 }}</p>
+      </article>
+
+      <article class="panel area-chan">
+        <div class="panel-h">{{ 'dashboard.byChannel' | t }}</div>
+        @for (bar of v.channels; track bar.label) {
+          <div class="hub">
+            <div class="hub-top">
+              <span>{{ label(bar.label) }}</span>
+              <strong>{{ bar.count }}</strong>
+            </div>
+            <div class="track gold"><i [style.width.%]="bar.pct"></i></div>
+          </div>
+        }
+      </article>
+
+      <article class="panel area-users">
+        <div class="panel-h">{{ 'dashboard.usersMix' | t }}</div>
+        <div class="split">
+          <div>
+            <p>{{ 'dashboard.activeUsers' | t }}</p>
+            <strong>{{ v.active }}</strong>
+          </div>
+          <div>
+            <p>{{ 'dashboard.inactiveUsers' | t }}</p>
+            <strong>{{ v.blocked }}</strong>
+          </div>
+        </div>
+        <div class="track"><i [style.width.%]="v.activePct"></i></div>
+        <p class="foot">{{ v.activePct }}%</p>
+      </article>
+
+      <article class="panel area-custom">
+        <div class="panel-h">{{ 'dashboard.customByStatus' | t }}</div>
+        @for (bar of v.custom; track bar.label) {
+          <div class="hub">
+            <div class="hub-top">
+              <span>{{ label(bar.label) }}</span>
+              <strong>{{ bar.count }}</strong>
+            </div>
+            <div class="track lilac"><i [style.width.%]="bar.pct"></i></div>
+          </div>
+        }
+      </article>
+
+      <article class="panel area-top">
+        <div class="panel-h">{{ 'dashboard.topIncome' | t }}</div>
+        @for (p of v.productsTop; track $index) {
+          <div class="prod">
+            <span>{{ p.name || '—' }}</span>
+            <strong>{{ p.revenue | number: '1.0-0' }}</strong>
+          </div>
+        }
+      </article>
+
+      <article class="panel area-visits">
+        <div class="panel-h">{{ 'dashboard.visits' | t }}</div>
+        <div class="split">
+          <div>
+            <p>{{ 'dashboard.visitsMobile' | t }}</p>
+            <strong>{{ v.visitsMobile }}</strong>
+          </div>
+          <div>
+            <p>{{ 'dashboard.visitsWebsite' | t }}</p>
+            <strong>{{ v.visitsWebsite }}</strong>
+          </div>
+        </div>
+        <div class="stack">
+          <i class="m" [style.flex]="v.visitsMobile || 1"></i>
+          <i class="w" [style.flex]="v.visitsWebsite || 1"></i>
+        </div>
+      </article>
+
+      <article class="panel area-catalog">
+        <div class="panel-h">{{ 'dashboard.catalogHealth' | t }}</div>
+        <div class="split">
+          <div>
+            <p>{{ 'dashboard.published' | t }}</p>
+            <strong>{{ v.published }}</strong>
+          </div>
+          <div>
+            <p>{{ 'dashboard.unpublished' | t }}</p>
+            <strong>{{ v.unpublished }}</strong>
+          </div>
+        </div>
+        <div class="track gold"><i [style.width.%]="v.publishedPct"></i></div>
+        <p class="foot">{{ v.unread }} {{ 'dashboard.unreadChats' | t }}</p>
+      </article>
+    </div>
+  </section>
 }

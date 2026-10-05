@@ -1,0 +1,16 @@
+<div class="w">
+  <app-page-bar [title]="('orders' | t)" />
+  @if (!orders().length) {
+    <p class="empty">{{ 'emptyOrders' | t }}</p>
+  } @else {
+    @for (o of orders(); track o._id) {
+      <a class="order-card" [routerLink]="['/orders', o._id]">
+        <div>
+          <strong>#{{ (o._id || '').slice(-8) }}</strong>
+          <div class="muted">{{ o.grandTotal ?? o.total ?? 0 }} {{ 'currency' | t }}</div>
+        </div>
+        <span class="status-pill">{{ statusLabel(o.orderStatus || o.status || '') }}</span>
+      </a>
+    }
+  }
+</div>

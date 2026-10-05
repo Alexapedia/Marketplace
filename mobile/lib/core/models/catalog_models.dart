@@ -5,6 +5,7 @@ class CategoryModel {
   final String name;
   final String description;
   final String image;
+  final String type;
   final String? parentId;
   final List<CategoryModel> children;
 
@@ -13,17 +14,21 @@ class CategoryModel {
     this.name = '',
     this.description = '',
     this.image = '',
+    this.type = 'standard',
     this.parentId,
     this.children = const [],
   });
+
+  bool get allowsCustom => type == 'custom' || type == 'both';
 
   factory CategoryModel.fromJson(dynamic json) {
     final map = asMap(json);
     return CategoryModel(
       id: asString(map['_id'] ?? map['id']),
-      name: localized(map['name']),
-      description: localized(map['description']),
+      name: localized(map['name'] ?? map['names']),
+      description: localized(map['description'] ?? map['descriptions']),
       image: asString(map['image'] ?? map['imageUrl'] ?? map['icon']),
+      type: asString(map['type'], 'standard'),
       parentId: (map['parentId'] ?? map['parent'])?.toString(),
       children: asList(map['children']).map(CategoryModel.fromJson).toList(),
     );
@@ -76,6 +81,8 @@ class ProductModel {
   final List<ProductModel> related;
   final String gender;
   final String sku;
+  final double ratingAvg;
+  final int ratingCount;
 
   const ProductModel({
     this.id = '',
@@ -96,6 +103,8 @@ class ProductModel {
     this.related = const [],
     this.gender = '',
     this.sku = '',
+    this.ratingAvg = 0,
+    this.ratingCount = 0,
   });
 
   bool get isOnSale => salePrice != null && salePrice! > 0 && salePrice! < price;
@@ -118,10 +127,12 @@ class ProductModel {
       if (single.isNotEmpty) images.add(single);
     }
     final relatedRaw = asList(map['related'] ?? map['relatedProducts']);
+    final flags = asMap(map['flags']);
+    final category = map['category'] is Map ? asMap(map['category']) : const <String, dynamic>{};
     return ProductModel(
       id: asString(map['_id'] ?? map['id']),
-      name: localized(map['name']),
-      description: localized(map['description']),
+      name: localized(map['name'] ?? map['names']),
+      description: localized(map['description'] ?? map['descriptions']),
       price: asDouble(map['price']),
       salePrice: map['salePrice'] == null && map['discountPrice'] == null
           ? null
@@ -130,16 +141,14 @@ class ProductModel {
       stock: asInt(map['stock'] ?? map['quantity']),
       sizes: asList(map['sizes']).map((e) => e.toString()).toList(),
       variants: asList(map['variants']).map(ProductVariant.fromJson).toList(),
-      featured: asBool(map['featured'] ?? map['isFeatured']),
-      newArrival: asBool(map['newArrival'] ?? map['isNew']),
-      bestSeller: asBool(map['bestSeller'] ?? map['isBestSeller']),
+      featured: asBool(map['featured'] ?? flags['featured'] ?? map['isFeatured']),
+      newArrival: asBool(map['newArrival'] ?? flags['newArrival'] ?? map['isNew']),
+      bestSeller: asBool(map['bestSeller'] ?? flags['bestSeller'] ?? map['isBestSeller']),
       categoryId: asString(
         map['categoryId'] ??
             (map['category'] is Map ? map['category']['_id'] : map['category']),
       ),
-      categoryName: map['category'] is Map
-          ? localized(asMap(map['category'])['name'])
-          : asString(map['categoryName']),
+      categoryName: localized(category['name'] ?? category['names'] ?? map['categoryName']),
       isFavorite: asBool(map['isFavorite'] ?? map['favorited']),
       related: relatedRaw
           .whereType<Map>()
@@ -147,10 +156,17 @@ class ProductModel {
           .toList(),
       gender: asString(map['gender']),
       sku: asString(map['sku']),
+      ratingAvg: asDouble(map['ratingAvg'] ?? map['rating']),
+      ratingCount: asInt(map['ratingCount'] ?? map['reviewsCount']),
     );
   }
 
-  ProductModel copyWith({bool? isFavorite, int? stock}) {
+  ProductModel copyWith({
+    bool? isFavorite,
+    int? stock,
+    double? ratingAvg,
+    int? ratingCount,
+  }) {
     return ProductModel(
       id: id,
       name: name,
@@ -170,6 +186,8 @@ class ProductModel {
       related: related,
       gender: gender,
       sku: sku,
+      ratingAvg: ratingAvg ?? this.ratingAvg,
+      ratingCount: ratingCount ?? this.ratingCount,
     );
   }
 }
@@ -178,6 +196,8 @@ class CartItemModel {
   final String id;
   final String productId;
   final ProductModel? product;
+  final String nameSnapshot;
+  final String image;
   final String? variant;
   final String? size;
   final int quantity;
@@ -187,6 +207,8 @@ class CartItemModel {
     this.id = '',
     this.productId = '',
     this.product,
+    this.nameSnapshot = '',
+    this.image = '',
     this.variant,
     this.size,
     this.quantity = 1,
@@ -194,23 +216,32 @@ class CartItemModel {
   });
 
   double get lineTotal => (product?.displayPrice ?? price) * quantity;
+  String get displayName =>
+      nameSnapshot.isNotEmpty ? nameSnapshot : (product?.name ?? productId);
+  String get cover => image.isNotEmpty ? image : (product?.cover ?? '');
 
   factory CartItemModel.fromJson(dynamic json) {
     final map = asMap(json);
     ProductModel? product;
-    if (map['product'] is Map) {
+    if (map['productId'] is Map) {
+      product = ProductModel.fromJson(map['productId']);
+    } else if (map['product'] is Map) {
       product = ProductModel.fromJson(map['product']);
     }
     return CartItemModel(
       id: asString(map['_id'] ?? map['id']),
-      productId: asString(
-        map['productId'] ?? product?.id ?? map['product'],
-      ),
+      productId: asId(map['productId'] ?? product?.id ?? map['product']),
       product: product,
+      nameSnapshot: asString(
+        map['nameSnapshot'] ?? map['name'] ?? product?.name,
+      ),
+      image: asString(map['image'] ?? product?.cover),
       variant: map['variant']?.toString(),
       size: map['size']?.toString(),
       quantity: asInt(map['quantity'], 1),
-      price: asDouble(map['price'] ?? product?.displayPrice),
+      price: asDouble(
+        map['unitPrice'] ?? map['price'] ?? product?.displayPrice,
+      ),
     );
   }
 }
@@ -248,6 +279,8 @@ class OrderAddress {
   final String country;
   final String zip;
   final String line;
+  final double? lat;
+  final double? lng;
 
   const OrderAddress({
     this.fullName = '',
@@ -259,6 +292,8 @@ class OrderAddress {
     this.country = '',
     this.zip = '',
     this.line = '',
+    this.lat,
+    this.lng,
   });
 
   Map<String, dynamic> toJson() => {
@@ -275,6 +310,8 @@ class OrderAddress {
         ? line
         : [street, building, apartment, city].where((e) => e.isNotEmpty).join(', '),
     'line': line,
+    if (lat != null) 'lat': lat,
+    if (lng != null) 'lng': lng,
   };
 
   factory OrderAddress.fromJson(dynamic json) {
@@ -289,7 +326,14 @@ class OrderAddress {
       country: asString(map['country']),
       zip: asString(map['zip'] ?? map['postalCode']),
       line: asString(map['address'] ?? map['line']),
+      lat: map['lat'] == null ? null : asDouble(map['lat']),
+      lng: map['lng'] == null ? null : asDouble(map['lng']),
     );
+  }
+
+  String get display {
+    if (line.isNotEmpty) return line;
+    return [street, city, fullName].where((e) => e.isNotEmpty).join(' · ');
   }
 }
 
@@ -305,6 +349,8 @@ class OrderModel {
   final double total;
   final DateTime? createdAt;
   final List<String> timeline;
+  final double rating;
+  final String ratingComment;
 
   const OrderModel({
     this.id = '',
@@ -318,14 +364,19 @@ class OrderModel {
     this.total = 0,
     this.createdAt,
     this.timeline = const [],
+    this.rating = 0,
+    this.ratingComment = '',
   });
+
+  bool get canRate =>
+      (status == 'delivered' || status == 'completed') && rating <= 0;
 
   factory OrderModel.fromJson(dynamic json) {
     final map = asMap(unwrapData(json));
     final history = asList(map['timeline'] ?? map['statusHistory']);
     return OrderModel(
       id: asString(map['_id'] ?? map['id'] ?? map['orderNumber']),
-      status: asString(map['status'], 'pending'),
+      status: asString(map['status'] ?? map['orderStatus'], 'pending'),
       paymentMethod: asString(map['paymentMethod'], 'COD'),
       paymentStatus: asString(map['paymentStatus'], 'pending'),
       items: asList(map['items']).map(CartItemModel.fromJson).toList(),
@@ -336,6 +387,8 @@ class OrderModel {
       rejectionReason: map['rejectionReason']?.toString(),
       total: asDouble(map['total'] ?? map['grandTotal']),
       createdAt: DateTime.tryParse(asString(map['createdAt'])),
+      rating: asDouble(map['rating']),
+      ratingComment: asString(map['ratingComment']),
       timeline: history.map((e) {
         if (e is String) return e;
         return asString(asMap(e)['status'] ?? asMap(e)['name']);

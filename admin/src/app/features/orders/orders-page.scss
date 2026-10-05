@@ -1,6 +1,10 @@
-.wrap { min-height: calc(100vh - 120px); }
-.drawer { width: min(420px, 92vw); padding: 16px; }
-.drawer-h { display: flex; justify-content: space-between; align-items: center; }
+.wrap { min-height: calc(100vh - 140px); background: transparent; }
+.drawer { width: min(420px, 92vw); padding: 20px; }
+.drawer-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.drawer-h h3 { margin: 0; }
 .full { width: 100%; }
-.item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--mat-sys-outline-variant); }
-h2 { margin-top: 0; }
+.item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--zz-line, #e8ebf6); gap: 8px; }
+.plink { color: #071345; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.table-wrap { margin-top: 8px; }
+.filters { display: flex; flex-wrap: wrap; gap: 12px; }
+.filters mat-form-field { width: min(220px, 100%); }

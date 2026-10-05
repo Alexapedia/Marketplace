@@ -5,7 +5,7 @@ PlaceMarket can run with **email/password JWT only**. Enable Firebase when you h
 ## 1. Create / reuse a Firebase project
 
 1. Open [Firebase Console](https://console.firebase.google.com).
-2. Add Android app `com.placemarket.placemarket_mobile` and download `google-services.json` into `mobile/android/app/`.
+2. Add Android app `RK.Alexapedia.zezo_store` and download `google-services.json` into `mobile/android/app/`.
 3. Add iOS app with the bundle id from Xcode and put `GoogleService-Info.plist` in `mobile/ios/Runner/`.
 4. Enable Authentication providers: Email/Password, Google, Apple.
 5. Enable Cloud Messaging.

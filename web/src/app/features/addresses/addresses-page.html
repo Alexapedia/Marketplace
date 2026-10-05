@@ -1,0 +1,31 @@
+<div class="w">
+  <app-page-bar [title]="('addresses' | t)" />
+  <p style="margin-bottom: 16px">
+    <a class="btn" routerLink="/address">{{ 'addAddress' | t }}</a>
+  </p>
+  @if (!addresses().length) {
+    <p class="empty">{{ 'noAddresses' | t }}</p>
+  } @else {
+    @for (a of addresses(); track aid(a)) {
+      <div class="order-card">
+        <div>
+          <strong>
+            {{ a.label || ('addresses' | t) }}
+            @if (a.isDefault) {
+              · {{ 'defaultAddress' | t }}
+            }
+          </strong>
+          <div class="muted">{{ a.fullName }} · {{ a.phone }}</div>
+          <div>{{ a.street }} · {{ a.city }}</div>
+        </div>
+        <div class="row-h">
+          <a [routerLink]="['/address', aid(a)]">{{ 'editAddress' | t }}</a>
+          @if (!a.isDefault) {
+            <button class="lang" type="button" (click)="setDefault(aid(a))">{{ 'setDefault' | t }}</button>
+          }
+          <button class="lang" type="button" (click)="remove(aid(a))">{{ 'delete' | t }}</button>
+        </div>
+      </div>
+    }
+  }
+</div>

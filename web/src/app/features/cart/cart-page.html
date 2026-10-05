@@ -1,0 +1,45 @@
+<div class="w">
+  <app-page-bar [title]="('cart' | t)" />
+  @if (!cart.items().length) {
+    <div class="empty">
+      <p>{{ 'emptyCart' | t }}</p>
+      <a class="btn" routerLink="/shop">{{ 'continue' | t }}</a>
+    </div>
+  } @else {
+    <div class="panel">
+      @for (i of cart.items(); track i._id) {
+        <div class="cart-row">
+          @if (i.image) {
+            <img [src]="media(i.image)" alt="" />
+          } @else {
+            <div class="cart-ph"></div>
+          }
+          <div>
+            <a [routerLink]="['/product', productId(i)]"><strong>{{ i.nameSnapshot }}</strong></a>
+            <div class="muted">
+              {{ i.unitPrice }} × {{ i.quantity }}
+              @if (i.size) {
+                · {{ i.size }}
+              }
+            </div>
+            <div class="stepper compact">
+              <button type="button" (click)="dec(i._id!, i.quantity)">−</button>
+              <span>{{ i.quantity }}</span>
+              <button type="button" (click)="inc(i._id!, i.quantity)">+</button>
+            </div>
+          </div>
+          <div>
+            <div>{{ i.unitPrice * i.quantity }} {{ 'currency' | t }}</div>
+            <button class="lang" type="button" (click)="remove(i._id!)">{{ 'remove' | t }}</button>
+          </div>
+        </div>
+      }
+      <div class="cod">💵 {{ 'cod' | t }}</div>
+      <p style="display: flex; justify-content: space-between; font-weight: 700; margin: 12px 0 16px">
+        <span>{{ 'total' | t }}</span>
+        <span>{{ total() }} {{ 'currency' | t }}</span>
+      </p>
+      <a class="btn wide navy" routerLink="/checkout">{{ 'checkout' | t }}</a>
+    </div>
+  }
+</div>

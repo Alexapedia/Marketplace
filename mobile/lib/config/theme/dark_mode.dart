@@ -61,14 +61,14 @@ ThemeData dark(AppColors c) {
         fontWeight: FontWeight.w700,
       ),
       titleLarge: TextStyle(color: c.textPrimaryDark, fontWeight: FontWeight.w600),
-      bodyLarge: TextStyle(color: c.textPrimaryDark),
-      bodyMedium: TextStyle(color: c.textSecondary),
-      bodySmall: TextStyle(color: c.hintDark),
+      bodyLarge: TextStyle(color: c.textPrimaryDark, height: 1.45),
+      bodyMedium: TextStyle(color: c.textPrimaryDark, height: 1.4),
+      bodySmall: TextStyle(color: c.textSecondary, height: 1.35),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.whiteColor,
-        foregroundColor: AppColors.blackColor,
+        backgroundColor: c.gold,
+        foregroundColor: c.backgroundDark,
         minimumSize: const Size(double.infinity, 54),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
@@ -80,7 +80,7 @@ ThemeData dark(AppColors c) {
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: c.surfaceDark,
-      selectedItemColor: AppColors.whiteColor,
+      selectedItemColor: c.gold,
       unselectedItemColor: c.hintDark,
     ),
     inputDecorationTheme: InputDecorationTheme(

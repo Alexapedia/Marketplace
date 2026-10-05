@@ -11,23 +11,32 @@ export class AppConfigService {
   ) {}
 
   async getGlobal() {
-    const doc = await this.configModel.findOne({ key: 'global' });
+    const doc = await this.configModel.findOne({ key: 'global' }).lean();
     if (!doc) {
-      return this.configModel.create({
+      const created = await this.configModel.create({
         key: 'global',
         banners: [],
         onboarding: [],
         version: {},
-        settings: { deliveryFee: 0 },
+        settings: {
+          deliveryFee: 0,
+          supportPhone: '',
+          supportEmail: '',
+        },
       });
+      return created.toObject();
     }
     return doc;
   }
 
   async getPublic() {
     const doc = await this.getGlobal();
+    const banners = (doc.banners ?? []).filter((item) => {
+      const banner = item as Record<string, unknown>;
+      return banner['active'] !== false;
+    });
     return {
-      banners: doc.banners,
+      banners,
       onboarding: doc.onboarding,
       settings: doc.settings,
     };
@@ -46,15 +55,23 @@ export class AppConfigService {
   }
 
   async update(patch: Record<string, unknown>) {
+    const current = await this.getGlobal();
+    const set: Record<string, unknown> = { ...patch };
+    if (patch.settings && typeof patch.settings === 'object') {
+      set.settings = {
+        ...(current.settings ?? {}),
+        ...(patch.settings as Record<string, unknown>),
+      };
+    }
     const doc = await this.configModel.findOneAndUpdate(
       { key: 'global' },
-      { $set: patch },
+      { $set: set },
       { new: true, upsert: true },
     );
     if (!doc) {
       throw new NotFoundException('App config not found');
     }
-    return doc;
+    return doc.toObject();
   }
 
   async deliveryFee(): Promise<number> {

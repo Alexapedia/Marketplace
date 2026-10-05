@@ -1,0 +1,30 @@
+<div class="w">
+  <app-page-bar [title]="('editProfile' | t)" />
+  <form class="panel auth" (submit)="submit($event)">
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+    <label class="avatar-pick">
+      @if (auth.user()?.avatar) {
+        <img class="avatar" [src]="media(auth.user()!.avatar!)" alt="" />
+      } @else {
+        <span class="avatar ph"></span>
+      }
+      <input type="file" accept="image/*" (change)="onAvatar($event)" hidden #avatarInput />
+      <span (click)="avatarInput.click()">{{ 'changePhoto' | t }}</span>
+    </label>
+    <div class="field">
+      <label>{{ 'email' | t }}</label>
+      <input [value]="auth.user()?.email" readonly />
+    </div>
+    <div class="field">
+      <label>{{ 'name' | t }}</label>
+      <input [(ngModel)]="name" name="name" required />
+    </div>
+    <div class="field">
+      <label>{{ 'phone' | t }}</label>
+      <input type="tel" [(ngModel)]="phone" name="phone" />
+    </div>
+    <button class="btn wide" type="submit">{{ 'editProfile' | t }}</button>
+  </form>
+</div>

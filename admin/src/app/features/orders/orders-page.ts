@@ -12,10 +12,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
+import { RouterLink } from '@angular/router';
 import { OrdersApi } from '../../core/api/orders.api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { entityId, loc, Order, ORDER_STATUSES, OrderStatus, PageMeta } from '../../core/models/models';
+import { entityId, loc, Order, ORDER_STATUSES, OrderStatus, PageMeta, productRef } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
 
@@ -60,12 +61,14 @@ export class RejectDialog {
     MatPaginatorModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatSidenavModule,
     MatChipsModule,
     TranslatePipe,
     AsyncState,
+    RouterLink,
   ],
   templateUrl: './orders-page.html',
   styleUrl: './orders-page.scss',
@@ -81,10 +84,13 @@ export class OrdersPage implements OnInit {
   readonly rows = signal<Order[]>([]);
   readonly meta = signal<PageMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   readonly status = signal<string>('');
+  readonly search = signal('');
+  readonly channel = signal('');
   readonly selected = signal<Order | null>(null);
   readonly statuses = ORDER_STATUSES;
-  readonly cols = ['orderNumber', 'customer', 'total', 'status', 'createdAt', 'actions'];
+  readonly cols = ['orderNumber', 'customer', 'channel', 'total', 'status', 'createdAt', 'actions'];
   readonly entityId = entityId;
+  readonly productRef = productRef;
 
   ngOnInit(): void {
     this.load();
@@ -93,7 +99,13 @@ export class OrdersPage implements OnInit {
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit, status: this.status() || undefined }).subscribe({
+    this.api.list({
+      page,
+      limit,
+      status: this.status() || undefined,
+      search: this.search() || undefined,
+      channel: this.channel() || undefined,
+    }).subscribe({
       next: (res) => {
         this.rows.set(asList(res.data));
         this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
@@ -108,6 +120,16 @@ export class OrdersPage implements OnInit {
 
   filter(status: string): void {
     this.status.set(status);
+    this.load(1);
+  }
+
+  onSearch(value: string): void {
+    this.search.set(value);
+    this.load(1);
+  }
+
+  filterChannel(channel: string): void {
+    this.channel.set(channel);
     this.load(1);
   }
 

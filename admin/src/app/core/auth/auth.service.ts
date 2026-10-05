@@ -17,10 +17,23 @@ export class AuthService {
 
   login(email: string, password: string): Observable<User> {
     return this.api.login(email, password).pipe(
-      tap((res) => this.persistToken(res.data.accessToken)),
-      switchMap(() => this.api.me()),
-      tap((res) => this.user.set(res.data)),
-      map((res) => res.data),
+      tap((res) => {
+        const token = res.data?.accessToken;
+        if (!token) {
+          throw new Error('Invalid login response');
+        }
+        this.persistToken(token);
+      }),
+      switchMap((res) => {
+        if (res.data?.user) {
+          this.user.set(res.data.user);
+          return of(res.data.user);
+        }
+        return this.api.me().pipe(
+          tap((me) => this.user.set(me.data)),
+          map((me) => me.data),
+        );
+      }),
     );
   }
 

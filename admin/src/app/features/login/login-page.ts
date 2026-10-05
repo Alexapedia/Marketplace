@@ -10,6 +10,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { STAFF_ROLES } from '../../core/models/models';
+import { ApiError } from '../../core/api/api-client';
 
 @Component({
   selector: 'app-login-page',
@@ -61,6 +62,10 @@ export class LoginPage {
       },
       error: (err: unknown) => {
         this.loading.set(false);
+        if (err instanceof ApiError && err.offline) {
+          this.error.set(this.i18n.t('login.offline'));
+          return;
+        }
         this.error.set(err instanceof Error ? err.message : this.i18n.t('login.error'));
       },
     });

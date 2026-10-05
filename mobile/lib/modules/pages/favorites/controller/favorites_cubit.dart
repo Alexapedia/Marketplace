@@ -22,11 +22,16 @@ class FavoritesCubit extends Cubit<FavoritesState> {
         final data = unwrapData(s.response);
         final list = asList(data is List ? data : asMap(data)['items'])
             .map((e) {
-              if (e is Map && e['product'] is Map) {
-                return ProductModel.fromJson(e['product']);
+              final map = asMap(e);
+              if (map['productId'] is Map) {
+                return ProductModel.fromJson(map['productId']);
+              }
+              if (map['product'] is Map) {
+                return ProductModel.fromJson(map['product']);
               }
               return ProductModel.fromJson(e);
             })
+            .where((p) => p.id.isNotEmpty)
             .map((p) => p.copyWith(isFavorite: true))
             .toList();
         emit(state.copyWith(status: RequestStatus.loaded, items: list));

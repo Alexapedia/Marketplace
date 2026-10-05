@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AddressesModule } from '../addresses/addresses.module';
 import { AppConfigModule } from '../app-config/app-config.module';
 import { AuditModule } from '../audit/audit.module';
 import { CartModule } from '../cart/cart.module';
@@ -14,6 +15,7 @@ import { OrdersService } from './orders.service';
     AppConfigModule,
     AuditModule,
     NotificationsModule,
+    AddressesModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

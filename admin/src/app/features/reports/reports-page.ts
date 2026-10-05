@@ -5,9 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { RouterLink } from '@angular/router';
 import { ReportsApi } from '../../core/api/reports.api';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { loc, Localized, num, ReportsData } from '../../core/models/models';
+import { loc, Localized, num, productRef, ReportsData } from '../../core/models/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { AsyncState } from '../../shared/async-state';
 import { errMessage } from '../../shared/ui.service';
@@ -23,6 +24,7 @@ import { errMessage } from '../../shared/ui.service';
     MatCardModule,
     TranslatePipe,
     AsyncState,
+    RouterLink,
   ],
   templateUrl: './reports-page.html',
   styleUrl: './reports-page.scss',
@@ -30,6 +32,7 @@ import { errMessage } from '../../shared/ui.service';
 export class ReportsPage implements OnInit {
   private readonly api = inject(ReportsApi);
   readonly i18n = inject(I18nService);
+  readonly productRef = productRef;
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -56,17 +59,31 @@ export class ReportsPage implements OnInit {
     });
   }
 
-  bars(list: Array<{ status?: string; reason?: string; count?: number }> | undefined) {
+  bars(list: Array<{ status?: string; reason?: string; _id?: string; channel?: string; count?: number }> | undefined) {
     const mapped = (list ?? []).map((i) => ({
-      label: i.status ?? i.reason ?? '',
+      label: String(i.status ?? i.reason ?? i.channel ?? i._id ?? ''),
       count: num(i.count),
     }));
     const max = Math.max(...mapped.map((b) => b.count), 1);
     return mapped.map((b) => ({ ...b, pct: Math.round((b.count / max) * 100) }));
   }
 
+  customBars() {
+    const raw = this.data()?.customStats;
+    if (Array.isArray(raw)) {
+      return this.bars(raw);
+    }
+    return this.bars(
+      Object.entries(raw ?? {}).map(([status, count]) => ({ status, count: Number(count) })),
+    );
+  }
+
   productName(name: Localized | string | undefined): string {
     return loc(name, this.i18n.lang());
+  }
+
+  text(value: Localized | string | undefined): string {
+    return loc(value, this.i18n.lang());
   }
 
   private isoDaysAgo(days: number): string {

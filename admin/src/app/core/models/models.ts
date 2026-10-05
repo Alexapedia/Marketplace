@@ -82,6 +82,8 @@ export interface Product {
   sortOrder?: number;
   status?: 'published' | 'unpublished' | 'archived';
   relatedProductIds?: string[];
+  ratingAvg?: number;
+  ratingCount?: number;
   createdAt?: string;
 }
 
@@ -134,7 +136,7 @@ export type OrderStatus =
   | 'cancelled';
 
 export interface OrderItem {
-  productId?: string;
+  productId?: string | Product;
   nameSnapshot?: Localized | string;
   image?: string;
   unitPrice: number;
@@ -175,7 +177,10 @@ export interface Order {
   status?: OrderStatus;
   rejectionReason?: string;
   notes?: string;
+  channel?: 'mobile' | 'website' | 'admin';
   statusHistory?: StatusHistory[];
+  rating?: number;
+  ratingComment?: string;
   createdAt?: string;
 }
 
@@ -253,6 +258,7 @@ export interface AppNotification {
   title?: Localized;
   body?: Localized;
   type?: string;
+  data?: Record<string, unknown>;
   createdAt?: string;
   readAt?: string | null;
 }
@@ -266,10 +272,17 @@ export interface VersionConfig {
 }
 
 export interface Banner {
+  _id?: string;
+  id?: string;
   image?: string;
   title?: Localized | string;
+  subtitle?: Localized | string;
   link?: string;
+  productId?: string;
+  categoryId?: string;
   active?: boolean;
+  placement?: 'home' | 'products' | 'both';
+  sortOrder?: number;
 }
 
 export interface OnboardingSlide {
@@ -296,6 +309,8 @@ export interface DashboardStats {
   pendingCustomOrders?: number;
   pendingCustom?: number;
   revenue?: number;
+  profit?: number;
+  deliveryFees?: number;
   products?: number;
   productsCount?: number;
   customers?: number;
@@ -303,20 +318,59 @@ export interface DashboardStats {
   newCustomers?: number;
   unreadChats?: number;
   unreadChatCount?: number;
-  ordersByStatus?: Array<{ status: string; count: number }>;
+  lowStock?: number;
+  activeCustomers?: number;
+  inactiveCustomers?: number;
+  publishedProducts?: number;
+  unpublishedProducts?: number;
+  ordersByStatus?: Array<{ status: string; count: number; revenue?: number }>;
+  customOrdersByStatus?: Array<{ status: string; count: number }>;
+  ordersByChannel?: Array<{ channel: string; count: number; revenue?: number }>;
+  topProducts?: Array<{ name?: string; productId?: string; quantity?: number; revenue?: number }>;
+  visits?: {
+    visitsMobile?: number;
+    visitsWebsite?: number;
+    uniqueMobile?: number;
+    uniqueWebsite?: number;
+  };
+  series?: Array<{ date: string; orders: number; revenue: number }>;
+  trend?: {
+    orders?: number;
+    revenue?: number;
+    thisWeekOrders?: number;
+    prevWeekOrders?: number;
+  };
   recent?: Array<{ label: string; value: number }>;
 }
 
+export interface ReportInsight {
+  severity?: 'info' | 'warn' | 'ok';
+  title?: Localized | string;
+  body?: Localized | string;
+}
+
 export interface ReportsData {
-  ordersByStatus?: Array<{ status: string; count: number }>;
+  ordersByStatus?: Array<{ status?: string; _id?: string; count?: number; revenue?: number }>;
   topProducts?: Array<{ name?: Localized | string; productId?: string; quantity?: number; revenue?: number }>;
-  customStats?: Record<string, number>;
-  rejectedReasons?: Array<{ reason: string; count: number }>;
+  customStats?: Array<{ _id?: string; status?: string; count?: number }> | Record<string, number>;
+  rejectedReasons?: Array<{ reason?: string; _id?: string; count?: number }>;
+  visits?: DashboardStats['visits'];
+  ordersByChannel?: Array<{ _id?: string; channel?: string; count?: number; revenue?: number }>;
+  buyersByChannel?: Array<{ channel?: string; _id?: string; orders?: number; buyers?: number }>;
+  profitLoss?: {
+    grossRevenue?: number;
+    deliveryCost?: number;
+    netProfit?: number;
+    lostSales?: number;
+    lostCount?: number;
+  };
+  insights?: ReportInsight[];
   totals?: {
     orders?: number;
     revenue?: number;
     customOrders?: number;
     customers?: number;
+    conversion?: number;
   };
 }
 
@@ -330,6 +384,20 @@ export interface AuditLog {
   oldValue?: unknown;
   newValue?: unknown;
   ip?: string;
+  createdAt?: string;
+}
+
+export interface Review {
+  id?: string;
+  _id?: string;
+  targetType?: 'product' | 'order' | 'app' | 'website';
+  targetId?: string | null;
+  rating: number;
+  comment?: string;
+  userName?: string;
+  userEmail?: string;
+  targetName?: Localized | string | null;
+  hidden?: boolean;
   createdAt?: string;
 }
 
@@ -382,6 +450,10 @@ export function entityId(entity: { _id?: string; id?: string } | string | undefi
     return entity;
   }
   return entity._id ?? entity.id ?? '';
+}
+
+export function productRef(value: unknown): string {
+  return entityId(value as { _id?: string; id?: string } | string | undefined | null);
 }
 
 export function loc(value: Localized | string | undefined | null, lang: 'en' | 'ar'): string {

@@ -1,0 +1,39 @@
+<div class="w">
+  <app-page-bar [title]="('account' | t)" />
+  @if (auth.user(); as u) {
+    <div class="panel auth">
+      @if (u.avatar) {
+        <img class="avatar" [src]="media(u.avatar)" alt="" />
+      }
+      <h1>{{ u.name }}</h1>
+      <p class="muted">{{ u.email }}</p>
+
+      @if (supportPhone() || supportEmail()) {
+        <div class="support-box">
+          <p>{{ 'support' | t }}</p>
+          <p class="muted">{{ 'supportHint' | t }}</p>
+          @if (supportPhone()) {
+            <button class="btn" type="button" (click)="callSupport()">
+              {{ 'callSupport' | t }} · {{ supportPhone() }}
+            </button>
+          }
+          @if (supportEmail()) {
+            <button class="btn o" type="button" (click)="emailSupport()">
+              {{ 'emailSupport' | t }} · {{ supportEmail() }}
+            </button>
+          }
+        </div>
+      }
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px">
+        <a class="btn" routerLink="/account/edit">{{ 'editProfile' | t }}</a>
+        <a class="btn" routerLink="/addresses">{{ 'addresses' | t }}</a>
+        <a class="btn" routerLink="/favorites">{{ 'favorites' | t }}</a>
+        <a class="btn" routerLink="/orders">{{ 'orders' | t }}</a>
+        <a class="btn" routerLink="/custom">{{ 'customOrders' | t }}</a>
+        <a class="btn" routerLink="/notifications">{{ 'notifications' | t }}</a>
+        <button class="btn navy" type="button" (click)="deleteAccount()">{{ 'deleteAccount' | t }}</button>
+      </div>
+    </div>
+  }
+</div>

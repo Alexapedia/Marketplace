@@ -6,6 +6,7 @@ import '../../../../core/connection/concept/end_points.dart';
 import '../../../../core/connection/interfaces/api_consumer.dart';
 import '../../../../core/models/app_models.dart';
 import '../../../../core/models/catalog_models.dart';
+import '../../../../core/models/review_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
@@ -18,51 +19,55 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> load() async {
     emit(state.copyWith(status: RequestStatus.loading));
     try {
-      final results = await Future.wait([
-        sl.get<ApiConsumer>().get(EndPoints.appConfig),
-        sl.get<ApiConsumer>().get(EndPoints.categories),
-        sl.get<ApiConsumer>().get(
-          EndPoints.products,
-          queryParameters: {'featured': true, 'limit': 10},
-        ),
-        sl.get<ApiConsumer>().get(
-          EndPoints.products,
-          queryParameters: {'newArrival': true, 'limit': 10},
-        ),
-        sl.get<ApiConsumer>().get(
-          EndPoints.products,
-          queryParameters: {'bestSeller': true, 'limit': 10},
-        ),
-      ]);
-      AppConfigModel config = const AppConfigModel();
-      results[0].fold((_) {}, (s) => config = AppConfigModel.fromJson(s.response));
-      List<CategoryModel> cats = [];
-      results[1].fold((_) {}, (s) {
-        final data = unwrapData(s.response);
-        cats = asList(data is List ? data : asMap(data)['items']).map(CategoryModel.fromJson).toList();
-      });
-      List<ProductModel> parse(dynamic r) {
-        final data = unwrapData(r);
-        return asList(data is List ? data : asMap(data)['items'] ?? asMap(data)['products'])
-            .map(ProductModel.fromJson)
-            .toList();
-      }
-      List<ProductModel> featured = [];
-      List<ProductModel> arrivals = [];
-      List<ProductModel> sellers = [];
-      results[2].fold((_) {}, (s) => featured = parse(s.response));
-      results[3].fold((_) {}, (s) => arrivals = parse(s.response));
-      results[4].fold((_) {}, (s) => sellers = parse(s.response));
-      emit(state.copyWith(
-        status: RequestStatus.loaded,
-        config: config,
-        categories: cats,
-        featured: featured,
-        newArrivals: arrivals,
-        bestSellers: sellers,
-      ));
+      final result = await sl.get<ApiConsumer>().get(EndPoints.home);
+      result.fold(
+        (l) => emit(state.copyWith(status: RequestStatus.failed, error: l)),
+        (s) {
+          final data = asMap(unwrapData(s.response));
+          emit(
+            state.copyWith(
+              status: RequestStatus.loaded,
+              config: AppConfigModel.fromJson(asMap(data['config'])),
+              ads: _banners(data['ads']),
+              categories: _categories(data['categories']),
+              featured: _products(data['featured']),
+              newArrivals: _products(data['newArrivals']),
+              bestSellers: _products(data['bestSellers']),
+              highlights: _reviews(data['highlights']),
+            ),
+          );
+        },
+      );
     } catch (e) {
       emit(state.copyWith(status: RequestStatus.failed, error: 'error_generic'.tr()));
     }
+  }
+
+  List<BannerModel> _banners(dynamic raw) {
+    final data = unwrapData(raw);
+    return asList(data is List ? data : asMap(data)['items'])
+        .map(BannerModel.fromJson)
+        .toList();
+  }
+
+  List<CategoryModel> _categories(dynamic raw) {
+    final data = unwrapData(raw);
+    return asList(data is List ? data : asMap(data)['items'])
+        .map(CategoryModel.fromJson)
+        .toList();
+  }
+
+  List<ProductModel> _products(dynamic raw) {
+    final data = unwrapData(raw);
+    return asList(
+      data is List ? data : asMap(data)['items'] ?? asMap(data)['products'],
+    ).map(ProductModel.fromJson).toList();
+  }
+
+  List<ReviewModel> _reviews(dynamic raw) {
+    final data = unwrapData(raw);
+    return asList(data is List ? data : asMap(data)['items'])
+        .map(ReviewModel.fromJson)
+        .toList();
   }
 }

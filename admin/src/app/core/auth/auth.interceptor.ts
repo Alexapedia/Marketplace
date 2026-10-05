@@ -8,9 +8,11 @@ const TOKEN_KEY = 'pm_token';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = localStorage.getItem(TOKEN_KEY);
-  const authReq = token
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
+  const headers: Record<string, string> = { 'X-Client': 'admin' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const authReq = req.clone({ setHeaders: headers });
 
   const router = inject(Router);
   const auth = inject(AuthService);

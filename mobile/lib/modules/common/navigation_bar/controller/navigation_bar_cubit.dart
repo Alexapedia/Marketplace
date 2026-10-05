@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../pages/categories/view/categories_screen.dart';
-import '../../../pages/favorites/view/favorites_screen.dart';
 import '../../../pages/home/view/home_screen.dart';
 import '../../../pages/orders/view/orders_screen.dart';
 import '../../../pages/profile/view/profile_screen.dart';
@@ -36,11 +35,6 @@ class NavigationBarCubit extends Cubit<NavigationBarState> {
       label: 'categories',
     ),
     NavItemData(
-      icon: Icons.favorite_border_rounded,
-      activeIcon: Icons.favorite_rounded,
-      label: 'favorites',
-    ),
-    NavItemData(
       icon: Icons.receipt_long_outlined,
       activeIcon: Icons.receipt_long_rounded,
       label: 'orders',
@@ -55,7 +49,6 @@ class NavigationBarCubit extends Cubit<NavigationBarState> {
   final List<Widget> screens = const [
     HomeScreen(),
     CategoriesScreen(),
-    FavoritesScreen(),
     OrdersScreen(),
     ProfileScreen(),
   ];

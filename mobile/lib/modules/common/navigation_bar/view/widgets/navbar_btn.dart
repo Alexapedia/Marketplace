@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../controller/navigation_bar_cubit.dart' show NavItemData;
+import '../../../../../core/models/color_model.dart';
 
 class NavbarBtn extends StatelessWidget {
   const NavbarBtn({
@@ -20,42 +21,45 @@ class NavbarBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final gold = theme.extension<AppColors>()!.gold;
+    final dark = theme.brightness == Brightness.dark;
+    final activeBg = dark ? gold : AppColors.blackColor;
+    final activeFg = dark ? const Color(0xFF12141C) : Colors.white;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 12 : 8,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? primary.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            width: 38,
+            height: 26,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isSelected ? activeBg : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
               isSelected ? item.activeIcon : item.icon,
               color: isSelected
-                  ? primary
+                  ? activeFg
                   : theme.colorScheme.onSurface.withValues(alpha: 0.38),
-              size: 22,
+              size: 18,
             ),
-            if (isSelected) ...[
-              const SizedBox(width: 6),
-              Text(
-                item.label.tr(),
-                style: TextStyle(
-                  color: primary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ).animate().fadeIn(duration: 200.ms),
-            ],
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            item.label.tr(),
+            style: TextStyle(
+              color: isSelected
+                  ? (dark ? gold : AppColors.blackColor)
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.38),
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ).animate(target: isSelected ? 1 : 0).fadeIn(duration: 180.ms),
+        ],
       ),
     );
   }

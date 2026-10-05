@@ -1,0 +1,12 @@
+<div class="w">
+  <app-page-bar [title]="('allProducts' | t)" />
+  @if (products().length) {
+    <div class="grid">
+      @for (p of products(); track p._id || p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  } @else {
+    <p class="empty">{{ 'noProducts' | t }}</p>
+  }
+</div>

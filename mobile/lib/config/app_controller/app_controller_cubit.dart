@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -30,6 +32,24 @@ class AppControllerCubit extends Cubit<AppControllerState> {
     }
     _loadTheme();
     await loadSession();
+    await loadConfig();
+    unawaited(trackVisit());
+  }
+
+  Future<void> trackVisit() async {
+    var session = PreferenceUtils.getString(StorageKey.analyticsSession);
+    if (session.isEmpty) {
+      session = DateTime.now().microsecondsSinceEpoch.toString();
+      await PreferenceUtils.setString(StorageKey.analyticsSession, session);
+    }
+    await sl.get<ApiConsumer>().post(
+      EndPoints.analyticsVisit,
+      body: {
+        'platform': 'mobile',
+        'path': '/',
+        'sessionId': session,
+      },
+    );
   }
 
   Future<void> loadSession() async {
@@ -42,14 +62,23 @@ class AppControllerCubit extends Cubit<AppControllerState> {
       await loadMe();
       await getCountOfCartItems();
       await getCountOfUnReadNot();
+      await loadFavorites();
     } else {
-      emit(state.copyWith(isGuest: true));
+      emit(state.copyWith(isGuest: true, favoriteIds: const [], favoritesReady: true));
     }
   }
 
   Future<void> enterGuestMode() async {
     await PreferenceUtils.setBool(StorageKey.isGuestMode, true);
-    emit(state.copyWith(isGuest: true, cartItemsCount: 0, countOfUnReadNot: 0));
+    emit(
+      state.copyWith(
+        isGuest: true,
+        cartItemsCount: 0,
+        countOfUnReadNot: 0,
+        favoriteIds: const [],
+        favoritesReady: true,
+      ),
+    );
   }
 
   Future<void> exitGuestMode() async {
@@ -58,6 +87,7 @@ class AppControllerCubit extends Cubit<AppControllerState> {
     await loadMe();
     await getCountOfCartItems();
     await getCountOfUnReadNot();
+    await loadFavorites();
   }
 
   void _loadTheme() {
@@ -89,6 +119,19 @@ class AppControllerCubit extends Cubit<AppControllerState> {
       await context.setLocale(Locale(lang));
     }
     emit(state.copyWith(localeCode: lang));
+  }
+
+  Future<void> loadConfig() async {
+    final response = await sl.get<ApiConsumer>().get(EndPoints.appConfig);
+    response.fold((_) {}, (success) {
+      final settings = AppConfigModel.fromJson(success.response).settings;
+      emit(
+        state.copyWith(
+          supportEmail: asString(settings['supportEmail']),
+          supportPhone: asString(settings['supportPhone']),
+        ),
+      );
+    });
   }
 
   Future<void> loadMe() async {
@@ -158,9 +201,72 @@ class AppControllerCubit extends Cubit<AppControllerState> {
     });
   }
 
+  Future<void> loadFavorites() async {
+    if (state.isGuest) {
+      emit(state.copyWith(favoriteIds: const [], favoritesReady: true));
+      return;
+    }
+    final response = await sl.get<ApiConsumer>().get(EndPoints.favorites);
+    response.fold(
+      (_) => emit(state.copyWith(favoritesReady: true)),
+      (success) {
+        emit(
+          state.copyWith(
+            favoriteIds: _idsFromFavorites(success.response),
+            favoritesReady: true,
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> toggleFavorite(BuildContext context, String productId) async {
     requireAuth(context, () async {
-      await sl.get<ApiConsumer>().post(EndPoints.favorite(productId), body: {});
+      if (productId.isEmpty) return;
+      final wasFav = state.favoriteIds.contains(productId);
+      final original = List<String>.from(state.favoriteIds);
+      final next = List<String>.from(state.favoriteIds);
+      if (wasFav) {
+        next.remove(productId);
+      } else if (!next.contains(productId)) {
+        next.add(productId);
+      }
+      emit(state.copyWith(favoriteIds: next, favoritesReady: true));
+      final response = wasFav
+          ? await sl.get<ApiConsumer>().delete(EndPoints.favorite(productId))
+          : await sl.get<ApiConsumer>().post(
+              EndPoints.favorites,
+              body: {'productId': productId},
+            );
+      response.fold(
+        (failed) {
+          emit(state.copyWith(favoriteIds: original));
+          AppToast(failed, isError: true);
+        },
+        (_) => AppToast(wasFav ? 'removed_from_favorites' : 'added_to_favorites'),
+      );
     });
   }
+}
+
+List<String> _idsFromFavorites(dynamic raw) {
+  final data = unwrapData(raw);
+  final list = asList(data is List ? data : asMap(data)['items']);
+  final ids = <String>[];
+  for (final e in list) {
+    final map = asMap(e);
+    var id = '';
+    final productId = map['productId'];
+    if (productId is Map) {
+      id = asString(productId['_id'] ?? productId['id']);
+    } else {
+      id = asString(productId);
+    }
+    if (id.isEmpty && map['product'] is Map) {
+      final product = asMap(map['product']);
+      id = asString(product['_id'] ?? product['id']);
+    }
+    if (id.isNotEmpty) ids.add(id);
+  }
+  return ids;
 }

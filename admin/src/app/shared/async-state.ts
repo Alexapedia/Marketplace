@@ -11,19 +11,20 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
   template: `
     @if (loading()) {
       <div class="state">
-        <mat-spinner diameter="40" />
+        <mat-spinner diameter="36" />
         <p>{{ 'common.loading' | t }}</p>
       </div>
     } @else if (error()) {
       <mat-card appearance="outlined" class="state-card">
         <mat-card-content>
+          <mat-icon>error_outline</mat-icon>
           <p>{{ error() }}</p>
           <button mat-flat-button (click)="retry.emit()">{{ 'common.retry' | t }}</button>
         </mat-card-content>
       </mat-card>
     } @else if (empty()) {
       <div class="state muted">
-        <mat-icon>inbox</mat-icon>
+        <div class="empty-icon"><mat-icon>inbox</mat-icon></div>
         <p>{{ emptyText() || ('common.empty' | t) }}</p>
       </div>
     }
@@ -35,12 +36,22 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
       align-items: center;
       justify-content: center;
       gap: 12px;
-      padding: 48px 16px;
-      color: var(--mat-sys-on-surface-variant);
+      padding: 56px 16px;
+      color: #5c678c;
     }
-    .state-card { max-width: 480px; margin: 24px auto; }
-    .muted { opacity: 0.8; }
-    mat-icon { font-size: 40px; width: 40px; height: 40px; }
+    .state-card { max-width: 480px; margin: 24px auto; text-align: center; }
+    .state-card p { margin: 8px 0 16px; }
+    .muted { opacity: 0.9; }
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: #e8ebf6;
+      display: grid;
+      place-items: center;
+      color: #071345;
+    }
+    mat-icon { font-size: 28px; width: 28px; height: 28px; }
   `,
 })
 export class AsyncState {

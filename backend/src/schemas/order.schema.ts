@@ -50,6 +50,12 @@ export class OrderAddress {
 
   @Prop()
   notes?: string;
+
+  @Prop()
+  lat?: number;
+
+  @Prop()
+  lng?: number;
 }
 
 export const OrderAddressSchema = SchemaFactory.createForClass(OrderAddress);
@@ -124,10 +130,28 @@ export class Order {
 
   @Prop({ type: Types.ObjectId, ref: 'CustomOrder' })
   customOrderId?: Types.ObjectId;
+
+  @Prop({ enum: ['mobile', 'website', 'admin'], default: 'mobile', index: true })
+  channel?: string;
+
+  @Prop({ min: 1, max: 5 })
+  rating?: number;
+
+  @Prop()
+  ratingComment?: string;
+
+  @Prop()
+  ratedAt?: Date;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
 OrderSchema.index(
   { userId: 1, idempotencyKey: 1 },
-  { unique: true, sparse: true },
+  {
+    unique: true,
+    partialFilterExpression: {
+      idempotencyKey: { $exists: true, $type: 'string' },
+    },
+  },
 );
+OrderSchema.index({ customOrderId: 1 }, { sparse: true });

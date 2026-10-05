@@ -1,7 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
+import { Location } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -11,10 +13,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../core/auth/auth.service';
+import { NotificationsApi } from '../core/api/notifications.api';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { ThemeService } from '../core/theme/theme.service';
-import { StaffRole } from '../core/models/models';
+import { AppNotification, loc, StaffRole } from '../core/models/models';
+import { asList } from '../shared/ui.service';
 
 interface NavItem {
   path: string;
@@ -38,17 +42,23 @@ interface NavItem {
     MatListModule,
     MatMenuModule,
     MatTooltipModule,
+    MatBadgeModule,
     TranslatePipe,
   ],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
-export class Shell {
+export class Shell implements OnDestroy {
   private readonly bp = inject(BreakpointObserver);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
+  private readonly inboxApi = inject(NotificationsApi);
   readonly auth = inject(AuthService);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
+  readonly inbox = signal<AppNotification[]>([]);
+  readonly unread = signal(0);
+  private inboxTimer?: ReturnType<typeof setInterval>;
 
   readonly isTablet = toSignal(
     this.bp.observe('(max-width: 1024px)').pipe(map((r) => r.matches)),
@@ -56,14 +66,6 @@ export class Shell {
   );
 
   readonly sidenavOpened = signal(true);
-
-  readonly pageTitle = toSignal(
-    this.router.events.pipe(
-      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map(() => this.titleFromUrl(this.router.url)),
-    ),
-    { initialValue: this.titleFromUrl(this.router.url) },
-  );
 
   readonly navItems: NavItem[] = [
     { path: '/dashboard', icon: 'dashboard', labelKey: 'nav.dashboard' },
@@ -80,13 +82,6 @@ export class Shell {
       labelKey: 'nav.categories',
       roles: ['super_admin', 'admin', 'product_manager'],
       permissions: ['categories.read', 'products.write'],
-    },
-    {
-      path: '/custom-fields',
-      icon: 'tune',
-      labelKey: 'nav.customFields',
-      roles: ['super_admin', 'admin', 'product_manager'],
-      permissions: ['custom-fields.read', 'products.write'],
     },
     {
       path: '/orders',
@@ -118,17 +113,31 @@ export class Shell {
     },
     {
       path: '/notifications',
-      icon: 'notifications',
+      icon: 'campaign',
       labelKey: 'nav.notifications',
       roles: ['super_admin', 'admin', 'marketing_manager'],
       permissions: ['notifications.write'],
     },
     {
-      path: '/app-config',
-      icon: 'phonelink_setup',
-      labelKey: 'nav.appConfig',
-      roles: ['super_admin', 'admin'],
-      permissions: ['app-config.write'],
+      path: '/settings',
+      icon: 'settings',
+      labelKey: 'nav.settings',
+      roles: ['super_admin', 'admin', 'product_manager'],
+      permissions: ['app-config.write', 'custom-fields.read', 'roles.read', 'customers.write'],
+    },
+    {
+      path: '/ads',
+      icon: 'campaign',
+      labelKey: 'nav.ads',
+      roles: ['super_admin', 'admin', 'marketing_manager'],
+      permissions: ['ads.read', 'ads.write'],
+    },
+    {
+      path: '/reviews',
+      icon: 'star_rate',
+      labelKey: 'nav.reviews',
+      roles: ['super_admin', 'admin', 'support_agent', 'order_manager', 'product_manager', 'marketing_manager'],
+      permissions: ['reviews.read', 'reviews.write'],
     },
     {
       path: '/reports',
@@ -144,13 +153,15 @@ export class Shell {
       roles: ['super_admin', 'admin'],
       permissions: ['audit-logs.read'],
     },
-    {
-      path: '/roles',
-      icon: 'admin_panel_settings',
-      labelKey: 'nav.roles',
-      superAdminOnly: true,
-    },
   ];
+
+  readonly pageTitle = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map(() => this.titleFromUrl(this.router.url)),
+    ),
+    { initialValue: this.titleFromUrl(this.router.url) },
+  );
 
   readonly visibleNav = computed(() =>
     this.navItems.filter((item) =>
@@ -158,10 +169,66 @@ export class Shell {
     ),
   );
 
+  readonly isDashboard = computed(() => {
+    this.pageTitle();
+    const url = this.router.url.split('?')[0];
+    return url === '/dashboard' || url === '/';
+  });
+
+  readonly canGoBack = computed(() => {
+    this.pageTitle();
+    const url = this.router.url.split('?')[0];
+    return url !== '/dashboard' && url !== '/login' && url !== '/';
+  });
+
+  goBack(): void {
+    this.location.back();
+  }
+
   constructor() {
     this.bp.observe('(max-width: 1024px)').subscribe((r) => {
       this.sidenavOpened.set(!r.matches);
     });
+    this.refreshInbox();
+    this.inboxTimer = setInterval(() => this.refreshInbox(), 20000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.inboxTimer) clearInterval(this.inboxTimer);
+  }
+
+  refreshInbox(): void {
+    this.inboxApi.inbox({ limit: 8 }).subscribe({
+      next: (res) => {
+        const items = asList(res.data);
+        this.inbox.set(items);
+        this.unread.set(items.filter((n) => !n.readAt).length);
+      },
+      error: () => undefined,
+    });
+  }
+
+  openInboxItem(item: AppNotification): void {
+    const id = item._id ?? item.id ?? '';
+    if (id) {
+      this.inboxApi.markRead(id).subscribe({ next: () => this.refreshInbox() });
+    }
+    const data = (item as AppNotification & { data?: { orderId?: string } }).data;
+    if (item.type === 'new_order' || data?.orderId) {
+      void this.router.navigate(['/orders']);
+      return;
+    }
+    if (item.type === 'new_custom_order') {
+      void this.router.navigate(['/custom-orders']);
+    }
+  }
+
+  inboxTitle(item: AppNotification): string {
+    return loc(item.title, this.i18n.lang()) || item.type || '';
+  }
+
+  inboxBody(item: AppNotification): string {
+    return loc(item.body, this.i18n.lang());
   }
 
   sidenavMode(): 'over' | 'side' {
@@ -183,9 +250,18 @@ export class Shell {
     void this.router.navigate(['/login']);
   }
 
+  initials(): string {
+    const name = this.auth.user()?.name?.trim() || 'Zezo';
+    const parts = name.split(/\s+/).filter(Boolean);
+    return parts
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('');
+  }
+
   private titleFromUrl(url: string): string {
     const path = url.split('?')[0] ?? url;
-    const item = this.navItems.find((n) => path.startsWith(n.path));
+    const item = this.navItems?.find((n) => path.startsWith(n.path));
     return item?.labelKey ?? 'nav.dashboard';
   }
 }

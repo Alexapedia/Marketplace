@@ -6,7 +6,7 @@ class Breakpoints {
   static const double desktop = 1024;
 }
 
-enum DeviceType { mobile, tablet, desktop }
+enum DeviceType { mobile, tablet, desktop, mobileLandscape }
 
 class ResponsiveInfo {
   final Size size;
@@ -35,6 +35,24 @@ class ResponsiveInfo {
   bool get isMobile => deviceType == DeviceType.mobile;
   bool get isTablet => deviceType == DeviceType.tablet;
   bool get isDesktop => deviceType == DeviceType.desktop;
+  bool get isWide => width >= 700;
+  bool get isCompactHeight => height < 520;
+  bool get useNavRail => isTablet || isDesktop || isLandscape;
+  double get navRailWidth {
+    if (isCompactHeight) return 92;
+    if (isTablet || isDesktop) return 208;
+    if (isLandscape) return 168;
+    return 88;
+  }
+
+  double get contentMaxWidth {
+    if (isDesktop) return 1120;
+    if (isTablet) return isLandscape ? 1080 : 860;
+    if (isLandscape) return 920;
+    return width;
+  }
+
+  double get formMaxWidth => isMobile && isPortrait ? width : 520;
 
   double scaleText(double fontSize) => textScaler.scale(fontSize);
 }
@@ -52,6 +70,7 @@ class ResponsiveUtils {
   static T byDevice<T>({
     required BuildContext context,
     required T mobile,
+    required T mobileLandscape,
     T? tablet,
     T? desktop,
   }) {
@@ -63,35 +82,55 @@ class ResponsiveUtils {
         return tablet ?? mobile;
       case DeviceType.mobile:
         return mobile;
+      case DeviceType.mobileLandscape:
+        return mobileLandscape;
     }
+  }
+
+  static T byOrientation<T>({
+    required BuildContext context,
+    required T portrait,
+    required T landscape,
+  }) {
+    return of(context).isPortrait ? portrait : landscape;
   }
 
   static double font(BuildContext context, double size) {
     final info = of(context);
     final multiplier = byDevice(
       context: context,
+      mobileLandscape: 1.0,
       mobile: 1.0,
-      tablet: 1.25,
-      desktop: 1.4,
+      tablet: 1.15,
+      desktop: 1.28,
     );
-    return info.scaleText(size * multiplier);
+    return info.scaleText(size * multiplier).fontSize;
   }
 
   static EdgeInsets padding(BuildContext context) {
     return byDevice(
       context: context,
+      mobileLandscape: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       mobile: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       tablet: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       desktop: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
     );
   }
 
-  static int gridColumns(BuildContext context) {
+  static int catalogColumns(BuildContext context) {
+    final info = of(context);
+    if (info.isDesktop) return 4;
+    if (info.isTablet) return info.isLandscape ? 4 : 3;
+    return info.isLandscape ? 3 : 2;
+  }
+
+  static double productCardWidth(BuildContext context) {
     return byDevice(
       context: context,
-      mobile: of(context).isLandscape ? 3 : 2,
-      tablet: 3,
-      desktop: 4,
+      mobileLandscape: 160,
+      mobile: 160,
+      tablet: 190,
+      desktop: 210,
     );
   }
 }
@@ -103,17 +142,29 @@ extension ResponsiveContext on BuildContext {
   bool get isDesktop => responsive.isDesktop;
   bool get isPortrait => responsive.isPortrait;
   bool get isLandscape => responsive.isLandscape;
+  bool get isWide => responsive.isWide;
+  bool get isCompactHeight => responsive.isCompactHeight;
+  bool get useNavRail => responsive.useNavRail;
+  double get navRailWidth => responsive.navRailWidth;
+  double get contentMaxWidth => responsive.contentMaxWidth;
+  double get formMaxWidth => responsive.formMaxWidth;
   double font(double size) => ResponsiveUtils.font(this, size);
   EdgeInsets get adaptivePadding => ResponsiveUtils.padding(this);
-  int get gridColumns => ResponsiveUtils.gridColumns(this);
+  int get catalogColumns => ResponsiveUtils.catalogColumns(this);
+  double get productCardWidth => ResponsiveUtils.productCardWidth(this);
 
-  T byDevice<T>({required T mobile, T? tablet, T? desktop}) =>
-      ResponsiveUtils.byDevice(
-        context: this,
-        mobile: mobile,
-        tablet: tablet,
-        desktop: desktop,
-      );
+  T byDevice<T>({
+    required T mobile,
+    required T mobileLandscape,
+    T? tablet,
+    T? desktop,
+  }) => ResponsiveUtils.byDevice(
+    context: this,
+    mobileLandscape: mobileLandscape,
+    mobile: mobile,
+    tablet: tablet,
+    desktop: desktop,
+  );
 }
 
 Widget screenUtilHandler({required Widget child}) {
@@ -136,6 +187,10 @@ Widget screenUtilHandler({required Widget child}) {
       );
     },
   );
+}
+
+Future<void> initScreenUtilsFunctions() async {
+  await ScreenUtil.ensureScreenSize();
 }
 
 extension SizeExtension on num {

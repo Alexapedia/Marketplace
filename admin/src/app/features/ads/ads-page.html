@@ -1,0 +1,80 @@
+<div class="head">
+  <h2 class="page-h">{{ 'ads.title' | t }}</h2>
+  <button mat-flat-button (click)="open()">
+    <mat-icon>add</mat-icon>
+    {{ 'ads.create' | t }}
+  </button>
+</div>
+<p class="hint">{{ 'ads.hint' | t }}</p>
+<mat-form-field appearance="outline">
+  <mat-label>{{ 'ads.placement' | t }}</mat-label>
+  <mat-select [value]="placement()" (selectionChange)="placement.set($event.value); load(1)">
+    <mat-option value="">{{ 'common.all' | t }}</mat-option>
+    <mat-option value="home">{{ 'ads.placementHome' | t }}</mat-option>
+    <mat-option value="products">{{ 'ads.placementProducts' | t }}</mat-option>
+    <mat-option value="both">{{ 'ads.placementBoth' | t }}</mat-option>
+  </mat-select>
+</mat-form-field>
+
+<app-async-state
+  [loading]="loading()"
+  [error]="error()"
+  [empty]="!loading() && !error() && rows().length === 0"
+  (retry)="load()"
+/>
+
+@if (!loading() && !error() && rows().length) {
+  <div class="table-wrap">
+    <table mat-table [dataSource]="rows()" class="full">
+      <ng-container matColumnDef="image">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          @if (imageSrc(row)) {
+            <img class="thumb" [src]="imageSrc(row)" alt="" />
+          } @else {
+            <span class="thumb empty"></span>
+          }
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | t }}</th>
+        <td mat-cell *matCellDef="let row">
+          <button class="plink" type="button" (click)="open(row)">{{ titleOf(row) }}</button>
+          <div class="sub">{{ subtitleOf(row) }}</div>
+          <div class="langs">
+            <span>EN: {{ loc(row.title, 'en') || '—' }}</span>
+            <span>AR: {{ loc(row.title, 'ar') || '—' }}</span>
+          </div>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="placement">
+        <th mat-header-cell *matHeaderCellDef>{{ 'ads.placement' | t }}</th>
+        <td mat-cell *matCellDef="let row">{{ placementLabel(row) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="sortOrder">
+        <th mat-header-cell *matHeaderCellDef>{{ 'ads.sortOrder' | t }}</th>
+        <td mat-cell *matCellDef="let row">{{ row.sortOrder ?? 0 }}</td>
+      </ng-container>
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>{{ 'ads.active' | t }}</th>
+        <td mat-cell *matCellDef="let row">{{ row.active !== false ? ('common.yes' | t) : ('common.no' | t) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | t }}</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="open(row)"><mat-icon>edit</mat-icon></button>
+          <button mat-icon-button (click)="remove(row)"><mat-icon>delete</mat-icon></button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+    <mat-paginator
+      [length]="meta().total"
+      [pageIndex]="meta().page - 1"
+      [pageSize]="meta().limit"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="page($event)"
+    />
+  </div>
+}

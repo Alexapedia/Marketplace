@@ -14,8 +14,13 @@ class AppRouterKeys {
   static const String myOrdersScreen = 'my_orders';
   static const String orderDetails = 'order_details';
   static const String customOrder = 'custom_order';
+  static const String myCustomOrders = 'my_custom_orders';
   static const String customOrderDetails = 'custom_order_details';
   static const String chat = 'chat';
   static const String forceUpgrade = 'force_upgrade';
   static const String categoryProducts = 'category_products';
+  static const String editProfile = 'edit_profile';
+  static const String addresses = 'addresses';
+  static const String addressForm = 'address_form';
+  static const String favorites = 'favorites';
 }

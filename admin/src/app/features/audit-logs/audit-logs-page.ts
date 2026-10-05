@@ -3,6 +3,8 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { AuditLogsApi } from '../../core/api/audit-logs.api';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { AuditLog, PageMeta, User } from '../../core/models/models';
@@ -11,11 +13,16 @@ import { asList, errMessage } from '../../shared/ui.service';
 
 @Component({
   selector: 'app-audit-logs-page',
-  imports: [DatePipe, MatTableModule, MatPaginatorModule, TranslatePipe, AsyncState],
+  imports: [DatePipe, MatTableModule, MatPaginatorModule, MatFormFieldModule, MatInputModule, TranslatePipe, AsyncState],
   template: `
-    <h2>{{ 'audit.title' | t }}</h2>
+    <h2 class="page-h">{{ 'audit.title' | t }}</h2>
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'common.search' | t }}</mat-label>
+      <input matInput (keyup.enter)="onSearch($any($event.target).value)" />
+    </mat-form-field>
     <app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && rows().length === 0" (retry)="load()" />
     @if (!loading() && !error() && rows().length) {
+      <div class="table-wrap">
       <table mat-table [dataSource]="rows()" class="full">
         <ng-container matColumnDef="actor">
           <th mat-header-cell *matHeaderCellDef>{{ 'audit.actor' | t }}</th>
@@ -41,6 +48,7 @@ import { asList, errMessage } from '../../shared/ui.service';
         <tr mat-row *matRowDef="let row; columns: cols"></tr>
       </table>
       <mat-paginator [length]="meta().total" [pageSize]="meta().limit" [pageIndex]="meta().page - 1" (page)="page($event)" />
+      </div>
     }
   `,
   styles: `.full { width: 100%; }`,
@@ -52,6 +60,7 @@ export class AuditLogsPage implements OnInit {
   readonly rows = signal<AuditLog[]>([]);
   readonly meta = signal<PageMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   readonly cols = ['actor', 'action', 'entity', 'ip', 'createdAt'];
+  readonly search = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -60,7 +69,7 @@ export class AuditLogsPage implements OnInit {
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit }).subscribe({
+    this.api.list({ page, limit, search: this.search() || undefined }).subscribe({
       next: (res) => {
         this.rows.set(asList(res.data));
         this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
@@ -75,6 +84,11 @@ export class AuditLogsPage implements OnInit {
 
   page(ev: PageEvent): void {
     this.load(ev.pageIndex + 1, ev.pageSize);
+  }
+
+  onSearch(value: string): void {
+    this.search.set(value);
+    this.load(1);
   }
 
   actor(row: AuditLog): string {

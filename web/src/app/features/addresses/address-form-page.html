@@ -1,0 +1,38 @@
+<div class="w">
+  <app-page-bar [title]="(id ? ('editAddress' | t) : ('addAddress' | t))" />
+  <form class="panel auth" (submit)="submit($event)">
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+    <app-map-picker [lat]="lat" [lng]="lng" (coordsChange)="onCoords($event)" />
+    <div class="field">
+      <label>{{ 'label' | t }}</label>
+      <input [(ngModel)]="label" name="label" />
+    </div>
+    <div class="field">
+      <label>{{ 'name' | t }}</label>
+      <input [(ngModel)]="fullName" name="fullName" required />
+    </div>
+    <div class="field">
+      <label>{{ 'phone' | t }}</label>
+      <input type="tel" [(ngModel)]="phone" name="phone" required />
+    </div>
+    <div class="field">
+      <label>{{ 'city' | t }}</label>
+      <input [(ngModel)]="city" name="city" required />
+    </div>
+    <div class="field">
+      <label>{{ 'street' | t }}</label>
+      <input [(ngModel)]="street" name="street" required />
+    </div>
+    <div class="field">
+      <label>{{ 'notes' | t }}</label>
+      <input [(ngModel)]="notes" name="notes" />
+    </div>
+    <label class="chk">
+      <input type="checkbox" [(ngModel)]="isDefault" name="isDefault" />
+      {{ 'defaultAddress' | t }}
+    </label>
+    <button class="btn wide" type="submit">{{ 'saved' | t }}</button>
+  </form>
+</div>

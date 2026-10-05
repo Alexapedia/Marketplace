@@ -21,7 +21,11 @@ export class UploadsService {
   }
 
   toUrl(filename: string) {
-    return `/uploads/${filename}`;
+    const publicBase = (
+      this.config.get<string>('PUBLIC_URL') ||
+      `http://localhost:${this.config.get('PORT') || 3000}`
+    ).replace(/\/$/, '');
+    return `${publicBase}/uploads/${filename}`;
   }
 }
 

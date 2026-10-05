@@ -19,4 +19,16 @@ export class NotificationsApi {
   history(params?: QueryParams): Observable<ApiResult<AppNotification[]>> {
     return this.api.get<AppNotification[]>('/admin/notifications', params);
   }
+
+  inbox(params?: QueryParams): Observable<ApiResult<AppNotification[]>> {
+    return this.api.get<AppNotification[]>('/notifications', params);
+  }
+
+  unreadCount(): Observable<ApiResult<{ count: number }>> {
+    return this.api.get<{ count: number }>('/notifications/unread-count');
+  }
+
+  markRead(id: string): Observable<ApiResult<AppNotification>> {
+    return this.api.patch<AppNotification>(`/notifications/${id}/read`);
+  }
 }

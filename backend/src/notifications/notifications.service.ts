@@ -26,6 +26,7 @@ export class NotificationsService {
     body: { en: string; ar: string };
     type: string;
     data?: Record<string, unknown>;
+    batchId?: string;
   }) {
     const doc = await this.notificationModel.create({
       userId: new Types.ObjectId(String(params.userId)),
@@ -33,6 +34,7 @@ export class NotificationsService {
       body: params.body,
       type: params.type,
       data: params.data,
+      batchId: params.batchId,
     });
 
     const enabled = this.config.get<string>('FIREBASE_ENABLED') === 'true';
@@ -72,6 +74,38 @@ export class NotificationsService {
     );
   }
 
+  async unreadCount(userId: string) {
+    return this.notificationModel.countDocuments({
+      userId: new Types.ObjectId(userId),
+      $or: [{ readAt: { $exists: false } }, { readAt: null }],
+    });
+  }
+
+  async notifyRoles(params: {
+    roles: string[];
+    title: { en: string; ar: string };
+    body: { en: string; ar: string };
+    type: string;
+    data?: Record<string, unknown>;
+  }) {
+    const users = await this.userModel
+      .find({ role: { $in: params.roles }, status: 'active' })
+      .select('_id')
+      .lean();
+    await Promise.all(
+      users.map((user) =>
+        this.createAndOptionallyPush({
+          userId: String(user._id),
+          title: params.title,
+          body: params.body,
+          type: params.type,
+          data: params.data,
+        }),
+      ),
+    );
+    return { sent: users.length };
+  }
+
   async sendToTargets(params: {
     title: { en: string; ar: string };
     body: { en: string; ar: string };
@@ -85,15 +119,57 @@ export class NotificationsService {
       userIds = users.map((u) => String(u._id));
     }
     let sent = 0;
+    const batchId = new Types.ObjectId().toString();
     for (const userId of userIds) {
       await this.createAndOptionallyPush({
         userId,
         title: params.title,
         body: params.body,
         type: params.type ?? 'broadcast',
+        batchId,
       });
       sent += 1;
     }
-    return { sent };
+    return { sent, batchId };
+  }
+
+  async listAdmin(page: number, limit: number) {
+    const match = { batchId: { $exists: true, $nin: [null, ''] } };
+    const [items, totalGroups] = await Promise.all([
+      this.notificationModel.aggregate([
+        { $match: match },
+        { $sort: { createdAt: -1 } },
+        {
+          $group: {
+            _id: '$batchId',
+            title: { $first: '$title' },
+            body: { $first: '$body' },
+            type: { $first: '$type' },
+            createdAt: { $first: '$createdAt' },
+            sent: { $sum: 1 },
+          },
+        },
+        { $sort: { createdAt: -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+      ]),
+      this.notificationModel.distinct('batchId', match),
+    ]);
+    return {
+      data: items.map((row) => ({
+        _id: row._id,
+        title: row.title,
+        body: row.body,
+        type: row.type,
+        createdAt: row.createdAt,
+        sent: row.sent,
+      })),
+      meta: {
+        page,
+        limit,
+        total: totalGroups.length,
+        totalPages: Math.max(1, Math.ceil(totalGroups.length / limit)),
+      },
+    };
   }
 }

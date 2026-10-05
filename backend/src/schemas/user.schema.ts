@@ -24,8 +24,11 @@ export class User {
   @Prop({ required: true, enum: USER_ROLES, default: 'customer' })
   role: string;
 
-  @Prop({ enum: ['active', 'blocked'], default: 'active' })
+  @Prop({ enum: ['active', 'blocked', 'deleted'], default: 'active' })
   status: string;
+
+  @Prop()
+  deletedAt?: Date;
 
   @Prop({ enum: ['en', 'ar'], default: 'en' })
   language: string;

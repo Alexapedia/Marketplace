@@ -24,6 +24,11 @@ export class NotificationsController {
     return { data: items, meta: paginationMeta(total, page, limit) };
   }
 
+  @Get('unread-count')
+  async unread(@CurrentUser() user: AuthUser) {
+    return { count: await this.notifications.unreadCount(user.userId) };
+  }
+
   @Patch(':id/read')
   async markRead(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     toObjectId(id);

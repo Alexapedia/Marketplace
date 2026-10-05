@@ -1,4 +1,4 @@
-<h2>{{ 'reports.title' | t }}</h2>
+<h2 class="page-h">{{ 'reports.title' | t }}</h2>
 <div class="filters">
   <mat-form-field appearance="outline">
     <mat-label>{{ 'reports.from' | t }}</mat-label>
@@ -14,10 +14,27 @@
 @if (!loading() && !error() && data(); as d) {
   <div class="nums">
     <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.orders' | t }}<strong>{{ (d.totals?.orders ?? 0) | number }}</strong></mat-card-content></mat-card>
-    <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.revenue' | t }}<strong>{{ (d.totals?.revenue ?? 0) | number }}</strong></mat-card-content></mat-card>
-    <mat-card appearance="outlined"><mat-card-content>{{ 'nav.customOrders' | t }}<strong>{{ (d.totals?.customOrders ?? 0) | number }}</strong></mat-card-content></mat-card>
-    <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.customers' | t }}<strong>{{ (d.totals?.customers ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'reports.gross' | t }}<strong>{{ (d.profitLoss?.grossRevenue ?? d.totals?.revenue ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'reports.net' | t }}<strong>{{ (d.profitLoss?.netProfit ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'reports.lost' | t }}<strong>{{ (d.profitLoss?.lostSales ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.visitsMobile' | t }}<strong>{{ (d.visits?.visitsMobile ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'dashboard.visitsWebsite' | t }}<strong>{{ (d.visits?.visitsWebsite ?? 0) | number }}</strong></mat-card-content></mat-card>
+    <mat-card appearance="outlined"><mat-card-content>{{ 'reports.conversion' | t }}<strong>{{ (d.totals?.conversion ?? 0) | number: '1.0-2' }}%</strong></mat-card-content></mat-card>
   </div>
+
+  @if (d.insights?.length) {
+    <div class="tips">
+      @for (tip of d.insights; track $index) {
+        <mat-card appearance="outlined" [class]="'tip ' + (tip.severity || 'info')">
+          <mat-card-content>
+            <h3>{{ text(tip.title) }}</h3>
+            <p>{{ text(tip.body) }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+
   <div class="grid">
     <mat-card appearance="outlined">
       <mat-card-header><mat-card-title>{{ 'dashboard.byStatus' | t }}</mat-card-title></mat-card-header>
@@ -31,7 +48,25 @@
       <mat-card-header><mat-card-title>{{ 'reports.topProducts' | t }}</mat-card-title></mat-card-header>
       <mat-card-content>
         @for (p of d.topProducts ?? []; track $index) {
-          <div class="bar-row"><span>{{ productName(p.name) }}</span><span>{{ p.quantity }} · {{ p.revenue }}</span></div>
+          <div class="bar-row">
+            @if (productRef(p.productId); as pid) {
+              <a class="plink" [routerLink]="['/products']" [queryParams]="{ open: pid }">{{ productName(p.name) }}</a>
+            } @else {
+              <span>{{ productName(p.name) }}</span>
+            }
+            <span>{{ p.quantity }} · {{ p.revenue }}</span>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>{{ 'reports.buyers' | t }}</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @for (row of d.buyersByChannel ?? []; track $index) {
+          <div class="bar-row">
+            <span>{{ row.channel || row._id }}</span>
+            <span>{{ 'reports.buyersCount' | t }}: {{ row.buyers }} · {{ row.orders }}</span>
+          </div>
         }
       </mat-card-content>
     </mat-card>
@@ -39,6 +74,14 @@
       <mat-card-header><mat-card-title>{{ 'reports.rejected' | t }}</mat-card-title></mat-card-header>
       <mat-card-content>
         @for (b of bars(d.rejectedReasons); track b.label) {
+          <div class="bar-row"><span>{{ b.label }}</span><div class="track"><div class="fill" [style.width.%]="b.pct"></div></div><span>{{ b.count }}</span></div>
+        }
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>{{ 'dashboard.customByStatus' | t }}</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @for (b of customBars(); track b.label) {
           <div class="bar-row"><span>{{ b.label }}</span><div class="track"><div class="fill" [style.width.%]="b.pct"></div></div><span>{{ b.count }}</span></div>
         }
       </mat-card-content>

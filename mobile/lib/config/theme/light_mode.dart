@@ -61,11 +61,17 @@ ThemeData light(AppColors c) {
         color: c.textPrimaryLight,
         fontWeight: FontWeight.w700,
       ),
-      titleLarge: TextStyle(color: c.textPrimaryLight, fontWeight: FontWeight.w600),
-      titleMedium: TextStyle(color: c.textPrimaryLight, fontWeight: FontWeight.w500),
-      bodyLarge: TextStyle(color: c.textPrimaryLight),
-      bodyMedium: TextStyle(color: c.textSecondary),
-      bodySmall: TextStyle(color: c.hint),
+      titleLarge: TextStyle(
+        color: c.textPrimaryLight,
+        fontWeight: FontWeight.w600,
+      ),
+      titleMedium: TextStyle(
+        color: c.textPrimaryLight,
+        fontWeight: FontWeight.w500,
+      ),
+      bodyLarge: TextStyle(color: c.textPrimaryLight, height: 1.45),
+      bodyMedium: TextStyle(color: c.textPrimaryLight, height: 1.4),
+      bodySmall: TextStyle(color: c.textSecondary, height: 1.35),
       labelLarge: TextStyle(color: c.primary, fontWeight: FontWeight.w600),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(

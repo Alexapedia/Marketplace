@@ -1,0 +1,19 @@
+<div class="w">
+  <app-page-bar [title]="('customOrders' | t)" />
+  <p style="margin-bottom: 16px">
+    <a class="btn" routerLink="/custom/new">{{ 'startCustom' | t }}</a>
+  </p>
+  @if (!orders().length) {
+    <p class="empty">{{ 'emptyCustom' | t }}</p>
+  } @else {
+    @for (o of orders(); track o._id) {
+      <a class="order-card" [routerLink]="['/custom', o._id]">
+        <div>
+          <strong>{{ title(o) }}</strong>
+          <div class="muted">{{ o.description || '' }}</div>
+        </div>
+        <span class="status-pill">{{ o.status || '' }}</span>
+      </a>
+    }
+  }
+</div>

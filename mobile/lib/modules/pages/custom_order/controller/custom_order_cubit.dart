@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
@@ -17,11 +19,15 @@ import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 
 part 'custom_order_state.dart';
+part 'custom_order_submit_mixin.dart';
 
-class CustomOrderCubit extends Cubit<CustomOrderState> {
+class CustomOrderCubit extends Cubit<CustomOrderState>
+    with CustomOrderSubmitMixin {
   CustomOrderCubit() : super(const CustomOrderState());
 
+  @override
   final desc = TextEditingController();
+  @override
   final Map<String, TextEditingController> fieldCtrls = {};
 
   Future<void> loadCategories() async {
@@ -31,12 +37,14 @@ class CustomOrderCubit extends Cubit<CustomOrderState> {
       (l) => emit(state.copyWith(status: RequestStatus.failed, error: l)),
       (s) {
         final data = unwrapData(s.response);
+        final all = asList(data is List ? data : asMap(data)['items'])
+            .map(CategoryModel.fromJson)
+            .toList();
+        final custom = all.where((c) => c.allowsCustom).toList();
         emit(
           state.copyWith(
             status: RequestStatus.loaded,
-            categories: asList(data is List ? data : asMap(data)['items'])
-                .map(CategoryModel.fromJson)
-                .toList(),
+            categories: custom.isNotEmpty ? custom : all,
           ),
         );
       },
@@ -44,7 +52,11 @@ class CustomOrderCubit extends Cubit<CustomOrderState> {
   }
 
   Future<void> selectCategory(String id) async {
-    emit(state.copyWith(categoryId: id));
+    for (final c in fieldCtrls.values) {
+      c.dispose();
+    }
+    fieldCtrls.clear();
+    emit(state.copyWith(categoryId: id, fields: const [], answers: const {}));
     final response = await sl.get<ApiConsumer>().get(
       EndPoints.customFields,
       queryParameters: {'categoryId': id},
@@ -55,66 +67,35 @@ class CustomOrderCubit extends Cubit<CustomOrderState> {
           .map(CustomFieldModel.fromJson)
           .toList();
       for (final f in fields) {
-        fieldCtrls[f.name] = TextEditingController();
+        fieldCtrls[f.key] = TextEditingController();
       }
-      emit(state.copyWith(fields: fields));
+      emit(state.copyWith(fields: fields, answers: const {}));
     });
+  }
+
+  void setAnswer(String key, dynamic value) {
+    emit(state.copyWith(answers: {...state.answers, key: value}));
+  }
+
+  void toggleMulti(String key, String option) {
+    final current = List<String>.from((state.answers[key] as List?) ?? const []);
+    if (current.contains(option)) {
+      current.remove(option);
+    } else {
+      current.add(option);
+    }
+    setAnswer(key, current);
+  }
+
+  void removeImage(int index) {
+    final next = [...state.images]..removeAt(index);
+    emit(state.copyWith(images: next));
   }
 
   Future<void> pickImages() async {
     final files = await ImagePicker().pickMultiImage(imageQuality: 80);
     if (files.isEmpty) return;
     emit(state.copyWith(images: [...state.images, ...files.map((e) => e.path)]));
-  }
-
-  Future<void> submit(BuildContext context) async {
-    if (state.categoryId.isEmpty) {
-      AppToast('pick_category'.tr(), isError: true);
-      return;
-    }
-    emit(state.copyWith(submitStatus: RequestStatus.loading));
-    final map = <String, dynamic>{
-      'categoryId': state.categoryId,
-      'description': desc.text.trim(),
-    };
-    for (final f in state.fields) {
-      map[f.name] = fieldCtrls[f.name]?.text ?? '';
-    }
-    final form = FormData.fromMap({
-      ...map,
-      'fields': map,
-    });
-    for (final path in state.images) {
-      form.files.add(
-        MapEntry(
-          'images',
-          await MultipartFile.fromFile(path, filename: path.split('/').last),
-        ),
-      );
-    }
-    final response = await sl.get<ApiConsumer>().post(
-      EndPoints.customOrders,
-      body: form,
-    );
-    response.fold(
-      (l) {
-        AppToast(l, isError: true);
-        emit(state.copyWith(submitStatus: RequestStatus.failed));
-      },
-      (s) {
-        AppToast('custom_order_submitted');
-        emit(state.copyWith(submitStatus: RequestStatus.loaded));
-        final created = CustomOrderModel.fromJson(s.response);
-        if (context.mounted) {
-          RouterHandler.navigate(
-            context,
-            AppRouterKeys.customOrderDetails,
-            extra: created.id,
-            routerType: RouterType.goName,
-          );
-        }
-      },
-    );
   }
 
   @override
@@ -127,36 +108,3 @@ class CustomOrderCubit extends Cubit<CustomOrderState> {
   }
 }
 
-class CustomOrderDetailsCubit extends Cubit<CustomOrderDetailsState> {
-  CustomOrderDetailsCubit() : super(const CustomOrderDetailsState());
-
-  Future<void> load(String id) async {
-    emit(state.copyWith(status: RequestStatus.loading));
-    final response = await sl.get<ApiConsumer>().get(EndPoints.customOrder(id));
-    response.fold(
-      (l) => emit(state.copyWith(status: RequestStatus.failed, error: l)),
-      (s) => emit(
-        state.copyWith(
-          status: RequestStatus.loaded,
-          order: CustomOrderModel.fromJson(s.response),
-        ),
-      ),
-    );
-  }
-
-  Future<void> confirm(String orderId, String proposalId) async {
-    final response = await sl.get<ApiConsumer>().post(
-      EndPoints.confirmCustomOrder(orderId),
-      body: {'proposalId': proposalId},
-    );
-    response.fold((l) => AppToast(l, isError: true), (_) => load(orderId));
-  }
-
-  Future<void> reject(String orderId, String proposalId, String reason) async {
-    final response = await sl.get<ApiConsumer>().post(
-      EndPoints.rejectCustomOrder(orderId),
-      body: {'proposalId': proposalId, 'reason': reason},
-    );
-    response.fold((l) => AppToast(l, isError: true), (_) => load(orderId));
-  }
-}

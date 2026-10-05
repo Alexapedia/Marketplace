@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -6,7 +5,6 @@ import '../../../../core/connection/concept/end_points.dart';
 import '../../../../core/connection/interfaces/api_consumer.dart';
 import '../../../../core/models/catalog_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
-import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 
@@ -29,34 +27,4 @@ class OrdersCubit extends Cubit<OrdersState> {
       },
     );
   }
-
-  Future<void> loadOne(String id) async {
-    emit(state.copyWith(detailStatus: RequestStatus.loading));
-    final response = await sl.get<ApiConsumer>().get(EndPoints.order(id));
-    response.fold(
-      (l) => emit(state.copyWith(detailStatus: RequestStatus.failed, error: l)),
-      (s) {
-        emit(
-          state.copyWith(
-            detailStatus: RequestStatus.loaded,
-            current: OrderModel.fromJson(s.response),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> cancel(String id) async {
-    final response = await sl.get<ApiConsumer>().post(
-      EndPoints.cancelOrder(id),
-      body: {},
-    );
-    response.fold((l) => AppToast(l, isError: true), (_) {
-      AppToast('status_cancelled');
-      loadOne(id);
-      load();
-    });
-  }
 }
-
-String statusLabel(String status) => 'status_$status'.tr();

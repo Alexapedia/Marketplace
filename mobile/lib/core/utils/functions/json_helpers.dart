@@ -1,15 +1,25 @@
 import 'package:intl/intl.dart';
 
 String localized(dynamic value, [String? locale]) {
-  final lang =
-      locale ?? (Intl.defaultLocale ?? 'en').split(RegExp(r'[_-]')).first;
+  final lang = (locale ?? Intl.getCurrentLocale()).split(RegExp(r'[_-]')).first;
+  if (lang.isEmpty) return _localized(value, 'en');
+  return _localized(value, lang);
+}
+
+String _localized(dynamic value, String lang) {
   if (value == null) return '';
   if (value is String) return value;
   if (value is Map) {
-    return value[lang]?.toString() ??
-        value['en']?.toString() ??
-        value['ar']?.toString() ??
-        '';
+    final direct = value[lang]?.toString() ?? '';
+    if (direct.isNotEmpty) return direct;
+    final en = value['en']?.toString() ?? '';
+    if (en.isNotEmpty) return en;
+    final ar = value['ar']?.toString() ?? '';
+    if (ar.isNotEmpty) return ar;
+    for (final v in value.values) {
+      if (v != null && v.toString().trim().isNotEmpty) return v.toString();
+    }
+    return '';
   }
   return value.toString();
 }
@@ -22,6 +32,10 @@ Map<String, dynamic> asMap(dynamic value) {
 
 List<dynamic> asList(dynamic value) {
   if (value is List) return value;
+  if (value is Map) {
+    final items = value['items'] ?? value['data'];
+    if (items is List) return items;
+  }
   return const [];
 }
 
@@ -47,6 +61,14 @@ bool asBool(dynamic value, [bool fallback = false]) {
 String asString(dynamic value, [String fallback = '']) {
   if (value == null) return fallback;
   return value.toString();
+}
+
+String asId(dynamic value, [String fallback = '']) {
+  if (value == null) return fallback;
+  if (value is Map) {
+    return asString(value['_id'] ?? value['id'], fallback);
+  }
+  return asString(value, fallback);
 }
 
 dynamic unwrapData(dynamic json) {

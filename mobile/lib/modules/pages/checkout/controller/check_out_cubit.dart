@@ -1,12 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../config/routing/app_router_keys.dart';
 import '../../../../core/connection/concept/end_points.dart';
 import '../../../../core/connection/interfaces/api_consumer.dart';
+import '../../../../core/models/address_models.dart';
 import '../../../../core/models/catalog_models.dart';
-import '../../../../core/repository/package_handler/router_handler.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
@@ -18,46 +19,58 @@ part 'checkout_state.dart';
 class CheckOutCubit extends Cubit<CheckOutState> {
   CheckOutCubit() : super(const CheckOutState());
 
-  final formKey = GlobalKey<FormState>();
-  final name = TextEditingController();
-  final phone = TextEditingController();
-  final city = TextEditingController();
-  final street = TextEditingController();
-  final building = TextEditingController();
-  final apartment = TextEditingController();
-  final country = TextEditingController();
   final notes = TextEditingController();
 
-  Future<void> submit(BuildContext context) async {
-    if (!formKey.currentState!.validate()) return;
+  Future<void> load() async {
     emit(state.copyWith(status: RequestStatus.loading));
-    final address = OrderAddress(
-      fullName: name.text.trim(),
-      phone: phone.text.trim(),
-      city: city.text.trim(),
-      street: street.text.trim(),
-      building: building.text.trim(),
-      apartment: apartment.text.trim(),
-      country: country.text.trim(),
-      line: [
-        street.text,
-        building.text,
-        apartment.text,
-        city.text,
-      ].where((e) => e.trim().isNotEmpty).join(', '),
+    final response = await sl.get<ApiConsumer>().get(EndPoints.addresses);
+    response.fold(
+      (l) => emit(state.copyWith(status: RequestStatus.failed, error: l)),
+      (s) {
+        final data = unwrapData(s.response);
+        final list = asList(data is List ? data : asMap(data)['items'])
+            .map(AddressModel.fromJson)
+            .toList();
+        final selected = list.where((e) => e.isDefault).firstOrNull?.id ??
+            (list.isNotEmpty ? list.first.id : '');
+        emit(
+          state.copyWith(
+            status: RequestStatus.loaded,
+            addresses: list,
+            selectedId: selected,
+          ),
+        );
+      },
     );
+  }
+
+  void select(String id) {
+    emit(state.copyWith(selectedId: id));
+  }
+
+  Future<void> submit(BuildContext context) async {
+    if (state.selectedId.isEmpty) {
+      AppToast('no_addresses_hint', isError: true);
+      if (context.mounted) {
+        await context.pushNamed(AppRouterKeys.addressForm);
+        await load();
+      }
+      return;
+    }
+    emit(state.copyWith(status: RequestStatus.loading));
     final response = await sl.get<ApiConsumer>().post(
       EndPoints.orders,
       body: {
-        'address': address.toJson(),
+        'addressId': state.selectedId,
         'notes': notes.text.trim(),
         'paymentMethod': 'COD',
+        'channel': 'mobile',
       },
     );
     response.fold(
       (l) {
         AppToast(l, isError: true);
-        emit(state.copyWith(status: RequestStatus.failed));
+        emit(state.copyWith(status: RequestStatus.failed, error: l));
       },
       (s) {
         AppToast('order_placed');
@@ -65,12 +78,7 @@ class CheckOutCubit extends Cubit<CheckOutState> {
         sl.get<AppControllerCubit>().getCountOfCartItems();
         if (context.mounted) {
           final order = OrderModel.fromJson(unwrapData(s.response));
-          RouterHandler.navigate(
-            context,
-            AppRouterKeys.orderDetails,
-            extra: order.id,
-            routerType: RouterType.goName,
-          );
+          context.goNamed(AppRouterKeys.orderDetails, extra: order.id);
         }
       },
     );
@@ -78,13 +86,6 @@ class CheckOutCubit extends Cubit<CheckOutState> {
 
   @override
   Future<void> close() {
-    name.dispose();
-    phone.dispose();
-    city.dispose();
-    street.dispose();
-    building.dispose();
-    apartment.dispose();
-    country.dispose();
     notes.dispose();
     return super.close();
   }

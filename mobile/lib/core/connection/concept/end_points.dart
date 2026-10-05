@@ -19,7 +19,11 @@ class EndPoints {
   static const String firebaseAuth = '/auth/firebase';
   static const String me = '/auth/me';
   static const String logout = '/auth/logout';
+  static const String deleteAccount = '/auth/me';
 
+  static const String ads = '/ads';
+  static const String home = '/home';
+  static const String analyticsVisit = '/analytics/visit';
   static const String appConfig = '/app/config';
   static const String appVersion = '/app/version';
 
@@ -51,5 +55,29 @@ class EndPoints {
   static const String notifications = '/notifications';
   static String readNotification(String id) => '/notifications/$id/read';
 
+  static String get origin {
+    return baseUrl.replaceFirst(RegExp(r'/api/v1/?$'), '');
+  }
+
+  static String media(String path) {
+    final value = path.trim();
+    if (value.isEmpty) return value;
+    if (value.startsWith('http://') ||
+        value.startsWith('https://') ||
+        value.startsWith('assets/') ||
+        value.startsWith('file:')) {
+      return value;
+    }
+    if (value.startsWith('/')) return '$origin$value';
+    return '$origin/$value';
+  }
+
   static const String uploads = '/uploads';
+
+  static const String reviews = '/reviews';
+  static const String reviewHighlights = '/reviews/highlights';
+
+  static const String addresses = '/addresses';
+  static String address(String id) => '/addresses/$id';
+  static String addressDefault(String id) => '/addresses/$id/default';
 }

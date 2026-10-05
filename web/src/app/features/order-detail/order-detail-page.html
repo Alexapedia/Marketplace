@@ -1,0 +1,44 @@
+<div class="w">
+  @if (order(); as o) {
+    <app-page-bar [title]="('orderDetails' | t) + ' #' + (o._id || '').slice(-8)" />
+    <div class="panel">
+      <app-order-timeline [status]="status()" />
+      <p class="muted">{{ o.createdAt | date: 'medium' }}</p>
+      <p style="font-weight: 700">{{ o.grandTotal ?? o.total ?? 0 }} {{ 'currency' | t }}</p>
+
+      @if (canCancel()) {
+        <button class="btn navy" type="button" (click)="cancel()">{{ 'cancelOrder' | t }}</button>
+      }
+
+      <h2 class="sec">{{ 'items' | t }}</h2>
+      @for (item of o.items || []; track $index) {
+        <div class="item-row">
+          @if (item.image) {
+            <img [src]="media(item.image)" alt="" />
+          } @else {
+            <div class="cart-ph"></div>
+          }
+          <div>
+            <a [routerLink]="['/product', itemPid(item)]"><strong>{{ item.nameSnapshot || '—' }}</strong></a>
+            <div class="muted">{{ item.unitPrice ?? 0 }} × {{ item.quantity ?? 1 }}</div>
+          </div>
+        </div>
+      }
+
+      @if (o.rating) {
+        <app-stars [value]="o.rating" />
+      } @else if (canRate()) {
+        <p class="muted">{{ 'rateOrderHint' | t }}</p>
+        <form class="rate-mini" (submit)="submitRating($event)">
+          <select [(ngModel)]="rating" name="rating">
+            @for (n of [5, 4, 3, 2, 1]; track n) {
+              <option [value]="n">{{ n }}</option>
+            }
+          </select>
+          <input [(ngModel)]="comment" name="comment" [placeholder]="'comment' | t" />
+          <button class="btn" type="submit">{{ 'rateOrder' | t }}</button>
+        </form>
+      }
+    </div>
+  }
+</div>

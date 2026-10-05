@@ -1,0 +1,18 @@
+<div class="w">
+  <app-page-bar [title]="('notifications' | t)" />
+  @if (!items().length) {
+    <p class="empty">{{ 'emptyNotifications' | t }}</p>
+  } @else {
+    @for (n of items(); track n._id || n.id) {
+      <div class="order-card" [class.muted]="!!n.readAt">
+        <div>
+          <strong>{{ title(n) }}</strong>
+          <div>{{ body(n) }}</div>
+        </div>
+        @if (!n.readAt) {
+          <button class="btn" type="button" (click)="markRead(n)">{{ 'markRead' | t }}</button>
+        }
+      </div>
+    }
+  }
+</div>

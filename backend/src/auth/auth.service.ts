@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
 import { Model } from 'mongoose';
 import { STAFF_ROLES } from '../common/constants';
+import type { AuthUser } from '../common/types/auth-user';
 import {
   PasswordReset,
   PasswordResetDocument,
@@ -69,6 +70,23 @@ export class AuthService {
     return this.sanitize(user, await this.permissionsFor(user.role));
   }
 
+  async userFromToken(token: string): Promise<AuthUser> {
+    const payload = await this.jwt.verifyAsync<JwtPayload>(token);
+    const user = await this.userModel.findById(payload.sub);
+    if (!user || user.status === 'blocked' || user.status === 'deleted') {
+      throw new UnauthorizedException('Account unavailable');
+    }
+    return {
+      userId: String(user._id),
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      type: this.staffType(user.role),
+      status: user.status,
+      permissions: await this.permissionsFor(user.role),
+    };
+  }
+
   async register(dto: RegisterDto) {
     const exists = await this.userModel.findOne({
       email: dto.email.toLowerCase(),
@@ -101,6 +119,9 @@ export class AuthService {
     }
     if (user.status === 'blocked') {
       throw new ForbiddenException('Account is blocked');
+    }
+    if (user.status === 'deleted') {
+      throw new ForbiddenException('Account deleted');
     }
     return { user: await this.present(user), accessToken: this.sign(user) };
   }
@@ -159,13 +180,16 @@ export class AuthService {
     if (user.status === 'blocked') {
       throw new ForbiddenException('Account is blocked');
     }
+    if (user.status === 'deleted') {
+      throw new ForbiddenException('Account deleted');
+    }
 
     return { user: await this.present(user), accessToken: this.sign(user) };
   }
 
   async me(userId: string) {
     const user = await this.userModel.findById(userId);
-    if (!user) {
+    if (!user || user.status === 'deleted') {
       throw new NotFoundException('User not found');
     }
     return this.present(user);
@@ -193,12 +217,34 @@ export class AuthService {
     return this.present(user);
   }
 
+  async deleteMe(userId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (STAFF_ROLES.includes(user.role as (typeof STAFF_ROLES)[number])) {
+      throw new ForbiddenException('Staff accounts cannot be deleted here');
+    }
+    if (user.status === 'deleted') {
+      return { deleted: true };
+    }
+    user.status = 'deleted';
+    user.deletedAt = new Date();
+    user.fcmTokens = [];
+    user.passwordHash = undefined;
+    user.firebaseUid = undefined;
+    user.email = `deleted.${String(user._id)}.${Date.now()}@deleted.local`;
+    user.name = 'Deleted user';
+    await user.save();
+    return { deleted: true };
+  }
+
   async forgotPassword(email: string) {
     const user = await this.userModel.findOne({ email: email.toLowerCase() });
     const generic = {
       message: 'If the account exists, a reset token was issued',
     };
-    if (!user) {
+    if (!user || user.status === 'deleted') {
       return generic;
     }
 

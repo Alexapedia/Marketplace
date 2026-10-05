@@ -1,0 +1,67 @@
+<div class="w">
+  @if (order(); as o) {
+    <app-page-bar [title]="title(o)" />
+    <div class="panel">
+      <span class="status-pill">{{ o.status || '' }}</span>
+      <p style="margin: 12px 0">{{ o.description || '' }}</p>
+
+      @if (o.attachments?.length) {
+        <div class="thumbs">
+          @for (src of o.attachments; track src) {
+            <img [src]="media(src)" alt="" />
+          }
+        </div>
+      }
+
+      @for (p of o.proposals || []; track p._id) {
+        <div class="quote">
+          <div class="qh">
+            <strong>{{ p.productName || 'Quote' }}</strong>
+            <b>{{ p.price ?? 0 }} {{ 'currency' | t }}</b>
+          </div>
+          <p>{{ p.notes || '' }}</p>
+          <div class="muted">{{ p.status || '' }}</div>
+          @if (!p.status || p.status === 'sent') {
+            <div class="field">
+              <label>{{ 'selectAddress' | t }}</label>
+              <select [(ngModel)]="confirmAddressId" name="confirmAddress">
+                @for (a of addresses(); track a._id || a.id) {
+                  <option [value]="a._id || a.id">
+                    {{ a.label || a.city }} — {{ a.street }}
+                  </option>
+                }
+              </select>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 10px">
+              <button class="btn" type="button" (click)="confirm(p._id!)">{{ 'confirmQuote' | t }}</button>
+              <button class="btn navy" type="button" (click)="reject(p._id!)">{{ 'rejectQuote' | t }}</button>
+            </div>
+          }
+        </div>
+      }
+
+      <h2 class="sec">{{ 'chat' | t }}</h2>
+      <div class="chat-log">
+        @for (m of messages(); track m._id || m.id) {
+          <div class="msg" [class.mine]="isMine(m)">
+            {{ m.text || '' }}
+            @if (m.attachments?.length) {
+              <div class="thumbs">
+                @for (src of m.attachments; track src) {
+                  <a [href]="media(src)" target="_blank" rel="noopener">
+                    <img [src]="media(src)" alt="" />
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <form class="rate-box" (submit)="sendChat($event)">
+        <input [(ngModel)]="text" name="text" [placeholder]="'chat' | t" />
+        <input type="file" multiple (change)="onChatFiles($event)" />
+        <button class="btn" type="submit">{{ 'send' | t }}</button>
+      </form>
+    </div>
+  }
+</div>

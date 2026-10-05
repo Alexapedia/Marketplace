@@ -22,25 +22,44 @@
       <h4>{{ 'orders.items' | t }}</h4>
       @for (item of o.items ?? []; track $index) {
         <div class="item">
-          <span>{{ itemName(item.nameSnapshot) }}</span>
+          @if (productRef(item.productId); as pid) {
+            <a class="plink" [routerLink]="['/products']" [queryParams]="{ open: pid }">{{ itemName(item.nameSnapshot) }}</a>
+          } @else {
+            <span>{{ itemName(item.nameSnapshot) }}</span>
+          }
           <span>x{{ item.quantity }} · {{ item.unitPrice }}</span>
         </div>
       }
     }
   </mat-sidenav>
   <mat-sidenav-content>
-    <h2>{{ 'orders.title' | t }}</h2>
-    <mat-form-field appearance="outline">
-      <mat-label>{{ 'common.status' | t }}</mat-label>
-      <mat-select [value]="status()" (selectionChange)="filter($event.value)">
-        <mat-option value="">{{ 'common.all' | t }}</mat-option>
-        @for (s of statuses; track s) {
-          <mat-option [value]="s">{{ s }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <h2 class="page-h">{{ 'orders.title' | t }}</h2>
+    <div class="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'common.search' | t }}</mat-label>
+        <input matInput (keyup.enter)="onSearch($any($event.target).value)" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'common.status' | t }}</mat-label>
+        <mat-select [value]="status()" (selectionChange)="filter($event.value)">
+          <mat-option value="">{{ 'common.all' | t }}</mat-option>
+          @for (s of statuses; track s) {
+            <mat-option [value]="s">{{ s }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'dashboard.byChannel' | t }}</mat-label>
+        <mat-select [value]="channel()" (selectionChange)="filterChannel($event.value)">
+          <mat-option value="">{{ 'common.all' | t }}</mat-option>
+          <mat-option value="mobile">mobile</mat-option>
+          <mat-option value="website">website</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
     <app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && rows().length === 0" (retry)="load()" />
     @if (!loading() && !error() && rows().length) {
+      <div class="table-wrap">
       <table mat-table [dataSource]="rows()" class="full">
         <ng-container matColumnDef="orderNumber">
           <th mat-header-cell *matHeaderCellDef>#</th>
@@ -50,13 +69,17 @@
           <th mat-header-cell *matHeaderCellDef>{{ 'orders.customer' | t }}</th>
           <td mat-cell *matCellDef="let row">{{ customerName(row) }}</td>
         </ng-container>
+        <ng-container matColumnDef="channel">
+          <th mat-header-cell *matHeaderCellDef>{{ 'dashboard.byChannel' | t }}</th>
+          <td mat-cell *matCellDef="let row">{{ row.channel || 'mobile' }}</td>
+        </ng-container>
         <ng-container matColumnDef="total">
           <th mat-header-cell *matHeaderCellDef>{{ 'orders.total' | t }}</th>
           <td mat-cell *matCellDef="let row">{{ row.total }}</td>
         </ng-container>
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef>{{ 'common.status' | t }}</th>
-          <td mat-cell *matCellDef="let row"><mat-chip>{{ orderStatus(row) }}</mat-chip></td>
+          <td mat-cell *matCellDef="let row"><mat-chip [class]="'st-' + orderStatus(row)">{{ orderStatus(row) }}</mat-chip></td>
         </ng-container>
         <ng-container matColumnDef="createdAt">
           <th mat-header-cell *matHeaderCellDef></th>
@@ -72,6 +95,7 @@
         <tr mat-row *matRowDef="let row; columns: cols"></tr>
       </table>
       <mat-paginator [length]="meta().total" [pageSize]="meta().limit" [pageIndex]="meta().page - 1" [pageSizeOptions]="[10,20,50]" (page)="page($event)" />
+      </div>
     }
   </mat-sidenav-content>
 </mat-sidenav-container>

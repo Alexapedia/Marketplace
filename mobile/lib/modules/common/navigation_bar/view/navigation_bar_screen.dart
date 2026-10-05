@@ -1,11 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../config/routing/app_router_keys.dart';
-import '../../../../core/utils/functions/require_auth.dart';
+import '../../../../core/utils/functions/responsive.dart';
 import '../controller/navigation_bar_cubit.dart';
+import 'widgets/app_nav_rail.dart';
 import 'widgets/bottom_navbar_item.dart';
 
 class NavigationBarScreen extends StatelessWidget {
@@ -13,30 +12,45 @@ class NavigationBarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return BlocBuilder<NavigationBarCubit, NavigationBarState>(
       builder: (context, state) {
         final controller = context.read<NavigationBarCubit>();
-        return Scaffold(
-          body: IndexedStack(
-            index: state.selectedPage,
-            children: controller.screens,
-          ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => requireAuth(
-              context,
-              () => context.pushNamed(AppRouterKeys.customOrder),
+        final rail = context.useNavRail;
+        return PopScope(
+          canPop: state.selectedPage == 0,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) controller.getPageIndex(0);
+          },
+          child: Scaffold(
+            body: Row(
+              children: [
+                if (rail)
+                  AppNavRail(
+                    selectedIndex: state.selectedPage,
+                    onTap: controller.getPageIndex,
+                    tabs: controller.navItems,
+                  ),
+                Expanded(
+                  child: SafeArea(
+                    top: false,
+                    bottom: false,
+                    left: (context.locale.languageCode == 'ar') && !rail,
+                    right: context.locale.languageCode == 'ar' && rail,
+                    child: IndexedStack(
+                      index: state.selectedPage,
+                      children: controller.screens,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            icon: const Icon(Icons.auto_awesome),
-            label: Text('custom_order'.tr()),
-            backgroundColor: theme.colorScheme.primary,
-            foregroundColor: theme.colorScheme.onPrimary,
-          ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          bottomNavigationBar: BottomNavbarItem(
-            selectedIndex: state.selectedPage,
-            onTap: controller.getPageIndex,
-            tabs: controller.navItems,
+            bottomNavigationBar: rail
+                ? null
+                : BottomNavbarItem(
+                    selectedIndex: state.selectedPage,
+                    onTap: controller.getPageIndex,
+                    tabs: controller.navItems,
+                  ),
           ),
         );
       },

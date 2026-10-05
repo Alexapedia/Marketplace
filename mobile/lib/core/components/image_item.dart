@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../connection/concept/end_points.dart';
+
 class ImageItem extends StatelessWidget {
   const ImageItem(
     this.img, {
@@ -20,11 +22,12 @@ class ImageItem extends StatelessWidget {
   final BorderRadius? borderRadius;
   final Object? heroTag;
 
-  bool get _isEmpty => img.trim().isEmpty;
-  bool get _isSvg => img.toLowerCase().endsWith('.svg');
+  String get _src => EndPoints.media(img);
+  bool get _isEmpty => _src.trim().isEmpty;
+  bool get _isSvg => _src.toLowerCase().endsWith('.svg');
   bool get _isNetwork =>
-      img.startsWith('http://') || img.startsWith('https://');
-  bool get _isAsset => img.startsWith('assets/');
+      _src.startsWith('http://') || _src.startsWith('https://');
+  bool get _isAsset => _src.startsWith('assets/');
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +45,13 @@ class ImageItem extends StatelessWidget {
     if (_isEmpty) return _fallback(context);
     if (_isAsset) {
       return _isSvg
-          ? SvgPicture.asset(img, width: width, height: height, fit: fit ?? BoxFit.contain)
-          : Image.asset(img, width: width, height: height, fit: fit, errorBuilder: (_, _, _) => _fallback(context));
+          ? SvgPicture.asset(_src, width: width, height: height, fit: fit ?? BoxFit.contain)
+          : Image.asset(_src, width: width, height: height, fit: fit, errorBuilder: (_, _, _) => _fallback(context));
     }
     if (_isNetwork) {
       if (_isSvg) {
         return SvgPicture.network(
-          img,
+          _src,
           width: width,
           height: height,
           fit: fit ?? BoxFit.contain,
@@ -56,7 +59,7 @@ class ImageItem extends StatelessWidget {
         );
       }
       return CachedNetworkImage(
-        imageUrl: img,
+        imageUrl: _src,
         width: width,
         height: height,
         fit: fit,

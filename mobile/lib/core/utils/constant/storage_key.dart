@@ -14,4 +14,5 @@ class StorageKey {
   static const String isGuestMode = 'is_guest_mode';
   static const String onboardingSeen = 'onboarding_seen';
   static const String fcmToken = 'fcm_token';
+  static const String analyticsSession = 'analytics_session';
 }

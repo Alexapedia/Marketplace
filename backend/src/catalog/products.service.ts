@@ -170,6 +170,43 @@ export class ProductsService {
     return product.stock ?? 0;
   }
 
+  async applyStockDelta(
+    items: {
+      productId?: { toString(): string } | string;
+      variant?: string;
+      quantity: number;
+    }[],
+    direction: 1 | -1,
+  ) {
+    for (const item of items) {
+      if (!item.productId) {
+        continue;
+      }
+      const qty = Math.abs(Number(item.quantity) || 0) * direction;
+      if (!qty) {
+        continue;
+      }
+      const product = await this.productModel.findById(
+        toObjectId(String(item.productId)),
+      );
+      if (!product) {
+        continue;
+      }
+      if (item.variant && product.variants?.length) {
+        const variant = product.variants.find(
+          (v) => v.name === item.variant || v.sku === item.variant,
+        );
+        if (variant) {
+          variant.stock = Math.max(0, (variant.stock ?? 0) + qty);
+          await product.save();
+          continue;
+        }
+      }
+      product.stock = Math.max(0, (product.stock ?? 0) + qty);
+      await product.save();
+    }
+  }
+
   private isTrue(value: unknown) {
     return value === true || value === 'true' || value === '1';
   }

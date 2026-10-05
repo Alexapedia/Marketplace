@@ -1,0 +1,105 @@
+<div class="w">
+  @if (product(); as p) {
+    <app-page-bar [title]="name(p)" />
+    <section class="detail">
+      <div>
+        <div class="gallery">
+          @if (images(p)[gallery()]; as src) {
+            <img [src]="src" alt="" />
+          }
+        </div>
+        @if (images(p).length > 1) {
+          <div class="thumbs">
+            @for (src of images(p); track src; let i = $index) {
+              <img [src]="src" [class.on]="gallery() === i" (click)="gallery.set(i)" alt="" />
+            }
+          </div>
+        }
+      </div>
+      <aside class="buy-box">
+        <h1>{{ name(p) }}</h1>
+        <app-stars [value]="p.ratingAvg ?? 0" />
+        <span class="muted">({{ p.ratingCount ?? 0 }})</span>
+        <p>
+          <em style="font-style: normal; font-weight: 700; font-size: 22px">
+            {{ priceOf(p) }} {{ 'currency' | t }}
+          </em>
+          @if (onSale(p)) {
+            <span class="old">{{ p.price }}</span>
+          }
+        </p>
+        <p class="muted">{{ inStock(p) ? ('stock' | t) : ('out' | t) }}</p>
+        <p>{{ desc(p) || '—' }}</p>
+
+        @if (p.sizes?.length) {
+          <div class="field">
+            <label>{{ 'sizes' | t }}</label>
+            <select [(ngModel)]="size" name="size">
+              @for (s of p.sizes; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <div class="qty-row">
+          <label>{{ 'qty' | t }}</label>
+          <div class="stepper">
+            <button type="button" (click)="decQty()">−</button>
+            <span>{{ qty }}</span>
+            <button type="button" (click)="incQty()">+</button>
+          </div>
+        </div>
+
+        <div class="info">
+          <div>🚚<br />{{ 'deliveryEta' | t }}</div>
+          <div>💵<br />{{ 'cod' | t }}</div>
+          <div>↺<br />{{ 'returns14' | t }}</div>
+        </div>
+
+        @if (auth.user()) {
+          <button class="btn wide navy" type="button" [disabled]="!inStock(p)" (click)="addToCart()">
+            {{ 'addToCart' | t }}
+          </button>
+        } @else {
+          <p class="muted">{{ 'guestHint' | t }}</p>
+          <a class="btn wide" routerLink="/login">{{ 'login' | t }}</a>
+        }
+      </aside>
+    </section>
+
+    <h2 class="sec">{{ 'reviews' | t }}</h2>
+    @if (auth.user() && reviews().canRate !== false && !reviews().myReview) {
+      <form class="rate-box" (submit)="submitReview($event)">
+        <select [(ngModel)]="rating" name="rating">
+          @for (n of [5, 4.5, 4, 3.5, 3, 2, 1]; track n) {
+            <option [value]="n">{{ n }}</option>
+          }
+        </select>
+        <input [(ngModel)]="comment" name="comment" [placeholder]="'comment' | t" />
+        <button class="btn" type="submit">{{ 'submitRating' | t }}</button>
+      </form>
+    } @else if (!auth.user()) {
+      <p class="muted"><a routerLink="/login">{{ 'login' | t }}</a> — {{ 'addRating' | t }}</p>
+    }
+
+    @if (reviews().items?.length) {
+      <div class="quotes">
+        @for (r of reviews().items; track r._id || r.id) {
+          <article class="quote">
+            <div class="qh">
+              <strong>{{ r.userName || 'Customer' }}</strong>
+              <app-stars [value]="r.rating" />
+            </div>
+            <p>{{ r.comment || '' }}</p>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="muted">{{ 'noReviews' | t }}</p>
+    }
+  } @else {
+    <app-page-bar [title]="('allProducts' | t)" />
+    <p class="empty">{{ 'noProducts' | t }}</p>
+  }
+</div>

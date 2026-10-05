@@ -53,7 +53,7 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
       <button mat-flat-button (click)="save()">{{ 'common.save' | t }}</button>
     </mat-dialog-actions>
   `,
-  styles: `.dlg{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;min-width:min(560px,90vw)}.wide{grid-column:1/-1}`,
+  styles: `.dlg{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;min-width:min(560px,92vw);padding-top:8px}.wide{grid-column:1/-1}@media (max-width:640px){.dlg{grid-template-columns:1fr}}`,
 })
 export class FieldDialog {
   readonly data = inject<{ field?: CustomField; categories: Category[] }>(MAT_DIALOG_DATA);
@@ -95,10 +95,17 @@ export class FieldDialog {
   imports: [MatTableModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatSelectModule, TranslatePipe, LocPipe, AsyncState],
   template: `
     <div class="head">
-      <h2>{{ 'fields.title' | t }}</h2>
+      <p class="hint-line">{{ 'fields.title' | t }}</p>
       <button mat-flat-button (click)="open()"><mat-icon>add</mat-icon>{{ 'fields.create' | t }}</button>
     </div>
-    <mat-form-field appearance="outline">
+    <div class="note">
+      <mat-icon>info</mat-icon>
+      <div>
+        <strong>{{ 'fields.why' | t }}</strong>
+        <p>{{ 'fields.hint' | t }}</p>
+      </div>
+    </div>
+    <mat-form-field appearance="outline" class="search">
       <mat-label>{{ 'common.category' | t }}</mat-label>
       <mat-select [value]="categoryId()" (selectionChange)="filter($event.value)">
         <mat-option value="">{{ 'common.all' | t }}</mat-option>
@@ -109,6 +116,7 @@ export class FieldDialog {
     </mat-form-field>
     <app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && rows().length === 0" (retry)="load()" />
     @if (!loading() && !error() && rows().length) {
+      <div class="table-wrap">
       <table mat-table [dataSource]="rows()" class="full">
         <ng-container matColumnDef="label">
           <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | t }}</th>
@@ -132,9 +140,18 @@ export class FieldDialog {
         <tr mat-header-row *matHeaderRowDef="cols"></tr>
         <tr mat-row *matRowDef="let row; columns: cols"></tr>
       </table>
+      </div>
     }
   `,
-  styles: `.head{display:flex;justify-content:space-between;align-items:center}h2{margin:0}.full{width:100%}`,
+  styles: `
+    .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+    .hint-line{margin:0;font-weight:800}
+    .note{display:flex;gap:12px;align-items:flex-start;background:color-mix(in srgb,#c9a45c 14%,transparent);border:1px solid color-mix(in srgb,#c9a45c 28%,transparent);border-radius:14px;padding:12px 14px;margin:0 0 16px;max-width:820px}
+    .note mat-icon{color:#c9a45c;flex-shrink:0}
+    .note strong{display:block;margin-bottom:4px}
+    .note p{margin:0;color:var(--zz-muted);line-height:1.45}
+    .full{width:100%}
+  `,
 })
 export class CustomFieldsPage implements OnInit {
   private readonly api = inject(CustomFieldsApi);
@@ -180,7 +197,8 @@ export class CustomFieldsPage implements OnInit {
   open(field?: CustomField): void {
     const ref = this.dialog.open(FieldDialog, {
       data: { field, categories: this.categories() },
-      width: '640px',
+      width: '680px',
+      maxWidth: '94vw',
     });
     ref.afterClosed().subscribe((body: unknown) => {
       if (!body) {

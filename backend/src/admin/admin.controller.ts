@@ -9,7 +9,10 @@ import {
   Post,
   Query,
   Req,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AppConfigService } from '../app-config/app-config.service';
@@ -42,11 +45,19 @@ import {
   ChangeOrderStatusDto,
 } from '../orders/dto/order.dto';
 import { OrdersService } from '../orders/orders.service';
+import {
+  AdminListReviewsQuery,
+  PatchReviewDto,
+} from '../reviews/dto/review.dto';
+import { ReviewsService } from '../reviews/reviews.service';
+import { UploadsService } from '../uploads/uploads.service';
 import { AdminService } from './admin.service';
 import {
   AdminListQuery,
+  CreateStaffDto,
   PatchAppConfigDto,
   PatchCustomerDto,
+  PatchStaffDto,
   ReportsQueryDto,
   SendNotificationDto,
   UpdateRoleDto,
@@ -66,6 +77,8 @@ export class AdminController {
     private readonly customOrders: CustomOrdersService,
     private readonly notifications: NotificationsService,
     private readonly appConfig: AppConfigService,
+    private readonly reviews: ReviewsService,
+    private readonly uploads: UploadsService,
   ) {}
 
   @Get('dashboard')
@@ -227,7 +240,22 @@ export class AdminController {
   @Get('customers')
   @Permissions('customers.read')
   customers(@Query() query: AdminListQuery) {
-    return this.admin.customers(query.page ?? 1, query.limit ?? 20, query.search);
+    return this.admin.customers(
+      query.page ?? 1,
+      query.limit ?? 20,
+      query.search,
+      query.status,
+    );
+  }
+
+  @Get('customers/:id')
+  @Permissions('customers.read')
+  async getCustomer(@Param('id') id: string) {
+    const user = await this.admin.findCustomer(id);
+    if (!user) {
+      throw new NotFoundException('Customer not found');
+    }
+    return user;
   }
 
   @Patch('customers/:id')
@@ -240,10 +268,43 @@ export class AdminController {
     return user;
   }
 
+  @Get('staff')
+  @Roles('super_admin', 'admin')
+  @Permissions('customers.read')
+  listStaff(@Query() query: AdminListQuery) {
+    return this.admin.listStaff(
+      query.page ?? 1,
+      query.limit ?? 20,
+      query.search,
+      query.role,
+    );
+  }
+
+  @Post('staff')
+  @Roles('super_admin', 'admin')
+  @Permissions('customers.write')
+  createStaff(@Body() dto: CreateStaffDto) {
+    return this.admin.createStaff(dto);
+  }
+
+  @Patch('staff/:id')
+  @Roles('super_admin', 'admin')
+  @Permissions('customers.write')
+  patchStaff(@Param('id') id: string, @Body() dto: PatchStaffDto) {
+    return this.admin.patchStaff(id, dto);
+  }
+
   @Get('chats')
   @Permissions('chats.read')
-  chats(@Query() query: PaginationDto) {
-    return this.customOrders.listChats(query.page ?? 1, query.limit ?? 20);
+  chats(
+    @Query() query: PaginationDto,
+    @Query('customOrderId') customOrderId?: string,
+  ) {
+    return this.customOrders.listChats(
+      query.page ?? 1,
+      query.limit ?? 20,
+      customOrderId,
+    );
   }
 
   @Get('chats/:id/messages')
@@ -254,12 +315,27 @@ export class AdminController {
 
   @Post('chats/:id/messages')
   @Permissions('chats.write')
+  @UseInterceptors(FilesInterceptor('files', 8))
   postChat(
     @Param('id') id: string,
     @Body() dto: CreateMessageDto,
     @CurrentUser() user: AuthUser,
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    return this.customOrders.postChatMessage(user, id, dto);
+    const urls = (files ?? []).map((f) => this.uploads.toUrl(f.filename));
+    return this.customOrders.postChatMessage(user, id, dto, urls);
+  }
+
+  @Get('notifications/unread-count')
+  async unreadCount(@CurrentUser() user: AuthUser) {
+    const count = await this.notifications.unreadCount(user.userId);
+    return { count };
+  }
+
+  @Get('notifications')
+  @Permissions('notifications.write')
+  listNotifications(@Query() query: PaginationDto) {
+    return this.notifications.listAdmin(query.page ?? 1, query.limit ?? 20);
   }
 
   @Post('notifications')
@@ -286,10 +362,32 @@ export class AdminController {
     return this.admin.reports(query.from, query.to);
   }
 
+  @Get('reviews')
+  @Permissions('reviews.read')
+  listReviews(@Query() query: AdminListReviewsQuery) {
+    return this.reviews.listAdmin(query);
+  }
+
+  @Patch('reviews/:id')
+  @Permissions('reviews.write')
+  patchReview(@Param('id') id: string, @Body() dto: PatchReviewDto) {
+    return this.reviews.patch(id, dto.hidden);
+  }
+
+  @Delete('reviews/:id')
+  @Permissions('reviews.write')
+  deleteReview(@Param('id') id: string) {
+    return this.reviews.remove(id);
+  }
+
   @Get('audit-logs')
   @Permissions('audit-logs.read')
-  auditLogs(@Query() query: PaginationDto) {
-    return this.admin.auditLogs(query.page ?? 1, query.limit ?? 20);
+  auditLogs(@Query() query: AdminListQuery) {
+    return this.admin.auditLogs(
+      query.page ?? 1,
+      query.limit ?? 20,
+      query.search,
+    );
   }
 
   @Get('roles')
