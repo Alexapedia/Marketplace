@@ -83,7 +83,7 @@ export class Order {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   orderNumber: string;
 
   @Prop({ type: [OrderItemSchema], default: [] })

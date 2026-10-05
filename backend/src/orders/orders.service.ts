@@ -17,6 +17,7 @@ import { generateOrderNumber, toObjectId } from '../common/utils/mongo';
 import { NotificationsService } from '../notifications/notifications.service';
 import { Order, OrderDocument, OrderItem } from '../schemas/order.schema';
 import { Product, ProductDocument } from '../schemas/product.schema';
+import { TenantContext } from '../tenant/tenant.context';
 import {
   AdminUpdateOrderDto,
   ChangeOrderStatusDto,
@@ -39,16 +40,18 @@ export class OrdersService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.orderModel.updateMany(
-      { $or: [{ idempotencyKey: null }, { idempotencyKey: '' }] },
-      { $unset: { idempotencyKey: 1 } },
-    );
-    try {
-      await this.orderModel.collection.dropIndex('userId_1_idempotencyKey_1');
-    } catch {
-      // Replaced by a partial unique index below.
-    }
-    await this.orderModel.syncIndexes();
+    await TenantContext.run({ kind: 'platform' }, async () => {
+      await this.orderModel.updateMany(
+        { $or: [{ idempotencyKey: null }, { idempotencyKey: '' }] },
+        { $unset: { idempotencyKey: 1 } },
+      );
+      try {
+        await this.orderModel.collection.dropIndex('userId_1_idempotencyKey_1');
+      } catch {
+        // Replaced by a partial unique index below.
+      }
+      await this.orderModel.syncIndexes();
+    });
   }
 
   async createFromCart(

@@ -15,6 +15,17 @@ mixin SplashBootMixin on Cubit<SplashState> {
       );
       return;
     }
+    final disabledKey = await _checkChannel();
+    if (!context.mounted) return;
+    if (disabledKey != null) {
+      RouterHandler.navigate(
+        context,
+        AppRouterKeys.channelDisabled,
+        routerType: RouterType.goName,
+        extra: disabledKey,
+      );
+      return;
+    }
     final seen = PreferenceUtils.getBool(StorageKey.onboardingSeen);
     if (!seen) {
       RouterHandler.navigate(
@@ -49,6 +60,21 @@ mixin SplashBootMixin on Cubit<SplashState> {
         if (isVersionBelow(info.version, model.minimumVersion) && model.force) {
           return model;
         }
+        return null;
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> _checkChannel() async {
+    try {
+      final response = await sl.get<ApiConsumer>().get(EndPoints.appConfig);
+      return response.fold((_) => null, (success) {
+        final tenant = AppConfigModel.fromJson(success.response).tenant;
+        if (tenant == null) return null;
+        if (tenant.status == 'suspended') return 'channel_disabled_suspended';
+        if (!tenant.mobileEnabled) return 'channel_disabled_mobile';
         return null;
       });
     } catch (_) {

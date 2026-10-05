@@ -1,0 +1,50 @@
+<div class="hd-page">
+  <header class="intro">
+    <div>
+      <p class="hd-kicker">{{ 'nav.insights' | t }}</p>
+      <h2 class="hd-h">{{ 'issues.title' | t }}</h2>
+      <p class="hd-lead">{{ 'issues.lead' | t }}</p>
+    </div>
+  </header>
+
+  <div class="filters">
+    <button type="button" class="hd-pill" [class.on]="status() === 'open'" (click)="setStatus('open')">{{ 'common.open' | t }}</button>
+    <button type="button" class="hd-pill" [class.on]="status() === 'resolved'" (click)="setStatus('resolved')">{{ 'common.resolved' | t }}</button>
+    <button type="button" class="hd-pill" [class.on]="status() === ''" (click)="setStatus('')">{{ 'common.all' | t }}</button>
+    <span class="sep"></span>
+    @for (ch of channels; track ch) {
+      <button type="button" class="hd-pill" [class.on]="channel() === ch" (click)="setChannel(ch)">
+        {{ ch || ('common.all' | t) }}
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  }
+
+  <div class="list">
+    @for (item of rows(); track idOf(item) || item.message) {
+      <article class="hd-card incident" (click)="toggle(item)">
+        <div class="top">
+          <span class="hd-pill warn">{{ item.kind }}</span>
+          <span class="hd-pill">{{ item.channel }}</span>
+          <span class="hd-pill" [class.on]="item.status === 'resolved'" [class.warn]="item.status !== 'resolved'">{{ item.status || 'open' }}</span>
+          <span class="count">{{ item.count }} {{ 'issues.count' | t }}</span>
+          @if (item.status !== 'resolved') {
+            <button type="button" class="resolve" [disabled]="busy() === idOf(item)" (click)="resolve(item, $event)">
+              {{ 'common.resolve' | t }}
+            </button>
+          }
+        </div>
+        <strong>{{ item.message }}</strong>
+        <small>{{ item.url || '—' }} · {{ 'issues.last' | t }} {{ item.lastSeen | date: 'short' }}</small>
+        @if (expanded() === idOf(item) && item.stack) {
+          <pre>{{ item.stack }}</pre>
+        }
+      </article>
+    } @empty {
+      <p class="muted">{{ 'issues.none' | t }}</p>
+    }
+  </div>
+</div>

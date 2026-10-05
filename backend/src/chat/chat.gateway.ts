@@ -16,6 +16,7 @@ import { Public } from '../common/decorators/public.decorator';
 import type { AuthUser } from '../common/types/auth-user';
 import { CustomOrdersService } from '../custom-orders/custom-orders.service';
 import { ChatRealtimeService } from './chat-realtime.service';
+import { TenantContext } from '../tenant/tenant.context';
 
 @SkipThrottle()
 @Public()
@@ -60,7 +61,7 @@ export class ChatGateway
       const user = await this.auth.userFromToken(token);
       client.data.user = user;
       if (user.type === 'staff') {
-        await client.join('staff');
+        await client.join(`staff:${user.tenantId}`);
       }
       this.logger.debug(`Chat connected ${user.userId} (${user.role})`);
     } catch (err) {
@@ -83,14 +84,16 @@ export class ChatGateway
     try {
       const user = this.userOf(client);
       if (!user) return { ok: false };
-      const convo = await this.customOrders.resolveConversation(user, body);
-      for (const room of client.rooms) {
-        if (room.startsWith('conversation:')) {
-          await client.leave(room);
+      return TenantContext.run({ kind: 'tenant', tenantId: user.tenantId }, async () => {
+        const convo = await this.customOrders.resolveConversation(user, body);
+        for (const room of client.rooms) {
+          if (room.startsWith('conversation:')) {
+            await client.leave(room);
+          }
         }
-      }
-      await client.join(`conversation:${String(convo._id)}`);
-      return { ok: true, conversationId: String(convo._id) };
+        await client.join(`conversation:${String(convo._id)}`);
+        return { ok: true, conversationId: String(convo._id) };
+      });
     } catch (err) {
       client.emit('error', { message: (err as Error).message });
       return { ok: false };
@@ -108,17 +111,19 @@ export class ChatGateway
       if (!user) return { ok: false };
       const text = (body.text || '').trim();
       if (!text) return { ok: false, message: 'text required' };
-      if (body.customOrderId) {
-        await this.customOrders.postMessage(user, body.customOrderId, { text });
-        return { ok: true };
-      }
-      if (body.conversationId) {
-        await this.customOrders.postChatMessage(user, body.conversationId, {
-          text,
-        });
-        return { ok: true };
-      }
-      return { ok: false, message: 'customOrderId or conversationId required' };
+      return TenantContext.run({ kind: 'tenant', tenantId: user.tenantId }, async () => {
+        if (body.customOrderId) {
+          await this.customOrders.postMessage(user, body.customOrderId, { text });
+          return { ok: true };
+        }
+        if (body.conversationId) {
+          await this.customOrders.postChatMessage(user, body.conversationId, {
+            text,
+          });
+          return { ok: true };
+        }
+        return { ok: false, message: 'customOrderId or conversationId required' };
+      });
     } catch (err) {
       client.emit('error', { message: (err as Error).message });
       return { ok: false };

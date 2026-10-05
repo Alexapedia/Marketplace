@@ -1,0 +1,47 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="brand">
+      <div class="mark">P</div>
+      <div>
+        <div class="brand-name">{{ 'brand' | t }}</div>
+        <div class="brand-sub">{{ 'brandSub' | t }}</div>
+      </div>
+    </div>
+    @for (group of groups; track group.labelKey) {
+      <p class="group">{{ group.labelKey | t }}</p>
+      <mat-nav-list class="nav">
+        @for (item of group.items; track item.path) {
+          <a mat-list-item [routerLink]="item.path" routerLinkActive="active">
+            <mat-icon matListItemIcon [matBadge]="item.badge ? issueCount() || null : null" matBadgeSize="small" matBadgeColor="warn">{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.labelKey | t }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    }
+    <div class="sidenav-user">
+      <div class="avatar">{{ initials() }}</div>
+      <div class="user-copy">
+        <strong>{{ auth.user()?.name }}</strong>
+        <span>{{ auth.user()?.email }}</span>
+      </div>
+    </div>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar class="topbar">
+      <div class="crumb">
+        <span class="live">{{ 'common.live' | t }}</span>
+      </div>
+      <span class="spacer"></span>
+      <button mat-stroked-button class="lang-btn" (click)="i18n.toggle()">
+        {{ i18n.lang() === 'en' ? 'العربية' : 'English' }}
+      </button>
+      <button mat-icon-button (click)="theme.toggle()">
+        <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+      <button mat-button (click)="logout()">{{ 'common.logout' | t }}</button>
+    </mat-toolbar>
+    <div class="content">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

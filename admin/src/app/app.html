@@ -1,1 +1,8 @@
-<router-outlet />
+@if (store.blocked()) {
+  <div class="maintenance">
+    <h1>{{ 'brand' | t }}</h1>
+    <p>{{ store.blockedKey() | t }}</p>
+  </div>
+} @else {
+  <router-outlet />
+}

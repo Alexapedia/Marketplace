@@ -29,6 +29,8 @@ import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { SeedModule } from './seed/seed.module';
+import { TenantModule } from './tenant/tenant.module';
+import { PlatformModule } from './platform/platform.module';
 import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
@@ -43,6 +45,7 @@ import { UploadsModule } from './uploads/uploads.module';
     ThrottlerModule.forRoot({
       throttlers: [{ name: 'default', ttl: 60000, limit: 300 }],
     }),
+    TenantModule,
     DatabaseModule,
     FirebaseModule,
     AuditModule,
@@ -64,6 +67,7 @@ import { UploadsModule } from './uploads/uploads.module';
     PaymentsModule,
     ReviewsModule,
     SeedModule,
+    PlatformModule,
   ],
   controllers: [HealthController],
   providers: [

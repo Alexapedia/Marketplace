@@ -22,6 +22,42 @@ import { Review, ReviewSchema } from '../schemas/review.schema';
 import { Role, RoleSchema } from '../schemas/role.schema';
 import { User, UserSchema } from '../schemas/user.schema';
 import { Visit, VisitSchema } from '../schemas/visit.schema';
+import { applyTenantPlugin } from '../tenant/tenant.plugin';
+
+function tenantSchema<T>(schema: T): T {
+  applyTenantPlugin(schema as never);
+  return schema;
+}
+
+tenantSchema(AddressSchema);
+tenantSchema(AdSchema);
+tenantSchema(UserSchema);
+tenantSchema(RoleSchema);
+tenantSchema(CategorySchema);
+tenantSchema(CustomFieldSchema);
+tenantSchema(ProductSchema);
+tenantSchema(ReviewSchema);
+tenantSchema(FavoriteSchema);
+tenantSchema(CartSchema);
+tenantSchema(OrderSchema);
+tenantSchema(CustomOrderSchema);
+tenantSchema(ConversationSchema);
+tenantSchema(MessageSchema);
+tenantSchema(NotificationSchema);
+tenantSchema(AppConfigSchema);
+tenantSchema(AuditLogSchema);
+tenantSchema(PasswordResetSchema);
+tenantSchema(VisitSchema);
+
+UserSchema.index({ tenantId: 1, email: 1 }, { unique: true });
+UserSchema.index(
+  { tenantId: 1, firebaseUid: 1 },
+  { unique: true, partialFilterExpression: { firebaseUid: { $type: 'string' } } },
+);
+RoleSchema.index({ tenantId: 1, name: 1 }, { unique: true });
+AppConfigSchema.index({ tenantId: 1, key: 1 }, { unique: true });
+CartSchema.index({ tenantId: 1, userId: 1 }, { unique: true });
+OrderSchema.index({ tenantId: 1, orderNumber: 1 }, { unique: true });
 
 const models = [
   { name: Address.name, schema: AddressSchema },

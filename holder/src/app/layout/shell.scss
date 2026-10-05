@@ -1,0 +1,142 @@
+.shell {
+  height: 100%;
+  background:
+    radial-gradient(900px 280px at 100% -10%, rgba(201, 164, 92, 0.08), transparent 50%),
+    var(--zz-bg, #eef1f8);
+}
+
+.sidenav {
+  width: 272px;
+  background: linear-gradient(180deg, #0a174f 0%, #071345 55%, #050d2e 100%);
+  border: none;
+  color: #fff;
+}
+
+:host ::ng-deep .sidenav .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 18px 12px;
+}
+
+.mark,
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #c9a45c;
+  border: 2px solid #c9a45c;
+}
+
+.brand-name {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.brand-sub {
+  font-size: 12px;
+  opacity: 0.64;
+}
+
+.group {
+  margin: 14px 22px 4px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+.nav {
+  padding: 0 0 8px;
+}
+
+.sidenav a {
+  color: rgba(255, 255, 255, 0.82) !important;
+  border-radius: 12px;
+  margin: 2px 12px;
+  width: calc(100% - 24px) !important;
+  transition: background 0.15s ease;
+}
+
+.sidenav a.active {
+  background: rgba(201, 164, 92, 0.18);
+  color: #fff !important;
+}
+
+.sidenav-user {
+  margin-top: auto;
+  display: flex;
+  gap: 12px;
+  padding: 16px 18px 22px;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.user-copy {
+  display: grid;
+  font-size: 12px;
+}
+
+.user-copy span {
+  opacity: 0.7;
+}
+
+.topbar {
+  background: color-mix(in srgb, var(--zz-bg, #eef1f8) 86%, transparent);
+  backdrop-filter: blur(12px);
+  padding: 8px 8px 0;
+  height: 56px;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf3;
+  color: #166534;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.live::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #16a34a;
+  animation: livePulse 1.6s ease infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+.spacer {
+  flex: 1;
+}
+
+.lang-btn {
+  margin-inline-end: 8px;
+}
+
+.content {
+  padding: 8px 24px 40px;
+}

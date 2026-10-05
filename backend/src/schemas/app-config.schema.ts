@@ -25,7 +25,7 @@ export const StoreVersionSchema = SchemaFactory.createForClass(StoreVersion);
 
 @Schema({ timestamps: true })
 export class AppConfig {
-  @Prop({ unique: true, default: 'global' })
+  @Prop({ default: 'global' })
   key: string;
 
   @Prop({ type: [SchemaTypes.Mixed], default: [] })

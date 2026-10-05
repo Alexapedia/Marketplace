@@ -5,6 +5,7 @@ import { catchError, throwError } from 'rxjs';
 import { I18nService } from '../i18n/i18n.service';
 import { AuthService } from './auth.service';
 import { TOKEN_KEY } from './token';
+import { TelemetryService } from '../telemetry/telemetry.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = localStorage.getItem(TOKEN_KEY);
@@ -19,15 +20,23 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
   const authReq = req.clone({ setHeaders: headers });
+  const telemetry = inject(TelemetryService);
 
   return next(authReq).pipe(
     catchError((err: unknown) => {
       if (err instanceof HttpErrorResponse && err.status === 401) {
         const isAuth = req.url.includes('/auth/login') || req.url.includes('/auth/register');
-        if (!isAuth) {
+        if (!isAuth && !req.url.includes('/telemetry/')) {
           injector.get(AuthService).logout(false);
           void router.navigate(['/login']);
         }
+      }
+      if (
+        err instanceof HttpErrorResponse &&
+        err.status >= 500 &&
+        !req.url.includes('/telemetry/')
+      ) {
+        telemetry.report('error', err.message || 'HTTP 5xx');
       }
       return throwError(() => err);
     }),

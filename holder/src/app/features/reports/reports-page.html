@@ -1,0 +1,149 @@
+<div class="hd-page">
+  <header class="intro">
+    <div>
+      <p class="hd-kicker">{{ 'nav.insights' | t }}</p>
+      <h2 class="hd-h">{{ 'reports.title' | t }}</h2>
+      <p class="hd-lead">{{ 'reports.lead' | t }}</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  } @else if (data(); as r) {
+    <div class="kpis">
+      <article class="hd-card hd-kpi"><span>{{ 'reports.orders' | t }} · 14d</span><strong>{{ totals().orders | number }}</strong></article>
+      <article class="hd-card hd-kpi"><span>{{ 'reports.revenue' | t }} · 14d</span><strong>{{ totals().revenue | number: '1.0-0' }}</strong></article>
+      <article class="hd-card hd-kpi"><span>{{ 'reports.visits' | t }} · 14d</span><strong>{{ totals().visits | number }}</strong></article>
+      <article class="hd-card hd-kpi"><span>{{ 'reports.crashes' | t }} · 14d</span><strong>{{ totals().crashes | number }}</strong></article>
+    </div>
+
+    <div class="grid charts">
+      <article class="hd-card chart">
+        <div class="row-h"><span>{{ 'reports.orders' | t }}</span><strong>{{ totals().orders | number }}</strong></div>
+        <svg [attr.viewBox]="'0 0 ' + orderSpark().w + ' ' + orderSpark().h" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="rg1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c9a45c" stop-opacity="0.42" />
+              <stop offset="100%" stop-color="#c9a45c" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path [attr.d]="orderSpark().area" fill="url(#rg1)" />
+          <path [attr.d]="orderSpark().line" fill="none" stroke="#c9a45c" stroke-width="2.4" />
+        </svg>
+      </article>
+      <article class="hd-card chart">
+        <div class="row-h"><span>{{ 'reports.revenue' | t }}</span><strong>{{ totals().revenue | number: '1.0-0' }}</strong></div>
+        <svg [attr.viewBox]="'0 0 ' + revSpark().w + ' ' + revSpark().h" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#071345" stop-opacity="0.32" />
+              <stop offset="100%" stop-color="#071345" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path [attr.d]="revSpark().area" fill="url(#rg2)" />
+          <path [attr.d]="revSpark().line" fill="none" stroke="#071345" stroke-width="2.4" />
+        </svg>
+      </article>
+    </div>
+
+    <div class="grid split">
+      <article class="hd-card">
+        <div class="row-h"><span>{{ 'reports.visits' | t }}</span></div>
+        <svg class="mini" [attr.viewBox]="'0 0 ' + visitSpark().w + ' ' + visitSpark().h" preserveAspectRatio="none">
+          <path [attr.d]="visitSpark().area" fill="rgba(201,164,92,0.18)" />
+          <path [attr.d]="visitSpark().line" fill="none" stroke="#c9a45c" stroke-width="2" />
+        </svg>
+        @for (row of r.visitsByPlatform; track row.platform) {
+          <div class="bar-row">
+            <span>{{ row.platform || '—' }}</span>
+            <div class="hd-track"><i [style.width.%]="pct(row.count, visitMax())"></i></div>
+            <b>{{ row.count | number }}</b>
+          </div>
+        } @empty {
+          <p class="muted">{{ 'common.empty' | t }}</p>
+        }
+      </article>
+      <article class="hd-card">
+        <div class="row-h"><span>{{ 'reports.crashes' | t }}</span><a routerLink="/issues">{{ 'nav.issues' | t }}</a></div>
+        <svg class="mini" [attr.viewBox]="'0 0 ' + crashSpark().w + ' ' + crashSpark().h" preserveAspectRatio="none">
+          <path [attr.d]="crashSpark().area" fill="rgba(159,18,57,0.12)" />
+          <path [attr.d]="crashSpark().line" fill="none" stroke="#9f1239" stroke-width="2" />
+        </svg>
+        @for (row of r.issuesByChannel; track row.channel) {
+          <div class="bar-row">
+            <span>{{ row.channel }}</span>
+            <div class="hd-track"><i [style.width.%]="pct(row.count, issueMax())"></i></div>
+            <b>{{ row.count }}</b>
+          </div>
+        } @empty {
+          <p class="muted">{{ 'issues.none' | t }}</p>
+        }
+      </article>
+    </div>
+
+    <div class="grid split">
+      <article class="hd-card">
+        <div class="row-h"><span>{{ 'reports.status' | t }}</span></div>
+        @for (row of r.ordersByStatus; track row.status) {
+          <div class="bar-row">
+            <span class="st-chip" [class]="'st-chip st-' + row.status">{{ row.status }}</span>
+            <div class="hd-track"><i [style.width.%]="pct(row.count, statusMax())"></i></div>
+            <b>{{ row.count | number }}</b>
+          </div>
+        } @empty {
+          <p class="muted">{{ 'common.empty' | t }}</p>
+        }
+      </article>
+      <article class="hd-card">
+        <div class="row-h"><span>{{ 'reports.ranking' | t }}</span></div>
+        @for (row of r.revenueByTenant; track row.id) {
+          <div class="rank">
+            <div>
+              <strong>{{ row.name }}</strong>
+              <small>{{ row.orders }} {{ 'reports.orders' | t }}</small>
+            </div>
+            <div class="rank-bar">
+              <div class="hd-track"><i [style.width.%]="pct(row.revenue, revMax())"></i></div>
+              <b>{{ row.revenue | number: '1.0-0' }}</b>
+            </div>
+          </div>
+        } @empty {
+          <p class="muted">{{ 'common.empty' | t }}</p>
+        }
+      </article>
+    </div>
+
+    <article class="hd-card">
+      <div class="row-h"><span>{{ 'reports.matrix' | t }}</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'tenants.name' | t }}</th>
+              <th>{{ 'tenants.website' | t }}</th>
+              <th>{{ 'tenants.admin' | t }}</th>
+              <th>{{ 'tenants.mobile' | t }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of r.channelMatrix; track row.id) {
+              <tr>
+                <td>
+                  <strong>{{ row.name }}</strong>
+                  <span class="hd-pill" [class.on]="row.status === 'active'" [class.off]="row.status !== 'active'">{{ row.status }}</span>
+                </td>
+                <td><span class="hd-pill" [class.on]="row.channels.website" [class.off]="!row.channels.website">{{ row.channels.website ? ('common.enabled' | t) : ('common.disabled' | t) }}</span></td>
+                <td><span class="hd-pill" [class.on]="row.channels.admin" [class.off]="!row.channels.admin">{{ row.channels.admin ? ('common.enabled' | t) : ('common.disabled' | t) }}</span></td>
+                <td><span class="hd-pill" [class.on]="row.channels.mobile" [class.off]="!row.channels.mobile">{{ row.channels.mobile ? ('common.enabled' | t) : ('common.disabled' | t) }}</span></td>
+                <td><a [routerLink]="['/tenants', row.id]">{{ 'common.open' | t }}</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+  } @else {
+    <p>{{ 'common.loading' | t }}</p>
+  }
+</div>

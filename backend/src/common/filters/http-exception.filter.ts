@@ -6,11 +6,16 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { PlatformTelemetryService } from '../../platform/platform-telemetry.service';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  constructor(private readonly telemetry: PlatformTelemetryService) {}
+
   catch(exception: unknown, host: ArgumentsHost) {
-    const res = host.switchToHttp().getResponse<Response>();
+    const ctx = host.switchToHttp();
+    const res = ctx.getResponse<Response>();
+    const req = ctx.getRequest<{ originalUrl?: string; headers?: Record<string, unknown> }>();
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
@@ -42,6 +47,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
     ) {
       statusCode = HttpStatus.CONFLICT;
       message = 'Duplicate key';
+    }
+
+    const path = String(req?.originalUrl || '');
+    if (statusCode >= 500 && !path.startsWith('/api/v1/telemetry')) {
+      const stack = exception instanceof Error ? exception.stack : undefined;
+      void this.telemetry
+        .ingest({
+          kind: 'crash',
+          channel: 'api',
+          message,
+          stack,
+          url: path,
+          userAgent: String(req?.headers?.['user-agent'] || ''),
+        })
+        .catch(() => undefined);
     }
 
     res.status(statusCode).json({

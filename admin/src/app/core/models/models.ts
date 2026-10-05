@@ -45,8 +45,14 @@ export interface User {
 }
 
 export interface AuthPayload {
-  user: User;
-  accessToken: string;
+  user?: User;
+  accessToken?: string;
+  backupCodes?: string[];
+  requires2fa?: boolean;
+  requires2faSetup?: boolean;
+  challengeToken?: string;
+  qr?: string;
+  otpauthUrl?: string;
 }
 
 export interface ProductFlags {
@@ -290,6 +296,24 @@ export interface OnboardingSlide {
   image?: string;
   title?: Localized | string;
   body?: Localized | string;
+}
+
+export interface TenantPublic {
+  id?: string;
+  slug?: string;
+  name?: string;
+  status?: 'active' | 'suspended';
+  channels?: { website?: boolean; admin?: boolean; mobile?: boolean };
+  branding?: {
+    name?: string;
+    primary?: string;
+    accent?: string;
+    logo?: string;
+    logoDark?: string;
+    favicon?: string;
+    splash?: string;
+  };
+  currency?: string;
 }
 
 export interface AppConfig {

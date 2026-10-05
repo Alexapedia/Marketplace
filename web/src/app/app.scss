@@ -2,3 +2,19 @@
   display: block;
   min-height: 100vh;
 }
+
+.maintenance {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 40px 24px;
+  background: var(--zz-navy, #071345);
+  color: #fff;
+}
+
+.maintenance p {
+  max-width: 420px;
+  opacity: 0.78;
+  line-height: 1.6;
+}

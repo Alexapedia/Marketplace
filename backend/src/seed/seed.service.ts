@@ -12,6 +12,12 @@ import { Product, ProductDocument } from '../schemas/product.schema';
 import { Review, ReviewDocument } from '../schemas/review.schema';
 import { Role, RoleDocument } from '../schemas/role.schema';
 import { User, UserDocument } from '../schemas/user.schema';
+import {
+  PlatformUser,
+  PlatformUserDocument,
+} from '../schemas/platform-user.schema';
+import { TenantContext } from '../tenant/tenant.context';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
@@ -33,29 +39,94 @@ export class SeedService implements OnApplicationBootstrap {
     private readonly adModel: Model<AdDocument>,
     @InjectModel(Review.name)
     private readonly reviewModel: Model<ReviewDocument>,
+    @InjectModel(PlatformUser.name)
+    private readonly platformUsers: Model<PlatformUserDocument>,
     private readonly config: ConfigService,
+    private readonly tenants: TenantService,
   ) {}
 
   async onApplicationBootstrap() {
     await this.connection.asPromise();
-    await this.ensureReviewPermissions();
-    await this.ensureAdsPermissions();
-    const empty = (await this.roleModel.countDocuments()) === 0;
-    const force = this.config.get<string>('SEED') === 'true';
-    if (!empty && !force) {
+    const tenant = await this.tenants.ensureDefault();
+    const tenantId = String(tenant._id);
+    await TenantContext.run({ kind: 'platform' }, async () => {
+      await this.dropLegacyIndexes();
+      await this.backfillTenantId(tenantId);
+      await this.userModel.syncIndexes();
+      await this.seedPlatformOwner();
+    });
+    await TenantContext.run({ kind: 'tenant', tenantId, slug: tenant.slug }, async () => {
+      await this.ensureReviewPermissions();
+      await this.ensureAdsPermissions();
+      const empty = (await this.roleModel.countDocuments()) === 0;
+      const force = this.config.get<string>('SEED') === 'true';
+      if (!empty && !force) {
+        await this.seedAdsIfEmpty();
+        return;
+      }
+      this.logger.log('Seeding database...');
+      await this.seedRoles();
+      await this.seedAdmin();
+      const cats = await this.seedCategories();
+      await this.seedCustomFields(cats);
+      await this.seedProducts(cats);
+      await this.seedAppConfig();
       await this.seedAdsIfEmpty();
-      return;
+      await this.seedReviews();
+      this.logger.log('Seed complete');
+    });
+  }
+
+  private async backfillTenantId(tenantId: string) {
+    const skip = new Set(['tenants', 'platformusers', 'platformaudits', 'platformevents']);
+    const collections = await this.connection.db!.listCollections().toArray();
+    for (const col of collections) {
+      if (skip.has(col.name) || col.name.startsWith('system.')) continue;
+      await this.connection.db!.collection(col.name).updateMany(
+        { tenantId: { $exists: false } },
+        { $set: { tenantId } },
+      );
     }
-    this.logger.log('Seeding database...');
-    await this.seedRoles();
-    await this.seedAdmin();
-    const cats = await this.seedCategories();
-    await this.seedCustomFields(cats);
-    await this.seedProducts(cats);
-    await this.seedAppConfig();
-    await this.seedAdsIfEmpty();
-    await this.seedReviews();
-    this.logger.log('Seed complete');
+  }
+
+  private async dropLegacyIndexes() {
+    const drops: Array<[string, string]> = [
+      ['users', 'email_1'],
+      ['users', 'firebaseUid_1'],
+      ['roles', 'name_1'],
+      ['appconfigs', 'key_1'],
+      ['carts', 'userId_1'],
+      ['orders', 'orderNumber_1'],
+      ['favorites', 'userId_1_productId_1'],
+      ['reviews', 'userId_1_scope_1'],
+      ['users', 'tenantId_1_firebaseUid_1'],
+    ];
+    for (const [col, index] of drops) {
+      try {
+        await this.connection.collection(col).dropIndex(index);
+      } catch {
+        /* already gone */
+      }
+    }
+  }
+
+  private async seedPlatformOwner() {
+    const email = (
+      this.config.get<string>('SEED_HOLDER_EMAIL') || 'holder@placemarket.com'
+    ).toLowerCase();
+    const password =
+      this.config.get<string>('SEED_HOLDER_PASSWORD') || 'Holder@123456';
+    const existing = await this.platformUsers.findOne({ email });
+    if (existing) return;
+    await this.platformUsers.create({
+      name: 'Project Holder',
+      email,
+      passwordHash: await bcrypt.hash(password, 10),
+      role: 'platform_owner',
+      status: 'active',
+      totpEnabled: false,
+    });
+    this.logger.log(`Seeded holder ${email}`);
   }
 
   private async ensureReviewPermissions() {

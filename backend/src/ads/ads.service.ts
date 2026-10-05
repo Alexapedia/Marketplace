@@ -5,6 +5,7 @@ import { paginationMeta } from '../common/dto/pagination.dto';
 import { Ad, AdDocument } from '../schemas/ad.schema';
 import { AppConfig, AppConfigDocument } from '../schemas/app-config.schema';
 import { UpsertAdDto } from './dto/ad.dto';
+import { TenantContext } from '../tenant/tenant.context';
 
 @Injectable()
 export class AdsService implements OnModuleInit {
@@ -18,10 +19,12 @@ export class AdsService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      await this.ads.deleteMany({
-        $or: [{ image: '' }, { image: null }, { image: { $exists: false } }],
+      await TenantContext.run({ kind: 'platform' }, async () => {
+        await this.ads.deleteMany({
+          $or: [{ image: '' }, { image: null }, { image: { $exists: false } }],
+        });
+        await this.migrateFromConfig();
       });
-      await this.migrateFromConfig();
     } catch (err) {
       this.logger.warn(`Ads migrate skipped: ${(err as Error).message}`);
     }

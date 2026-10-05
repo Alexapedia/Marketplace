@@ -1,0 +1,96 @@
+<div class="hd-page">
+  <header class="intro">
+    <div>
+      <p class="hd-kicker">{{ 'brand' | t }}</p>
+      <h2 class="hd-h">{{ 'overview.title' | t }}</h2>
+      <p class="hd-lead">{{ 'overview.lead' | t }}</p>
+    </div>
+    @if (stats(); as s) {
+      <div class="health">
+        <span class="hd-pill" [class.on]="s.db === 'up'" [class.off]="s.db !== 'up'">{{ 'overview.api' | t }} · {{ s.db }}</span>
+        <a class="hd-pill warn" routerLink="/issues">{{ s.openIssues }} {{ 'overview.issues' | t }}</a>
+      </div>
+    }
+  </header>
+
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  } @else if (stats(); as s) {
+    <div class="kpis">
+      <article class="hd-card hd-kpi"><span>{{ 'overview.tenants' | t }}</span><strong>{{ s.tenantCount | number }}</strong><small>{{ s.active }} {{ 'overview.active' | t }}</small></article>
+      <article class="hd-card hd-kpi"><span>{{ 'overview.revenue' | t }}</span><strong>{{ s.revenue | number: '1.0-0' }}</strong><small>{{ s.revenue7d | number: '1.0-0' }} {{ 'overview.week' | t }}</small></article>
+      <article class="hd-card hd-kpi"><span>{{ 'overview.orders' | t }}</span><strong>{{ s.orders | number }}</strong><small>{{ s.ordersOpen }} {{ 'overview.openOrders' | t }}</small></article>
+      <article class="hd-card hd-kpi"><span>{{ 'overview.customers' | t }}</span><strong>{{ s.customers | number }}</strong><small>{{ s.staff }} {{ 'overview.staff' | t }}</small></article>
+      <article class="hd-card hd-kpi"><span>{{ 'overview.visits' | t }}</span><strong>{{ s.visitsWebsite + s.visitsMobile | number }}</strong><small>{{ s.visitsWebsite }} web · {{ s.visitsMobile }} app</small></article>
+      <article class="hd-card hd-kpi"><span>{{ 'overview.crashes' | t }}</span><strong>{{ s.crashes24h | number }}</strong><small>{{ s.channelsOff.website + s.channelsOff.admin + s.channelsOff.mobile }} {{ 'overview.channelsOff' | t }}</small></article>
+    </div>
+
+    <div class="grid">
+      <article class="hd-card chart">
+        <div class="row-h">
+          <span>{{ 'overview.trend' | t }}</span>
+          <strong>{{ s.orders7d }}</strong>
+        </div>
+        <svg [attr.viewBox]="'0 0 ' + spark().w + ' ' + spark().h" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c9a45c" stop-opacity="0.45" />
+              <stop offset="100%" stop-color="#c9a45c" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path [attr.d]="spark().area" fill="url(#g1)" />
+          <path [attr.d]="spark().line" fill="none" stroke="#c9a45c" stroke-width="2.4" />
+        </svg>
+      </article>
+      <article class="hd-card chart">
+        <div class="row-h">
+          <span>{{ 'overview.revenue' | t }} · {{ 'overview.week' | t }}</span>
+          <strong>{{ s.revenue7d | number: '1.0-0' }}</strong>
+        </div>
+        <svg [attr.viewBox]="'0 0 ' + revSpark().w + ' ' + revSpark().h" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#071345" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#071345" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path [attr.d]="revSpark().area" fill="url(#g2)" />
+          <path [attr.d]="revSpark().line" fill="none" stroke="#071345" stroke-width="2.4" />
+        </svg>
+      </article>
+    </div>
+
+    <div class="grid two">
+      <article class="hd-card">
+        <div class="row-h"><span>{{ 'overview.top' | t }}</span><a routerLink="/reports">{{ 'nav.reports' | t }}</a></div>
+        @for (row of s.topTenants; track row.id) {
+          <div class="rank">
+            <div>
+              <strong>{{ row.name }}</strong>
+              <small>{{ row.orders }} {{ 'overview.orders' | t }}</small>
+            </div>
+            <b>{{ row.revenue | number: '1.0-0' }}</b>
+          </div>
+        } @empty {
+          <p class="muted">{{ 'common.empty' | t }}</p>
+        }
+      </article>
+      <article class="hd-card">
+        <div class="row-h"><span>{{ 'overview.recent' | t }}</span><a routerLink="/issues">{{ 'nav.issues' | t }}</a></div>
+        @for (item of s.recentIssues; track item.id || item.message) {
+          <a class="incident" routerLink="/issues">
+            <span class="hd-pill warn">{{ item.kind }}</span>
+            <div>
+              <strong>{{ item.message }}</strong>
+              <small>{{ item.channel }} · {{ item.count }} · {{ item.lastSeen | date: 'short' }}</small>
+            </div>
+          </a>
+        } @empty {
+          <p class="muted">{{ 'issues.none' | t }}</p>
+        }
+      </article>
+    </div>
+  } @else {
+    <p>{{ 'common.loading' | t }}</p>
+  }
+</div>

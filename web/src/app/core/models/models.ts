@@ -97,6 +97,23 @@ export interface AppPublicConfig {
     deliveryFee?: number;
     currency?: string;
   };
+  tenant?: {
+    id?: string;
+    slug?: string;
+    name?: string;
+    status?: 'active' | 'suspended';
+    channels?: { website?: boolean; admin?: boolean; mobile?: boolean };
+    branding?: {
+      name?: string;
+      primary?: string;
+      accent?: string;
+      logo?: string;
+      logoDark?: string;
+      favicon?: string;
+      splash?: string;
+    };
+    currency?: string;
+  };
 }
 
 export interface CartItem {

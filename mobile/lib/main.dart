@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'core/repository/firebase/firebase_service.dart';
 import 'core/repository/package_handler/localization_handler.dart';
+import 'core/telemetry/telemetry_reporter.dart';
 import 'core/utils/constant/storage_key.dart';
 import 'core/utils/functions/responsive.dart';
 import 'core/utils/functions/service_locator.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
   await initScreenUtilsFunctions();
   await serviceLocator();
   await FirebaseService.init();
+  installTelemetryHooks();
   final lang = PreferenceUtils.getString(StorageKey.lang, 'en');
   runApp(
     localization(

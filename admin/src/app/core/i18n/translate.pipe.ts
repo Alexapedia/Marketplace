@@ -12,8 +12,12 @@ export class TranslatePipe implements PipeTransform {
   transform(key: string): string {
     this.i18n.lang();
     this.store.currency();
+    this.store.brandName();
     if (key === 'currency' || key === 'dashboard.currency') {
       return currencyLabel(this.store.currency(), this.i18n.lang());
+    }
+    if (key === 'brand' && this.store.brandName()) {
+      return this.store.brandName();
     }
     return this.i18n.t(key);
   }

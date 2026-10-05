@@ -149,6 +149,8 @@ export const en: Dict = {
   status_delivered: 'Delivered',
   status_completed: 'Completed',
   status_cancelled: 'Cancelled',
+  maintenanceWebsite: 'The website is temporarily disabled.',
+  maintenanceSuspended: 'This store is suspended.',
 };
 
 export const ar: Dict = {
@@ -298,4 +300,6 @@ export const ar: Dict = {
   status_delivered: 'تم التسليم',
   status_completed: 'مكتمل',
   status_cancelled: 'ملغي',
+  maintenanceWebsite: 'الموقع متوقف مؤقتاً.',
+  maintenanceSuspended: 'هذا المتجر موقوف.',
 };

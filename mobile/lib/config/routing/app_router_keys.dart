@@ -18,6 +18,7 @@ class AppRouterKeys {
   static const String customOrderDetails = 'custom_order_details';
   static const String chat = 'chat';
   static const String forceUpgrade = 'force_upgrade';
+  static const String channelDisabled = 'channel_disabled';
   static const String categoryProducts = 'category_products';
   static const String editProfile = 'edit_profile';
   static const String addresses = 'addresses';

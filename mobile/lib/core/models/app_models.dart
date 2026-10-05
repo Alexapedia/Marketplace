@@ -121,15 +121,48 @@ class OnboardingSlide {
   }
 }
 
+class TenantPublic {
+  final String status;
+  final bool mobileEnabled;
+  final String brandName;
+  final String primary;
+  final String accent;
+
+  const TenantPublic({
+    this.status = 'active',
+    this.mobileEnabled = true,
+    this.brandName = '',
+    this.primary = '',
+    this.accent = '',
+  });
+
+  factory TenantPublic.fromJson(dynamic json) {
+    final map = asMap(json);
+    final channels = asMap(map['channels']);
+    final branding = asMap(map['branding']);
+    return TenantPublic(
+      status: asString(map['status'], 'active'),
+      mobileEnabled: !channels.containsKey('mobile') || asBool(channels['mobile'], true),
+      brandName: asString(branding['name'], asString(map['name'])),
+      primary: asString(branding['primary']),
+      accent: asString(branding['accent']),
+    );
+  }
+
+  bool get blocked => status == 'suspended' || !mobileEnabled;
+}
+
 class AppConfigModel {
   final List<BannerModel> banners;
   final List<OnboardingSlide> onboarding;
   final Map<String, dynamic> settings;
+  final TenantPublic? tenant;
 
   const AppConfigModel({
     this.banners = const [],
     this.onboarding = const [],
     this.settings = const {},
+    this.tenant,
   });
 
   List<BannerModel> get homeAds => banners.where((b) => b.isHome).toList();
@@ -145,6 +178,7 @@ class AppConfigModel {
         map['onboarding'],
       ).map(OnboardingSlide.fromJson).toList(),
       settings: asMap(map['settings']),
+      tenant: map['tenant'] == null ? null : TenantPublic.fromJson(map['tenant']),
     );
   }
 }

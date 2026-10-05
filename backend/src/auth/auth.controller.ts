@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
+import { Verify2faDto } from './dto/verify-2fa.dto';
 
 @ApiTags('auth')
 @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -28,6 +29,18 @@ export class AuthController {
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto);
+  }
+
+  @Public()
+  @Post('2fa/verify')
+  verify2fa(@Body() dto: Verify2faDto) {
+    return this.auth.verifyStaff2fa(dto.challengeToken, dto.code);
+  }
+
+  @Public()
+  @Post('2fa/setup')
+  setup2fa(@Body() dto: Verify2faDto) {
+    return this.auth.setupStaff2fa(dto.challengeToken, dto.code);
   }
 
   @Public()

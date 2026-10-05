@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
+import { TenantContext } from '../tenant/tenant.context';
 
 export type ChatMessagePayload = {
   _id: string;
@@ -27,14 +28,17 @@ export class ChatRealtimeService {
     message: ChatMessagePayload;
   }) {
     if (!this.server) return;
+    const tenantId = TenantContext.tenantId();
     this.server
       .to(`conversation:${payload.conversationId}`)
       .emit('message', payload.message);
-    this.server.to('staff').emit('conversation:updated', {
-      conversationId: payload.conversationId,
-      customOrderId: payload.customOrderId,
-      lastMessage: payload.message.text,
-      lastMessageAt: payload.message.createdAt,
-    });
+    if (tenantId) {
+      this.server.to(`staff:${tenantId}`).emit('conversation:updated', {
+        conversationId: payload.conversationId,
+        customOrderId: payload.customOrderId,
+        lastMessage: payload.message.text,
+        lastMessageAt: payload.message.createdAt,
+      });
+    }
   }
 }

@@ -1,10 +1,15 @@
 import { computed, inject, Injectable, Injector, signal } from '@angular/core';
-import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import { AuthApi } from '../api/auth.api';
 import { FirebasePushService } from '../firebase/firebase-push.service';
-import { STAFF_ROLES, StaffRole, User } from '../models/models';
+import { AuthPayload, STAFF_ROLES, StaffRole, User } from '../models/models';
 
 const TOKEN_KEY = 'pm_token';
+
+export type LoginOutcome =
+  | { kind: 'ok'; user: User; backupCodes?: string[] }
+  | { kind: '2fa'; challengeToken: string }
+  | { kind: 'setup'; challengeToken: string; qr?: string; otpauthUrl?: string };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,27 +22,16 @@ export class AuthService {
 
   readonly isStaff = computed(() => this.hasStaffRole(this.user()));
 
-  login(email: string, password: string): Observable<User> {
-    return this.api.login(email, password).pipe(
-      tap((res) => {
-        const token = res.data?.accessToken;
-        if (!token) {
-          throw new Error('Invalid login response');
-        }
-        this.persistToken(token);
-      }),
-      switchMap((res) => {
-        if (res.data?.user) {
-          this.user.set(res.data.user);
-          return of(res.data.user);
-        }
-        return this.api.me().pipe(
-          tap((me) => this.user.set(me.data)),
-          map((me) => me.data),
-        );
-      }),
-      tap(() => void this.injector.get(FirebasePushService).start()),
-    );
+  login(email: string, password: string): Observable<LoginOutcome> {
+    return this.api.login(email, password).pipe(map((res) => this.toOutcome(res.data)));
+  }
+
+  verify2fa(challengeToken: string, code: string): Observable<LoginOutcome> {
+    return this.api.verify2fa(challengeToken, code).pipe(map((res) => this.toOutcome(res.data)));
+  }
+
+  setup2fa(challengeToken: string, code: string): Observable<LoginOutcome> {
+    return this.api.setup2fa(challengeToken, code).pipe(map((res) => this.toOutcome(res.data)));
   }
 
   restoreSession(): Observable<boolean> {
@@ -100,6 +94,27 @@ export class AuthService {
       return roles.includes(user.role as StaffRole);
     }
     return true;
+  }
+
+  private toOutcome(data: AuthPayload): LoginOutcome {
+    if (data?.accessToken && data.user) {
+      this.persistToken(data.accessToken);
+      this.user.set(data.user);
+      void this.injector.get(FirebasePushService).start();
+      return { kind: 'ok', user: data.user, backupCodes: data.backupCodes };
+    }
+    if (data?.requires2faSetup && data.challengeToken) {
+      return {
+        kind: 'setup',
+        challengeToken: data.challengeToken,
+        qr: data.qr,
+        otpauthUrl: data.otpauthUrl,
+      };
+    }
+    if (data?.requires2fa && data.challengeToken) {
+      return { kind: '2fa', challengeToken: data.challengeToken };
+    }
+    throw new Error('Invalid login response');
   }
 
   private hasStaffRole(user: User | null): boolean {

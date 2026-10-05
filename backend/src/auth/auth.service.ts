@@ -22,6 +22,8 @@ import {
 import { Role, RoleDocument } from '../schemas/role.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { TenantContext } from '../tenant/tenant.context';
+import { TotpService } from '../tenant/totp.service';
 import { FirebaseAuthDto } from './dto/firebase-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -39,6 +41,7 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly firebaseAdmin: FirebaseAdminService,
+    private readonly totp: TotpService,
   ) {}
 
   private staffType(role: string): 'customer' | 'staff' {
@@ -47,14 +50,35 @@ export class AuthService {
       : 'customer';
   }
 
+  private tenantIdOf(user: UserDocument): string {
+    return String(user.tenantId || TenantContext.requireTenantId());
+  }
+
   private sign(user: UserDocument) {
     const payload: JwtPayload = {
       sub: String(user._id),
       email: user.email,
       role: user.role,
       type: this.staffType(user.role),
+      tenantId: this.tenantIdOf(user),
+      aud: 'tenant',
     };
     return this.jwt.sign(payload);
+  }
+
+  private challengeToken(user: UserDocument, purpose: 'verify' | 'setup') {
+    return this.jwt.sign(
+      {
+        sub: String(user._id),
+        email: user.email,
+        role: user.role,
+        type: this.staffType(user.role),
+      tenantId: this.tenantIdOf(user),
+      aud: 'tenant-2fa' as const,
+        purpose,
+      },
+      { expiresIn: '5m' },
+    );
   }
 
   private sanitize(user: UserDocument, permissions: string[] = []) {
@@ -74,19 +98,28 @@ export class AuthService {
 
   async userFromToken(token: string): Promise<AuthUser> {
     const payload = await this.jwt.verifyAsync<JwtPayload>(token);
-    const user = await this.userModel.findById(payload.sub);
-    if (!user || user.status === 'blocked' || user.status === 'deleted') {
-      throw new UnauthorizedException('Account unavailable');
+    if (payload.aud !== 'tenant' || !payload.tenantId) {
+      throw new UnauthorizedException('Invalid token');
     }
-    return {
-      userId: String(user._id),
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      type: this.staffType(user.role),
-      status: user.status,
-      permissions: await this.permissionsFor(user.role),
-    };
+    return TenantContext.run(
+      { kind: 'tenant', tenantId: payload.tenantId },
+      async () => {
+        const user = await this.userModel.findById(payload.sub);
+        if (!user || user.status === 'blocked' || user.status === 'deleted') {
+          throw new UnauthorizedException('Account unavailable');
+        }
+        return {
+          userId: String(user._id),
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          type: this.staffType(user.role),
+          status: user.status,
+          permissions: await this.permissionsFor(user.role),
+          tenantId: this.tenantIdOf(user),
+        };
+      },
+    );
   }
 
   async register(dto: RegisterDto) {
@@ -111,12 +144,16 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.userModel
       .findOne({ email: dto.email.toLowerCase() })
-      .select('+passwordHash');
+      .select('+passwordHash +totpSecret +backupCodeHashes');
     if (!user?.passwordHash) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
+      throw new ForbiddenException('Too many attempts. Try again later.');
+    }
     const ok = await bcrypt.compare(dto.password, user.passwordHash);
     if (!ok) {
+      await this.failLogin(user);
       throw new UnauthorizedException('Invalid credentials');
     }
     if (user.status === 'blocked') {
@@ -125,7 +162,57 @@ export class AuthService {
     if (user.status === 'deleted') {
       throw new ForbiddenException('Account deleted');
     }
+    user.failedLoginCount = 0;
+    user.lockUntil = undefined;
+    await user.save();
+    if (this.staffType(user.role) === 'staff') {
+      if (user.totpEnabled && user.totpSecret) {
+        return {
+          requires2fa: true,
+          challengeToken: this.challengeToken(user, 'verify'),
+        };
+      }
+      return this.beginStaffSetup(user);
+    }
     return { user: await this.present(user), accessToken: this.sign(user) };
+  }
+
+  async verifyStaff2fa(challengeToken: string, code: string) {
+    const user = await this.userFromChallenge(challengeToken, 'verify');
+    const secret = user.totpSecret;
+    const hashes = user.backupCodeHashes || [];
+    const totpOk = secret ? this.totp.verify(secret, code) : false;
+    const backupIdx = hashes.indexOf(this.totp.hashCode(code));
+    if (!totpOk && backupIdx < 0) {
+      await this.failLogin(user);
+      throw new UnauthorizedException('Invalid code');
+    }
+    if (backupIdx >= 0) {
+      hashes.splice(backupIdx, 1);
+      user.backupCodeHashes = hashes;
+    }
+    user.failedLoginCount = 0;
+    user.lockUntil = undefined;
+    await user.save();
+    return { user: await this.present(user), accessToken: this.sign(user) };
+  }
+
+  async setupStaff2fa(challengeToken: string, code: string) {
+    const user = await this.userFromChallenge(challengeToken, 'setup');
+    if (!user.totpSecret || !this.totp.verify(user.totpSecret, code)) {
+      throw new UnauthorizedException('Invalid authenticator code');
+    }
+    const backup = this.totp.backupCodes();
+    user.totpEnabled = true;
+    user.backupCodeHashes = backup.map((c) => this.totp.hashCode(c));
+    user.failedLoginCount = 0;
+    user.lockUntil = undefined;
+    await user.save();
+    return {
+      user: await this.present(user),
+      accessToken: this.sign(user),
+      backupCodes: backup,
+    };
   }
 
   async firebase(dto: FirebaseAuthDto) {
@@ -258,5 +345,53 @@ export class AuthService {
     await this.userModel.findByIdAndUpdate(record.userId, { passwordHash });
     await this.resetModel.deleteMany({ userId: record.userId });
     return { message: 'Password updated' };
+  }
+
+  private async beginStaffSetup(user: UserDocument) {
+    const secret = this.totp.generateSecret();
+    user.totpSecret = secret;
+    user.totpEnabled = false;
+    await user.save();
+    const otpauthUrl = this.totp.keyuri(user.email, secret, 'PlaceMarket');
+    return {
+      requires2faSetup: true,
+      challengeToken: this.challengeToken(user, 'setup'),
+      otpauthUrl,
+      qr: await this.totp.qrDataUrl(otpauthUrl),
+    };
+  }
+
+  private async userFromChallenge(token: string, purpose: 'verify' | 'setup') {
+    let payload: JwtPayload & { purpose?: string };
+    try {
+      payload = await this.jwt.verifyAsync(token);
+    } catch {
+      throw new UnauthorizedException('Challenge expired');
+    }
+    if (payload.aud !== 'tenant-2fa' || payload.purpose !== purpose || !payload.tenantId) {
+      throw new UnauthorizedException('Invalid challenge');
+    }
+    const ctxTenant = TenantContext.tenantId();
+    if (ctxTenant && payload.tenantId !== ctxTenant) {
+      throw new UnauthorizedException('Invalid challenge');
+    }
+    return TenantContext.run({ kind: 'tenant', tenantId: payload.tenantId }, async () => {
+      const user = await this.userModel
+        .findById(payload.sub)
+        .select('+totpSecret +backupCodeHashes +passwordHash');
+      if (!user || user.status !== 'active') {
+        throw new UnauthorizedException('Account unavailable');
+      }
+      return user;
+    });
+  }
+
+  private async failLogin(user: UserDocument) {
+    user.failedLoginCount = (user.failedLoginCount || 0) + 1;
+    if (user.failedLoginCount >= 5) {
+      user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+      user.failedLoginCount = 0;
+    }
+    await user.save();
   }
 }

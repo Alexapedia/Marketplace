@@ -11,6 +11,14 @@ export class AuthApi {
     return this.api.post<AuthPayload>('/auth/login', { email, password });
   }
 
+  verify2fa(challengeToken: string, code: string): Observable<ApiResult<AuthPayload>> {
+    return this.api.post<AuthPayload>('/auth/2fa/verify', { challengeToken, code });
+  }
+
+  setup2fa(challengeToken: string, code: string): Observable<ApiResult<AuthPayload>> {
+    return this.api.post<AuthPayload>('/auth/2fa/setup', { challengeToken, code });
+  }
+
   me(): Observable<ApiResult<User>> {
     return this.api.get<User>('/auth/me');
   }

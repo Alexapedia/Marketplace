@@ -13,6 +13,7 @@ import '../../../placemarket_app.dart';
 import '../../models/api_model.dart';
 import '../../models/error_handler_model.dart';
 import '../../repository/package_handler/router_handler.dart';
+import '../../telemetry/telemetry_reporter.dart';
 import '../../utils/constant/app_enum.dart';
 import '../../utils/constant/app_string.dart';
 import '../../utils/constant/storage_key.dart';
@@ -293,6 +294,16 @@ class DioConsumer implements ApiConsumer {
       onError: (DioException e, ErrorInterceptorHandler handler) async {
         if (e.response?.statusCode == 401) {
           await _handleUnauthorized(e.requestOptions.path);
+        }
+        final code = e.response?.statusCode ?? 0;
+        if (code >= 500 && !e.requestOptions.path.contains('/telemetry/')) {
+          unawaited(
+            TelemetryReporter.report(
+              kind: 'error',
+              message: e.message ?? 'HTTP $code',
+              stack: e.response?.data?.toString(),
+            ),
+          );
         }
         return handler.next(e);
       },

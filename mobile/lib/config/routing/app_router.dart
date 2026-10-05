@@ -8,6 +8,7 @@ import '../../modules/auth/login/controller/login_cubit.dart';
 import '../../modules/auth/login/view/login_screen.dart';
 import '../../modules/auth/register/controller/register_cubit.dart';
 import '../../modules/auth/register/view/register_screen.dart';
+import '../../modules/common/channel_disabled/view/channel_disabled_screen.dart';
 import '../../modules/common/force_upgrade/view/force_upgrade_screen.dart';
 import '../../modules/common/navigation_bar/controller/navigation_bar_cubit.dart';
 import '../../modules/common/navigation_bar/view/navigation_bar_screen.dart';
@@ -53,6 +54,13 @@ final GoRouter appRouter = GoRouter(
       final extra = state.extra;
       final version = extra is AppVersionModel ? extra : const AppVersionModel();
       return ForceUpgradeScreen(version: version);
+    }),
+    getRouteInstance(AppRouterKeys.channelDisabled, (state) {
+      final extra = state.extra;
+      final key = extra is String && extra.isNotEmpty
+          ? extra
+          : 'channel_disabled_mobile';
+      return ChannelDisabledScreen(messageKey: key);
     }),
     getRouteInstance(
       AppRouterKeys.forgetPassword,

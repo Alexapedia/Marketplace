@@ -2,12 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AppConfig, AppConfigDocument } from '../schemas/app-config.schema';
+import { TenantContext } from '../tenant/tenant.context';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class AppConfigService {
   constructor(
     @InjectModel(AppConfig.name)
     private readonly configModel: Model<AppConfigDocument>,
+    private readonly tenants: TenantService,
   ) {}
 
   async getGlobal() {
@@ -36,10 +39,17 @@ export class AppConfigService {
       const banner = item as Record<string, unknown>;
       return banner['active'] !== false;
     });
+    const tenantId = TenantContext.tenantId();
+    const tenantDoc = tenantId ? await this.tenants.findById(tenantId) : null;
+    const tenant = tenantDoc ? this.tenants.publicView(tenantDoc) : undefined;
     return {
       banners,
       onboarding: doc.onboarding,
-      settings: doc.settings,
+      settings: {
+        ...(doc.settings ?? {}),
+        ...(tenant ? { currency: tenant.currency } : {}),
+      },
+      tenant,
     };
   }
 
