@@ -12,13 +12,13 @@ import {
   openDB,
   registerVersion,
   validateIndexedDBOpenable
-} from "./chunk-IA3NS23G.js";
+} from "./chunk-62SUVWVR.js";
 import {
   __spreadProps,
   __spreadValues
 } from "./chunk-NILDOHVQ.js";
 
-// ../node_modules/@firebase/installations/dist/esm/index.esm.js
+// node_modules/@firebase/installations/dist/esm/index.esm.js
 var name = "@firebase/installations";
 var version = "0.6.24";
 var PENDING_TIMEOUT_MS = 1e4;
@@ -640,7 +640,7 @@ registerInstallations();
 registerVersion(name, version);
 registerVersion(name, version, "esm2020");
 
-// ../node_modules/@firebase/messaging/dist/esm/index.esm.js
+// node_modules/@firebase/messaging/dist/esm/index.esm.js
 var DEFAULT_SW_PATH = "/firebase-messaging-sw.js";
 var DEFAULT_SW_SCOPE = "/firebase-cloud-messaging-push-scope";
 var DEFAULT_VAPID_KEY = "BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4";

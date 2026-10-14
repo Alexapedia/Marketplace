@@ -27,8 +27,9 @@ async function bootstrap() {
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
+  const isProd = config.get('NODE_ENV') === 'production';
   app.enableCors({
-    origin: origins.length ? origins : true,
+    origin: isProd && origins.length && !origins.includes('*') ? origins : true,
     credentials: true,
   });
 

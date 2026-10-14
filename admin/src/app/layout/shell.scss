@@ -160,22 +160,37 @@
   min-height: calc(100% - 68px);
 }
 
-.shell.analytics {
-  background: #0b1024;
-}
-
 .shell.analytics .content {
   padding: 16px 18px 28px;
-  background:
-    radial-gradient(1200px 500px at 10% -10%, rgba(244, 162, 97, 0.12), transparent 55%),
-    radial-gradient(900px 420px at 100% 0%, rgba(123, 108, 255, 0.16), transparent 50%),
-    #0b1024;
 }
 
-.shell.analytics .topbar {
-  background: color-mix(in srgb, #0b1024 86%, transparent);
-  color: #eef1ff;
-  border-bottom-color: rgba(255, 255, 255, 0.06);
+:host-context(body.dark-theme) {
+  .shell {
+    background: #050b28;
+  }
+
+  .shell.analytics {
+    background: #0b1024;
+  }
+
+  .shell.analytics .content {
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(244, 162, 97, 0.12), transparent 55%),
+      radial-gradient(900px 420px at 100% 0%, rgba(123, 108, 255, 0.16), transparent 50%),
+      #0b1024;
+  }
+
+  .shell.analytics .topbar {
+    background: color-mix(in srgb, #0b1024 86%, transparent);
+    color: #eef1ff;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .topbar {
+    background: color-mix(in srgb, #071345 88%, transparent);
+    color: #fff;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .user-meta {
@@ -186,18 +201,6 @@
 .muted {
   opacity: 0.65;
   margin-bottom: 8px;
-}
-
-:host-context(body.dark-theme) {
-  .shell {
-    background: #050b28;
-  }
-
-  .topbar {
-    background: color-mix(in srgb, #071345 88%, transparent);
-    color: #fff;
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-  }
 }
 
 @media (max-width: 720px) {

@@ -1,86 +1,83 @@
 {
-  "hash": "da74ef69",
+  "hash": "4708532f",
   "configHash": "5edaf297",
-  "lockfileHash": "7bc01640",
-  "browserHash": "fbfe5294",
+  "lockfileHash": "7dbfac67",
+  "browserHash": "0d046f60",
   "optimized": {
     "@angular/common": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "c0a9bf27",
+      "fileHash": "fee64295",
       "needsInterop": false
     },
     "@angular/common/http": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
       "file": "@angular_common_http.js",
-      "fileHash": "b4d95f8a",
+      "fileHash": "d5d17398",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "169360dd",
+      "fileHash": "d28749f1",
       "needsInterop": false
     },
     "@angular/core/rxjs-interop": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/rxjs-interop.mjs",
       "file": "@angular_core_rxjs-interop.js",
-      "fileHash": "aa0e30d5",
+      "fileHash": "56cf1e2a",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "57f6b542",
+      "fileHash": "07dce48d",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "011cd8e9",
+      "fileHash": "83ebb42f",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "0474f810",
+      "fileHash": "83bc4a74",
+      "needsInterop": false
+    },
+    "firebase/app": {
+      "src": "../../../../../../node_modules/firebase/app/dist/esm/index.esm.js",
+      "file": "firebase_app.js",
+      "fileHash": "2e1a7991",
+      "needsInterop": false
+    },
+    "firebase/messaging": {
+      "src": "../../../../../../node_modules/firebase/messaging/dist/esm/index.esm.js",
+      "file": "firebase_messaging.js",
+      "fileHash": "0d80f538",
       "needsInterop": false
     },
     "rxjs": {
       "src": "../../../../../../node_modules/rxjs/dist/esm5/index.js",
       "file": "rxjs.js",
-      "fileHash": "31343e10",
+      "fileHash": "ec93b899",
       "needsInterop": false
     },
     "rxjs/operators": {
       "src": "../../../../../../node_modules/rxjs/dist/esm5/operators/index.js",
       "file": "rxjs_operators.js",
-      "fileHash": "bc108791",
+      "fileHash": "885ef3ec",
       "needsInterop": false
     },
     "socket.io-client": {
       "src": "../../../../../../node_modules/socket.io-client/build/esm/index.js",
       "file": "socket__io-client.js",
-      "fileHash": "3d9ac3d8",
-      "needsInterop": false
-    },
-    "firebase/app": {
-      "src": "../../../../../../../node_modules/firebase/app/dist/esm/index.esm.js",
-      "file": "firebase_app.js",
-      "fileHash": "84b8e7f4",
-      "needsInterop": false
-    },
-    "firebase/messaging": {
-      "src": "../../../../../../../node_modules/firebase/messaging/dist/esm/index.esm.js",
-      "file": "firebase_messaging.js",
-      "fileHash": "dd5f0038",
+      "fileHash": "bdd49506",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-IA3NS23G": {
-      "file": "chunk-IA3NS23G.js"
-    },
     "chunk-RMGIDA6W": {
       "file": "chunk-RMGIDA6W.js"
     },
@@ -99,14 +96,17 @@
     "chunk-7Q4MXCP5": {
       "file": "chunk-7Q4MXCP5.js"
     },
-    "chunk-JRFR6BLO": {
-      "file": "chunk-JRFR6BLO.js"
-    },
     "chunk-HWYXSU2G": {
       "file": "chunk-HWYXSU2G.js"
     },
+    "chunk-JRFR6BLO": {
+      "file": "chunk-JRFR6BLO.js"
+    },
     "chunk-MARUHEWW": {
       "file": "chunk-MARUHEWW.js"
+    },
+    "chunk-62SUVWVR": {
+      "file": "chunk-62SUVWVR.js"
     },
     "chunk-NILDOHVQ": {
       "file": "chunk-NILDOHVQ.js"

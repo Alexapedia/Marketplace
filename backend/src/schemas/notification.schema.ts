@@ -25,6 +25,9 @@ export class Notification {
 
   @Prop()
   readAt?: Date;
+
+  @Prop({ required: true, index: true })
+  tenantId?: string;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

@@ -65,11 +65,20 @@
           </mat-form-field>
         }
         @if (step() === 'setup' || step() === 'verify') {
-          <mat-form-field appearance="outline" class="full">
-            <mat-label>{{ 'login.code' | t }}</mat-label>
-            <input matInput formControlName="code" inputmode="numeric" autocomplete="one-time-code" />
-            <mat-icon matPrefix>pin</mat-icon>
-          </mat-form-field>
+          <div class="pin" dir="ltr">
+            @for (i of pinSlots; track i) {
+              <input
+                class="pin-box"
+                maxlength="1"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                [value]="pinDigit(i)"
+                (input)="onPinInput($event, i)"
+                (keydown)="onPinKey($event, i)"
+                (paste)="onPinPaste($event)"
+              />
+            }
+          </div>
         }
 
         @if (error()) {

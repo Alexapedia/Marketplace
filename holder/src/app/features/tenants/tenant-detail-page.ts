@@ -5,8 +5,10 @@ import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { PlatformApi } from '../../core/api/platform.api';
+import { CURRENCY_CODES } from '../../core/config/currency';
 import { TenantRow } from '../../core/models/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
@@ -18,6 +20,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatSlideToggleModule,
     TranslatePipe,
     DecimalPipe,
@@ -57,7 +60,14 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
             <h3>{{ 'tenants.branding' | t }}</h3>
             <form [formGroup]="brand" (ngSubmit)="saveBrand()" class="form">
               <mat-form-field><mat-label>{{ 'tenants.name' | t }}</mat-label><input matInput formControlName="name" /></mat-form-field>
-              <mat-form-field><mat-label>{{ 'tenants.currency' | t }}</mat-label><input matInput formControlName="currency" /></mat-form-field>
+              <mat-form-field>
+                <mat-label>{{ 'tenants.currency' | t }}</mat-label>
+                <mat-select formControlName="currency">
+                  @for (code of currencies; track code) {
+                    <mat-option [value]="code">{{ code }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
               <mat-form-field><mat-label>{{ 'tenants.primary' | t }}</mat-label><input matInput formControlName="primary" /></mat-form-field>
               <mat-form-field><mat-label>{{ 'tenants.accent' | t }}</mat-label><input matInput formControlName="accent" /></mat-form-field>
               <button mat-flat-button type="submit">{{ 'common.save' | t }}</button>
@@ -114,6 +124,7 @@ export class TenantDetailPage {
   private readonly api = inject(PlatformApi);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
+  readonly currencies = CURRENCY_CODES;
   readonly row = signal<TenantRow | null>(null);
   readonly error = signal<string | null>(null);
   readonly brand = this.fb.nonNullable.group({

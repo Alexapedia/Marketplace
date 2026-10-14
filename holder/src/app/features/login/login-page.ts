@@ -44,6 +44,49 @@ export class LoginPage {
     password: ['Holder@123456', [Validators.required, Validators.minLength(8)]],
     code: [''],
   });
+  readonly pinSlots = [0, 1, 2, 3, 4, 5];
+
+  pinDigit(index: number): string {
+    return (this.form.controls.code.value || '')[index] || '';
+  }
+
+  onPinInput(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const char = input.value.replace(/\D/g, '').slice(-1);
+    const digits = (this.form.controls.code.value || '').padEnd(6, ' ').split('');
+    digits[index] = char || ' ';
+    const next = digits.join('').replace(/ /g, '').slice(0, 6);
+    this.form.controls.code.setValue(next);
+    input.value = char;
+    if (char) {
+      (input.nextElementSibling as HTMLInputElement | null)?.focus();
+    }
+    if (next.length === 6 && !this.loading()) {
+      this.submit();
+    }
+  }
+
+  onPinKey(event: KeyboardEvent, index: number): void {
+    if (event.key !== 'Backspace') return;
+    const input = event.target as HTMLInputElement;
+    if (input.value) return;
+    event.preventDefault();
+    const digits = (this.form.controls.code.value || '').split('');
+    if (index > 0) {
+      digits.splice(index - 1, 1);
+      this.form.controls.code.setValue(digits.join(''));
+      (input.previousElementSibling as HTMLInputElement | null)?.focus();
+    }
+  }
+
+  onPinPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const text = (event.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+    this.form.controls.code.setValue(text);
+    if (text.length === 6 && !this.loading()) {
+      this.submit();
+    }
+  }
 
   submit(): void {
     if (this.loading()) return;
@@ -87,11 +130,13 @@ export class LoginPage {
     if (out.kind === 'setup') {
       this.challengeToken = out.challengeToken;
       this.qr.set(out.qr || null);
+      this.form.controls.code.setValue('');
       this.step.set('setup');
       return;
     }
     if (out.kind === '2fa') {
       this.challengeToken = out.challengeToken;
+      this.form.controls.code.setValue('');
       this.step.set('verify');
       return;
     }

@@ -4,12 +4,14 @@ import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { PlatformApi } from '../../core/api/platform.api';
+import { CURRENCY_CODES } from '../../core/config/currency';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-tenant-create-page',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, TranslatePipe, RouterLink],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, TranslatePipe, RouterLink],
   template: `
     <div class="hd-page">
       <a class="back" routerLink="/tenants">{{ 'common.back' | t }}</a>
@@ -22,7 +24,14 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
         <mat-form-field><mat-label>{{ 'tenants.adminPassword' | t }}</mat-label><input matInput type="password" formControlName="adminPassword" /></mat-form-field>
         <mat-form-field><mat-label>{{ 'tenants.websiteHost' | t }}</mat-label><input matInput formControlName="websiteHost" /></mat-form-field>
         <mat-form-field><mat-label>{{ 'tenants.adminHost' | t }}</mat-label><input matInput formControlName="adminHost" /></mat-form-field>
-        <mat-form-field><mat-label>{{ 'tenants.currency' | t }}</mat-label><input matInput formControlName="currency" /></mat-form-field>
+        <mat-form-field>
+          <mat-label>{{ 'tenants.currency' | t }}</mat-label>
+          <mat-select formControlName="currency">
+            @for (code of currencies; track code) {
+              <mat-option [value]="code">{{ code }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
         <div class="colors">
           <mat-form-field><mat-label>{{ 'tenants.primary' | t }}</mat-label><input matInput formControlName="primary" /></mat-form-field>
           <mat-form-field><mat-label>{{ 'tenants.accent' | t }}</mat-label><input matInput formControlName="accent" /></mat-form-field>
@@ -46,6 +55,7 @@ export class TenantCreatePage {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(PlatformApi);
   private readonly router = inject(Router);
+  readonly currencies = CURRENCY_CODES;
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 

@@ -20,8 +20,10 @@ export class ChatSocket {
     this.joinedId = customOrderId;
     this.socket = io('/chat', {
       path: '/socket.io',
-      transports: ['polling', 'websocket'],
+      transports: ['websocket'],
+      upgrade: false,
       auth: { token },
+      query: { token },
       extraHeaders: { Authorization: `Bearer ${token}` },
       reconnection: true,
       withCredentials: true,

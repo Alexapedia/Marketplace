@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { TenantContext } from '../tenant/tenant.context';
 import {
   Notification,
   NotificationDocument,
@@ -29,6 +30,7 @@ export class NotificationsService {
     batchId?: string;
   }) {
     const doc = await this.notificationModel.create({
+      tenantId: TenantContext.requireTenantId(),
       userId: new Types.ObjectId(String(params.userId)),
       title: params.title,
       body: params.body,

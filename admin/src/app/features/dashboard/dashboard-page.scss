@@ -328,3 +328,65 @@
     font-size: 32px;
   }
 }
+
+:host-context(body:not(.dark-theme)) {
+  .board {
+    color: #071345;
+  }
+
+  .board-h h2,
+  .hero-top h3,
+  .hero-side strong,
+  .mini strong,
+  .split strong,
+  .prod strong,
+  .ring-n strong {
+    color: #071345;
+  }
+
+  .kicker,
+  .meta,
+  .panel-h,
+  .hero-top p,
+  .mini p,
+  .split p,
+  .foot,
+  .mini span,
+  .ring-n span {
+    color: #5c678c;
+  }
+
+  .live {
+    background: #ecfdf3;
+    color: #166534;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid color-mix(in srgb, #071345 10%, transparent);
+    box-shadow: 0 10px 30px rgba(7, 19, 69, 0.06);
+  }
+
+  .hub-top span,
+  .prod span {
+    color: #122060;
+  }
+
+  .track,
+  .ring-wrap circle {
+    background: #e8ebf6;
+    stroke: #e8ebf6;
+  }
+
+  .prod {
+    border-bottom-color: color-mix(in srgb, #071345 10%, transparent);
+  }
+
+  .hero-top small {
+    color: #8a6a2a;
+  }
+
+  .panel-h a {
+    color: #b45309;
+  }
+}

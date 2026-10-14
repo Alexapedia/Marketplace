@@ -32,8 +32,10 @@ export class ChatSocket {
     }
     this.socket = io('/chat', {
       path: '/socket.io',
-      transports: ['polling', 'websocket'],
+      transports: ['websocket'],
+      upgrade: false,
       auth: { token },
+      query: { token },
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 800,

@@ -4,18 +4,25 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PlatformTelemetryService } from '../../platform/platform-telemetry.service';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
   constructor(private readonly telemetry: PlatformTelemetryService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
-    const req = ctx.getRequest<{ originalUrl?: string; headers?: Record<string, unknown> }>();
+    const req = ctx.getRequest<{
+      originalUrl?: string;
+      method?: string;
+      headers?: Record<string, unknown>;
+    }>();
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
@@ -50,6 +57,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     const path = String(req?.originalUrl || '');
+    if (statusCode >= 500) {
+      const detail = exception instanceof Error ? exception.stack : String(exception);
+      this.logger.error(`${req?.method || 'GET'} ${path} ${message}`, detail);
+    }
     if (statusCode >= 500 && !path.startsWith('/api/v1/telemetry')) {
       const stack = exception instanceof Error ? exception.stack : undefined;
       void this.telemetry

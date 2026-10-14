@@ -298,12 +298,15 @@ export class CustomOrdersService {
       .find({ conversationId: convo._id })
       .sort({ createdAt: 1 });
 
-    if (user.type === 'staff') {
-      convo.unreadByStaff = 0;
-    } else {
-      convo.unreadByCustomer = 0;
-    }
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set:
+          user.type === 'staff'
+            ? { unreadByStaff: 0 }
+            : { unreadByCustomer: 0 },
+      },
+    );
     await this.messageModel.updateMany(
       { conversationId: convo._id, readAt: { $exists: false } },
       { readAt: new Date() },
@@ -330,16 +333,22 @@ export class CustomOrdersService {
       text: dto.text,
       attachments: attachmentUrls,
     });
-    convo.lastMessageAt = new Date();
-    convo.lastMessage = dto.text || (attachmentUrls.length ? '📷' : '');
-    if (user.type === 'staff') {
-      convo.unreadByCustomer += 1;
-      convo.unreadByStaff = 0;
-    } else {
-      convo.unreadByStaff += 1;
-      convo.unreadByCustomer = 0;
-    }
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set: {
+          lastMessageAt: new Date(),
+          lastMessage: dto.text || (attachmentUrls.length ? '📷' : ''),
+          ...(user.type === 'staff'
+            ? { unreadByStaff: 0 }
+            : { unreadByCustomer: 0 }),
+        },
+        $inc:
+          user.type === 'staff'
+            ? { unreadByCustomer: 1 }
+            : { unreadByStaff: 1 },
+      },
+    );
     this.emitChat(convo, message);
     return message;
   }
@@ -429,9 +438,13 @@ export class CustomOrdersService {
       type: 'proposal',
       text: `Proposal v${nextVersion}: ${dto.productName}`,
     });
-    convo.lastMessageAt = new Date();
-    convo.unreadByCustomer += 1;
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set: { lastMessageAt: new Date() },
+        $inc: { unreadByCustomer: 1 },
+      },
+    );
     this.emitChat(convo, proposalMessage);
 
     const customerId = String(order.userId._id ?? order.userId);
@@ -491,8 +504,10 @@ export class CustomOrdersService {
     const messages = await this.messageModel
       .find({ conversationId: convo._id })
       .sort({ createdAt: 1 });
-    convo.unreadByStaff = 0;
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      { $set: { unreadByStaff: 0 } },
+    );
     return messages.map((m) => this.presentMessage(m));
   }
 
@@ -514,11 +529,17 @@ export class CustomOrdersService {
       text: dto.text,
       attachments: attachmentUrls,
     });
-    convo.lastMessageAt = new Date();
-    convo.lastMessage = dto.text || (attachmentUrls.length ? '📷' : '');
-    convo.unreadByCustomer += 1;
-    convo.unreadByStaff = 0;
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set: {
+          lastMessageAt: new Date(),
+          lastMessage: dto.text || (attachmentUrls.length ? '📷' : ''),
+          unreadByStaff: 0,
+        },
+        $inc: { unreadByCustomer: 1 },
+      },
+    );
     this.emitChat(convo, message);
     return message;
   }

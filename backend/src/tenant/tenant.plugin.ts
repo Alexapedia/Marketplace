@@ -56,8 +56,18 @@ export function applyTenantPlugin(schema: Schema): Schema {
     this.pipeline().unshift({ $match: { tenantId } });
   });
 
+  schema.pre('validate', function () {
+    if (this.get('tenantId')) {
+      return;
+    }
+    if (TenantContext.isPlatform()) {
+      return;
+    }
+    this.set('tenantId', TenantContext.requireTenantId());
+  });
+
   schema.pre('save', function () {
-    if (!this.get('tenantId')) {
+    if (!this.get('tenantId') && !TenantContext.isPlatform()) {
       this.set('tenantId', TenantContext.requireTenantId());
     }
   });
