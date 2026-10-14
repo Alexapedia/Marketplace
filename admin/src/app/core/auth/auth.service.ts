@@ -4,7 +4,7 @@ import { AuthApi } from '../api/auth.api';
 import { FirebasePushService } from '../firebase/firebase-push.service';
 import { AuthPayload, STAFF_ROLES, StaffRole, User } from '../models/models';
 
-const TOKEN_KEY = 'pm_token';
+import { REFRESH_KEY, TOKEN_KEY } from './token-refresher';
 
 export type LoginOutcome =
   | { kind: 'ok'; user: User; backupCodes?: string[] }
@@ -55,7 +55,9 @@ export class AuthService {
 
   logout(callApi = true): void {
     if (callApi && this.token()) {
-      this.api.logout().subscribe({ error: () => undefined });
+      this.api
+        .logout(localStorage.getItem(REFRESH_KEY) || undefined)
+        .subscribe({ error: () => undefined });
     }
     this.clearSession();
   }
@@ -98,7 +100,7 @@ export class AuthService {
 
   private toOutcome(data: AuthPayload): LoginOutcome {
     if (data?.accessToken && data.user) {
-      this.persistToken(data.accessToken);
+      this.persistToken(data.accessToken, data.refreshToken);
       this.user.set(data.user);
       void this.injector.get(FirebasePushService).start();
       return { kind: 'ok', user: data.user, backupCodes: data.backupCodes };
@@ -121,8 +123,9 @@ export class AuthService {
     return !!user && user.role !== 'customer' && (STAFF_ROLES as string[]).includes(user.role);
   }
 
-  private persistToken(token: string): void {
+  private persistToken(token: string, refreshToken?: string): void {
     localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
     this.token.set(token);
   }
 
@@ -132,6 +135,7 @@ export class AuthService {
 
   private clearSession(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
     this.token.set(null);
     this.user.set(null);
     this.ready.set(true);

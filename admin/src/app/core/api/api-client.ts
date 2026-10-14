@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope, PageMeta } from '../models/models';
+import { requestFailedText } from '../../shared/ui.service';
 
 export interface QueryParams {
   [key: string]: string | number | boolean | undefined | null;
@@ -36,33 +37,40 @@ export class ApiClient {
   get<T>(path: string, params?: QueryParams): Observable<ApiResult<T>> {
     return this.http
       .get<ApiEnvelope<T>>(`${this.base}${path}`, { params: this.toParams(params) })
-      .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
+      .pipe(
+        map((res) => this.unwrap<T>(res)),
+        catchError((err) => this.handle(err)),
+      );
   }
 
   post<T>(path: string, body: unknown = {}): Observable<ApiResult<T>> {
-    return this.http
-      .post<ApiEnvelope<T>>(`${this.base}${path}`, body)
-      .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
+    return this.http.post<ApiEnvelope<T>>(`${this.base}${path}`, body).pipe(
+      map((res) => this.unwrap<T>(res)),
+      catchError((err) => this.handle(err)),
+    );
   }
 
   patch<T>(path: string, body: unknown = {}): Observable<ApiResult<T>> {
-    return this.http
-      .patch<ApiEnvelope<T>>(`${this.base}${path}`, body)
-      .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
+    return this.http.patch<ApiEnvelope<T>>(`${this.base}${path}`, body).pipe(
+      map((res) => this.unwrap<T>(res)),
+      catchError((err) => this.handle(err)),
+    );
   }
 
   delete<T>(path: string): Observable<ApiResult<T>> {
-    return this.http
-      .delete<ApiEnvelope<T>>(`${this.base}${path}`)
-      .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
+    return this.http.delete<ApiEnvelope<T>>(`${this.base}${path}`).pipe(
+      map((res) => this.unwrap<T>(res)),
+      catchError((err) => this.handle(err)),
+    );
   }
 
   upload<T = { url: string }>(file: File, path = '/uploads'): Observable<ApiResult<T>> {
     const body = new FormData();
     body.append('file', file);
-    return this.http
-      .post<ApiEnvelope<T>>(`${this.base}${path}`, body)
-      .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
+    return this.http.post<ApiEnvelope<T>>(`${this.base}${path}`, body).pipe(
+      map((res) => this.unwrap<T>(res)),
+      catchError((err) => this.handle(err)),
+    );
   }
 
   private toParams(params?: QueryParams): HttpParams {
@@ -92,7 +100,10 @@ export class ApiClient {
     if (err.status === 0 || err.status === 502 || err.status === 503 || err.status === 504) {
       return throwError(
         () =>
-          new ApiError('Cannot reach the API. Run the backend on http://localhost:3000', err.status),
+          new ApiError(
+            'Cannot reach the API. Run the backend on http://localhost:3000',
+            err.status,
+          ),
       );
     }
     const body = err.error as ApiEnvelope<unknown> | undefined;
@@ -100,7 +111,7 @@ export class ApiClient {
       body?.message ||
       (typeof err.error === 'string' ? err.error : undefined) ||
       err.message ||
-      'Request failed';
+      requestFailedText();
     return throwError(() => new ApiError(String(message), err.status));
   }
 }

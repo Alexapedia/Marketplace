@@ -15,7 +15,8 @@ import { MatTableModule } from '@angular/material/table';
 import { CustomOrdersApi } from '../../core/api/custom-orders.api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { CustomOrder, entityId, PageMeta } from '../../core/models/models';
+import { Category, ChatMessage, CustomOrder, entityId, PageMeta } from '../../core/models/models';
+import { LocPipe } from '../../core/i18n/translate.pipe';
 import { AsyncState } from '../../shared/async-state';
 import { ImageUploader } from '../../shared/image-uploader';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
@@ -35,6 +36,7 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     MatSelectModule,
     MatCardModule,
     TranslatePipe,
+    LocPipe,
     AsyncState,
     ImageUploader,
   ],
@@ -53,17 +55,25 @@ export class CustomOrdersPage implements OnInit {
   readonly rows = signal<CustomOrder[]>([]);
   readonly meta = signal<PageMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   readonly selected = signal<CustomOrder | null>(null);
-  readonly cols = ['id', 'status', 'createdAt', 'actions'];
+  readonly cols = ['id', 'customer', 'category', 'status', 'createdAt', 'actions'];
+  readonly search = signal('');
+  readonly messages = signal<ChatMessage[]>([]);
+  readonly saving = signal(false);
+  private searchTimer?: ReturnType<typeof setTimeout>;
   readonly entityId = entityId;
   readonly status = signal('');
   readonly statuses = [
     'submitted',
     'under_review',
+    'need_more_details',
     'quote_sent',
     'waiting_confirmation',
     'confirmed',
     'rejected',
+    'in_preparation',
+    'ready_shipped',
     'completed',
+    'cancelled',
   ];
 
   readonly pics = signal<string[]>([]);
@@ -83,17 +93,61 @@ export class CustomOrdersPage implements OnInit {
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit, status: this.status() || undefined }).subscribe({
-      next: (res) => {
-        this.rows.set(asList(res.data));
-        this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
-        this.loading.set(false);
+    this.api
+      .list({
+        page,
+        limit,
+        status: this.status() || undefined,
+        search: this.search().trim() || undefined,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rows.set(asList(res.data));
+          this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.error.set(errMessage(err));
+          this.loading.set(false);
+        },
+      });
+  }
+
+  onSearch(value: string): void {
+    this.search.set(value);
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.load(1), 300);
+  }
+
+  categoryOf(row: CustomOrder): Category | null {
+    return row.categoryId && typeof row.categoryId === 'object' ? row.categoryId : null;
+  }
+
+  statusLabel(status?: string): string {
+    return status ? this.i18n.t(`customOrders.status.${status}`) : '—';
+  }
+
+  setStatus(order: CustomOrder, status: string): void {
+    if (!status || status === order.status) return;
+    this.saving.set(true);
+    this.api.update(entityId(order), { status }).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.ui.success(this.i18n.t('customOrders.statusUpdated'));
+        this.open(order);
+        this.load();
       },
       error: (err: unknown) => {
-        this.error.set(errMessage(err));
-        this.loading.set(false);
+        this.saving.set(false);
+        this.ui.error(errMessage(err));
       },
     });
+  }
+
+  fieldEntries(o: CustomOrder): { key: string; value: string }[] {
+    return Object.entries(o.fields ?? {})
+      .filter(([, v]) => v !== null && v !== undefined && v !== '')
+      .map(([key, v]) => ({ key, value: Array.isArray(v) ? v.join(', ') : String(v) }));
   }
 
   page(ev: PageEvent): void {
@@ -104,6 +158,11 @@ export class CustomOrdersPage implements OnInit {
     this.api.get(entityId(row)).subscribe({
       next: (res) => this.selected.set(res.data),
       error: () => this.selected.set(row),
+    });
+    this.messages.set([]);
+    this.api.messages(entityId(row)).subscribe({
+      next: (res) => this.messages.set(asList(res.data).slice(-5)),
+      error: () => this.messages.set([]),
     });
   }
 

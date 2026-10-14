@@ -10,3 +10,17 @@
 .atts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 16px; }
 .atts img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; }
 .table-wrap { margin-top: 8px; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.toolbar .search { flex: 1; min-width: 220px; max-width: 420px; }
+.fields { display: grid; gap: 6px; margin: 4px 0 14px; }
+.fields div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed color-mix(in srgb, currentColor 14%, transparent); padding-bottom: 4px; }
+.fields dt { opacity: 0.7; }
+.fields dd { margin: 0; font-weight: 600; text-align: end; }
+.proposals { display: grid; gap: 8px; margin-bottom: 14px; }
+.proposal { border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 12px; padding: 10px 12px; }
+.p-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.msgs { display: grid; gap: 6px; margin-bottom: 12px; }
+.msg { background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 12px; padding: 8px 10px; font-size: 13px; max-width: 85%; }
+.msg.mine { justify-self: end; background: color-mix(in srgb, #c9a45c 20%, transparent); }
+.msg small { display: block; opacity: 0.6; margin-top: 2px; font-size: 11px; }

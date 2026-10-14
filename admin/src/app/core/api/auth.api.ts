@@ -27,7 +27,7 @@ export class AuthApi {
     return this.api.patch<User>('/auth/me', body);
   }
 
-  logout(): Observable<ApiResult<unknown>> {
-    return this.api.post<unknown>('/auth/logout');
+  logout(refreshToken?: string): Observable<ApiResult<unknown>> {
+    return this.api.post<unknown>('/auth/logout', { refreshToken });
   }
 }

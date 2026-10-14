@@ -47,6 +47,7 @@ export interface User {
 export interface AuthPayload {
   user?: User;
   accessToken?: string;
+  refreshToken?: string;
   backupCodes?: string[];
   requires2fa?: boolean;
   requires2faSetup?: boolean;
@@ -376,7 +377,12 @@ export interface ReportInsight {
 
 export interface ReportsData {
   ordersByStatus?: Array<{ status?: string; _id?: string; count?: number; revenue?: number }>;
-  topProducts?: Array<{ name?: Localized | string; productId?: string; quantity?: number; revenue?: number }>;
+  topProducts?: Array<{
+    name?: Localized | string;
+    productId?: string;
+    quantity?: number;
+    revenue?: number;
+  }>;
   customStats?: Array<{ _id?: string; status?: string; count?: number }> | Record<string, number>;
   rejectedReasons?: Array<{ reason?: string; _id?: string; count?: number }>;
   visits?: DashboardStats['visits'];
@@ -467,7 +473,9 @@ export const CUSTOM_FIELD_TYPES: CustomFieldType[] = [
   'textarea',
 ];
 
-export function entityId(entity: { _id?: string; id?: string } | string | undefined | null): string {
+export function entityId(
+  entity: { _id?: string; id?: string } | string | undefined | null,
+): string {
   if (!entity) {
     return '';
   }

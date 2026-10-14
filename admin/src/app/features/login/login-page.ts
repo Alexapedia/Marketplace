@@ -43,8 +43,8 @@ export class LoginPage {
   private challengeToken = '';
 
   readonly form = this.fb.nonNullable.group({
-    email: ['admin@placemarket.com', [Validators.required, Validators.email]],
-    password: ['Admin@123456', [Validators.required, Validators.minLength(6)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
     code: [''],
   });
   readonly pinSlots = [0, 1, 2, 3, 4, 5];
@@ -143,8 +143,7 @@ export class LoginPage {
       this.step.set('verify');
       return;
     }
-    const staff =
-      out.user.role !== 'customer' && (STAFF_ROLES as string[]).includes(out.user.role);
+    const staff = out.user.role !== 'customer' && (STAFF_ROLES as string[]).includes(out.user.role);
     if (!staff) {
       this.auth.logout(false);
       this.error.set(this.i18n.t('login.notStaff'));

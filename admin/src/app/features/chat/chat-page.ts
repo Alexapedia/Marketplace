@@ -19,7 +19,7 @@ import { ChatSocket } from '../../core/api/chat-socket';
 import { ChatsApi } from '../../core/api/chats.api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { ChatMessage, Conversation, entityId, User } from '../../core/models/models';
+import { ChatMessage, Conversation, entityId, PageMeta, User } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
 
@@ -39,6 +39,8 @@ export class ChatPage implements OnInit, OnDestroy {
   private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
 
   readonly loading = signal(true);
+  readonly loadingMore = signal(false);
+  readonly listMeta = signal<PageMeta | null>(null);
   readonly error = signal<string | null>(null);
   readonly conversations = signal<Conversation[]>([]);
   readonly messages = signal<ChatMessage[]>([]);
@@ -82,22 +84,46 @@ export class ChatPage implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
     const customOrderId = this.route.snapshot.queryParamMap.get('customOrderId') ?? undefined;
-    this.api.list({ customOrderId, limit: 100 }).subscribe({
+    this.api.list({ customOrderId, page: 1, limit: 30 }).subscribe({
       next: (res) => {
         const list = asList(res.data);
         this.conversations.set(list);
+        this.listMeta.set(res.meta ?? null);
         this.loading.set(false);
         const keep = this.activeId();
         const next =
           list.find((c) => entityId(c) === keep) ??
-          (customOrderId
-            ? list.find((c) => entityId(c.customOrderId) === customOrderId)
-            : list[0]);
+          (customOrderId ? list.find((c) => entityId(c.customOrderId) === customOrderId) : list[0]);
         if (next) this.select(next);
       },
       error: (err: unknown) => {
         this.error.set(errMessage(err));
         this.loading.set(false);
+      },
+    });
+  }
+
+  hasMoreConversations(): boolean {
+    const m = this.listMeta();
+    return !!m && m.page < m.totalPages;
+  }
+
+  moreConversations(): void {
+    const m = this.listMeta();
+    if (!m || this.loadingMore()) return;
+    this.loadingMore.set(true);
+    const customOrderId = this.route.snapshot.queryParamMap.get('customOrderId') ?? undefined;
+    this.api.list({ customOrderId, page: m.page + 1, limit: m.limit }).subscribe({
+      next: (res) => {
+        const seen = new Set(this.conversations().map((c) => entityId(c)));
+        const extra = asList(res.data).filter((c) => !seen.has(entityId(c)));
+        this.conversations.update((list) => [...list, ...extra]);
+        this.listMeta.set(res.meta ?? null);
+        this.loadingMore.set(false);
+      },
+      error: (err: unknown) => {
+        this.loadingMore.set(false);
+        this.ui.error(errMessage(err));
       },
     });
   }
@@ -219,9 +245,7 @@ export class ChatPage implements OnInit, OnDestroy {
       if (convoId !== this.activeId()) {
         this.conversations.update((list) =>
           list.map((c) =>
-            entityId(c) === convoId
-              ? { ...c, unreadByStaff: (c.unreadByStaff ?? 0) + 1 }
-              : c,
+            entityId(c) === convoId ? { ...c, unreadByStaff: (c.unreadByStaff ?? 0) + 1 } : c,
           ),
         );
         return;

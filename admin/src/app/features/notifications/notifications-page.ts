@@ -10,10 +10,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { NotificationsApi } from '../../core/api/notifications.api';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { loc, AppNotification } from '../../core/models/models';
+import { loc, AppNotification, PageMeta } from '../../core/models/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { AsyncState } from '../../shared/async-state';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+
+const PAGE = 20;
 
 @Component({
   selector: 'app-notifications-page',
@@ -46,6 +48,9 @@ export class NotificationsPage implements OnInit {
   readonly inboxLoading = signal(false);
   readonly inboxError = signal<string | null>(null);
   readonly inbox = signal<AppNotification[]>([]);
+  readonly inboxMeta = signal<PageMeta | null>(null);
+  readonly historyMeta = signal<PageMeta | null>(null);
+  readonly loadingMore = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     titleEn: ['', Validators.required],
@@ -61,32 +66,68 @@ export class NotificationsPage implements OnInit {
     this.loadHistory();
   }
 
-  loadInbox(): void {
-    this.inboxLoading.set(true);
-    this.inboxError.set(null);
-    this.api.inbox({ limit: 40 }).subscribe({
+  loadInbox(page = 1): void {
+    if (page === 1) {
+      this.inboxLoading.set(true);
+      this.inboxError.set(null);
+    } else {
+      this.loadingMore.set(true);
+    }
+    this.api.inbox({ page, limit: PAGE }).subscribe({
       next: (res) => {
-        this.inbox.set(asList(res.data));
+        const rows = asList(res.data);
+        this.inbox.set(page === 1 ? rows : [...this.inbox(), ...rows]);
+        this.inboxMeta.set(res.meta ?? null);
         this.inboxLoading.set(false);
+        this.loadingMore.set(false);
       },
       error: (err: unknown) => {
         this.inboxLoading.set(false);
-        this.inboxError.set(errMessage(err));
+        this.loadingMore.set(false);
+        if (page === 1) this.inboxError.set(errMessage(err));
+        else this.ui.error(errMessage(err));
       },
     });
   }
 
-  loadHistory(): void {
-    this.historyLoading.set(true);
-    this.historyError.set(null);
-    this.api.history({ limit: 50 }).subscribe({
-      next: (res) => {
-        this.history.set(asList(res.data));
-        this.historyLoading.set(false);
+  hasMore(meta: PageMeta | null): boolean {
+    return !!meta && meta.page < meta.totalPages;
+  }
+
+  hasUnread(): boolean {
+    return this.inbox().some((n) => !n.readAt);
+  }
+
+  markAllRead(): void {
+    this.api.markAllRead().subscribe({
+      next: () => {
+        const now = new Date().toISOString();
+        this.inbox.update((list) => list.map((n) => (n.readAt ? n : { ...n, readAt: now })));
       },
-      error: () => {
+      error: (err: unknown) => this.ui.error(errMessage(err)),
+    });
+  }
+
+  loadHistory(page = 1): void {
+    if (page === 1) {
+      this.historyLoading.set(true);
+      this.historyError.set(null);
+    } else {
+      this.loadingMore.set(true);
+    }
+    this.api.history({ page, limit: PAGE }).subscribe({
+      next: (res) => {
+        const rows = asList(res.data);
+        this.history.set(page === 1 ? rows : [...this.history(), ...rows]);
+        this.historyMeta.set(res.meta ?? null);
         this.historyLoading.set(false);
-        this.historyError.set(null);
+        this.loadingMore.set(false);
+      },
+      error: (err: unknown) => {
+        this.historyLoading.set(false);
+        this.loadingMore.set(false);
+        if (page === 1) this.historyError.set(errMessage(err));
+        else this.ui.error(errMessage(err));
       },
     });
   }
@@ -102,7 +143,15 @@ export class NotificationsPage implements OnInit {
   openItem(item: AppNotification): void {
     const id = item._id ?? item.id ?? '';
     if (id) {
-      this.api.markRead(id).subscribe({ next: () => this.loadInbox() });
+      this.api.markRead(id).subscribe({
+        next: () =>
+          this.inbox.update((list) =>
+            list.map((n) =>
+              (n._id ?? n.id) === id ? { ...n, readAt: new Date().toISOString() } : n,
+            ),
+          ),
+        error: () => undefined,
+      });
     }
     if (item.type === 'new_custom_order') {
       void this.router.navigate(['/custom-orders']);

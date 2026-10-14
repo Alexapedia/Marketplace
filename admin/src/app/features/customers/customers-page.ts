@@ -16,6 +16,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { entityId, PageMeta, User } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+import { ConfirmService } from '../../shared/confirm-dialog';
 
 @Component({
   selector: 'app-customer-profile-panel',
@@ -27,9 +28,18 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
       <strong>{{ data.name }}</strong>
       <p>{{ data.email }}</p>
       <dl>
-        <div><dt>{{ 'customers.phone' | t }}</dt><dd>{{ data.phone || '—' }}</dd></div>
-        <div><dt>{{ 'common.status' | t }}</dt><dd>{{ data.status }}</dd></div>
-        <div><dt>{{ 'customers.joined' | t }}</dt><dd>{{ data.createdAt | date: 'medium' }}</dd></div>
+        <div>
+          <dt>{{ 'customers.phone' | t }}</dt>
+          <dd>{{ data.phone || '—' }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'common.status' | t }}</dt>
+          <dd>{{ data.status }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'customers.joined' | t }}</dt>
+          <dd>{{ data.createdAt | date: 'medium' }}</dd>
+        </div>
       </dl>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -37,13 +47,47 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     </mat-dialog-actions>
   `,
   styles: `
-    .profile { display: grid; justify-items: start; gap: 4px; min-width: min(360px, 86vw); }
-    .avatar { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: #071345; color: #fff; font-weight: 800; margin-bottom: 8px; }
-    strong { font-size: 18px; }
-    p { margin: 0 0 12px; color: #5c678c; }
-    dl { width: 100%; margin: 0; display: grid; gap: 10px; }
-    dt { font-size: 11px; font-weight: 700; color: #5c678c; text-transform: uppercase; letter-spacing: .04em; }
-    dd { margin: 2px 0 0; font-weight: 600; }
+    .profile {
+      display: grid;
+      justify-items: start;
+      gap: 4px;
+      min-width: min(360px, 86vw);
+    }
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: #071345;
+      color: #fff;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    strong {
+      font-size: 18px;
+    }
+    p {
+      margin: 0 0 12px;
+      color: #5c678c;
+    }
+    dl {
+      width: 100%;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+    dt {
+      font-size: 11px;
+      font-weight: 700;
+      color: #5c678c;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    dd {
+      margin: 2px 0 0;
+      font-weight: 600;
+    }
   `,
 })
 export class CustomerProfilePanel {
@@ -73,6 +117,7 @@ export class CustomerProfilePanel {
 export class CustomersPage implements OnInit {
   private readonly api = inject(CustomersApi);
   private readonly dialog = inject(MatDialog);
+  private readonly confirm = inject(ConfirmService);
   private readonly ui = inject(UiService);
   readonly i18n = inject(I18nService);
 
@@ -92,17 +137,19 @@ export class CustomersPage implements OnInit {
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit, search: this.search() || undefined, status: this.status() || undefined }).subscribe({
-      next: (res) => {
-        this.rows.set(asList(res.data));
-        this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
-        this.loading.set(false);
-      },
-      error: (err: unknown) => {
-        this.error.set(errMessage(err));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .list({ page, limit, search: this.search() || undefined, status: this.status() || undefined })
+      .subscribe({
+        next: (res) => {
+          this.rows.set(asList(res.data));
+          this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.error.set(errMessage(err));
+          this.loading.set(false);
+        },
+      });
   }
 
   onSearch(value: string): void {
@@ -125,6 +172,21 @@ export class CustomersPage implements OnInit {
 
   toggle(user: User): void {
     const next = user.status === 'blocked' ? 'active' : 'blocked';
+    if (next === 'blocked') {
+      this.confirm
+        .ask({
+          title: 'common.block',
+          message: 'customers.blockConfirm',
+          confirmKey: 'common.block',
+          danger: true,
+        })
+        .subscribe((ok) => ok && this.applyStatus(user, next));
+      return;
+    }
+    this.applyStatus(user, next);
+  }
+
+  private applyStatus(user: User, next: 'active' | 'blocked'): void {
     this.api.updateStatus(entityId(user), next).subscribe({
       next: () => {
         this.ui.success(this.i18n.t('common.save'));

@@ -20,6 +20,7 @@ import { Category, entityId, loc, localizedOf } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
 import { ImageUploader } from '../../shared/image-uploader';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+import { ConfirmService } from '../../shared/confirm-dialog';
 
 @Component({
   selector: 'app-category-dialog',
@@ -270,6 +271,7 @@ export class CategoryDialog {
 export class CategoriesPage implements OnInit {
   private readonly api = inject(CategoriesApi);
   private readonly dialog = inject(MatDialog);
+  private readonly confirm = inject(ConfirmService);
   private readonly ui = inject(UiService);
   readonly i18n = inject(I18nService);
 
@@ -371,12 +373,22 @@ export class CategoriesPage implements OnInit {
   }
 
   remove(category: Category): void {
-    this.api.remove(entityId(category)).subscribe({
-      next: () => {
-        this.ui.success(this.i18n.t('common.delete'));
-        this.load();
-      },
-      error: (err: unknown) => this.ui.error(errMessage(err)),
-    });
+    this.confirm
+      .ask({
+        title: 'common.delete',
+        message: 'categories.deleteConfirm',
+        confirmKey: 'common.delete',
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.api.remove(entityId(category)).subscribe({
+          next: () => {
+            this.ui.success(this.i18n.t('common.delete'));
+            this.load();
+          },
+          error: (err: unknown) => this.ui.error(errMessage(err)),
+        });
+      });
   }
 }

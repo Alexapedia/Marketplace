@@ -2,7 +2,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { PageEvent } from '@angular/material/paginator';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
@@ -23,10 +28,12 @@ import {
   localizedOf,
   PageMeta,
   Product,
+  ProductVariant,
 } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
 import { ImageUploader } from '../../shared/image-uploader';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+import { ConfirmService } from '../../shared/confirm-dialog';
 
 @Component({
   selector: 'app-product-dialog',
@@ -38,6 +45,7 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
+    MatIconModule,
     TranslatePipe,
     ImageUploader,
   ],
@@ -101,6 +109,70 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
           <mat-option value="archived">{{ 'products.archived' | t }}</mat-option>
         </mat-select>
       </mat-form-field>
+      <mat-form-field appearance="outline" class="wide">
+        <mat-label>{{ 'products.sizes' | t }}</mat-label>
+        <input matInput formControlName="sizes" placeholder="S, M, L" />
+        <mat-hint>{{ 'products.sizesHint' | t }}</mat-hint>
+      </mat-form-field>
+      <div class="wide variants">
+        <div class="v-head">
+          <div class="lbl">{{ 'products.variants' | t }}</div>
+          <button mat-stroked-button type="button" (click)="addVariant()">
+            <mat-icon>add</mat-icon>{{ 'products.addVariant' | t }}
+          </button>
+        </div>
+        @if (!variants().length) {
+          <p class="hint">{{ 'products.variantsHint' | t }}</p>
+        }
+        @for (v of variants(); track $index; let i = $index) {
+          <div class="v-row">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'common.name' | t }}</mat-label>
+              <input
+                matInput
+                [value]="v.name || ''"
+                (input)="patchVariant(i, 'name', $any($event.target).value)"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>SKU</mat-label>
+              <input
+                matInput
+                [value]="v.sku || ''"
+                (input)="patchVariant(i, 'sku', $any($event.target).value)"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'common.price' | t }}</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                [value]="v.price ?? ''"
+                (input)="patchVariant(i, 'price', $any($event.target).value)"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'common.stock' | t }}</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                [value]="v.stock ?? 0"
+                (input)="patchVariant(i, 'stock', $any($event.target).value)"
+              />
+            </mat-form-field>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removeVariant(i)"
+              [attr.aria-label]="'common.delete' | t"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
       <div class="flags">
         <mat-checkbox formControlName="featured">{{ 'products.featured' | t }}</mat-checkbox>
         <mat-checkbox formControlName="newArrival">{{ 'products.newArrival' | t }}</mat-checkbox>
@@ -113,11 +185,55 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     </mat-dialog-actions>
   `,
   styles: `
-    .dlg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; min-width: min(680px, 92vw); padding-top: 8px; }
-    .wide { grid-column: 1 / -1; }
-    .lbl { font-size: 12px; font-weight: 700; color: #5c678c; margin-bottom: 8px; }
-    .flags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 8px; }
-    @media (max-width: 640px) { .dlg { grid-template-columns: 1fr; } }
+    .dlg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 14px;
+      min-width: min(680px, 92vw);
+      padding-top: 8px;
+    }
+    .wide {
+      grid-column: 1 / -1;
+    }
+    .lbl {
+      font-size: 12px;
+      font-weight: 700;
+      color: #5c678c;
+      margin-bottom: 8px;
+    }
+    .flags {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 4px 0 8px;
+    }
+    .v-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .v-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr auto;
+      gap: 8px;
+      align-items: start;
+    }
+    .hint {
+      font-size: 12px;
+      opacity: 0.7;
+      margin: 0 0 6px;
+    }
+    @media (max-width: 640px) {
+      .dlg {
+        grid-template-columns: 1fr;
+      }
+      .v-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
   `,
 })
 export class ProductDialog {
@@ -127,6 +243,9 @@ export class ProductDialog {
   private readonly i18n = inject(I18nService);
   readonly entityId = entityId;
   readonly pics = signal<string[]>(this.data.product?.images ?? []);
+  readonly variants = signal<ProductVariant[]>(
+    (this.data.product?.variants ?? []).map((v) => ({ ...v })),
+  );
 
   readonly form = this.fb.nonNullable.group({
     nameEn: [loc(localizedOf(this.data.product ?? {}), 'en'), Validators.required],
@@ -142,7 +261,21 @@ export class ProductDialog {
     featured: [!!this.data.product?.flags?.featured],
     newArrival: [!!this.data.product?.flags?.newArrival],
     bestSeller: [!!this.data.product?.flags?.bestSeller],
+    sizes: [(this.data.product?.sizes ?? []).join(', ')],
   });
+
+  addVariant(): void {
+    this.variants.update((list) => [...list, { name: '', stock: 0 }]);
+  }
+
+  removeVariant(index: number): void {
+    this.variants.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  patchVariant(index: number, key: 'name' | 'sku' | 'price' | 'stock', raw: string): void {
+    const value = key === 'price' || key === 'stock' ? (raw === '' ? undefined : Number(raw)) : raw;
+    this.variants.update((list) => list.map((v, i) => (i === index ? { ...v, [key]: value } : v)));
+  }
 
   locName(c: Category): string {
     return loc(localizedOf(c), this.i18n.lang());
@@ -169,6 +302,18 @@ export class ProductDialog {
       gender: v.gender || undefined,
       status: v.status,
       flags: { featured: v.featured, newArrival: v.newArrival, bestSeller: v.bestSeller },
+      sizes: v.sizes
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      variants: this.variants()
+        .filter((x) => (x.name || x.sku || '').trim())
+        .map((x) => ({
+          name: x.name?.trim() || undefined,
+          sku: x.sku?.trim() || undefined,
+          price: x.price != null && !Number.isNaN(x.price) ? x.price : undefined,
+          stock: Math.max(0, Math.trunc(Number(x.stock) || 0)),
+        })),
     });
   }
 
@@ -200,6 +345,7 @@ export class ProductsPage implements OnInit {
   private readonly api = inject(ProductsApi);
   private readonly categoriesApi = inject(CategoriesApi);
   private readonly dialog = inject(MatDialog);
+  private readonly confirm = inject(ConfirmService);
   private readonly ui = inject(UiService);
   private readonly route = inject(ActivatedRoute);
   readonly i18n = inject(I18nService);
@@ -211,7 +357,16 @@ export class ProductsPage implements OnInit {
   readonly search = signal('');
   readonly status = signal('');
   readonly categories = signal<Category[]>([]);
-  readonly displayedColumns = ['image', 'name', 'price', 'rating', 'stock', 'status', 'flags', 'actions'];
+  readonly displayedColumns = [
+    'image',
+    'name',
+    'price',
+    'rating',
+    'stock',
+    'status',
+    'flags',
+    'actions',
+  ];
   readonly entityId = entityId;
   readonly localizedOf = localizedOf;
   private searchTimer?: ReturnType<typeof setTimeout>;
@@ -234,21 +389,23 @@ export class ProductsPage implements OnInit {
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit, search: this.search() || undefined, status: this.status() || undefined }).subscribe({
-      next: (res) => {
-        this.rows.set(asList(res.data));
-        if (res.meta) {
-          this.meta.set(res.meta);
-        } else {
-          this.meta.set({ page, limit, total: asList(res.data).length, totalPages: 1 });
-        }
-        this.loading.set(false);
-      },
-      error: (err: unknown) => {
-        this.error.set(errMessage(err));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .list({ page, limit, search: this.search() || undefined, status: this.status() || undefined })
+      .subscribe({
+        next: (res) => {
+          this.rows.set(asList(res.data));
+          if (res.meta) {
+            this.meta.set(res.meta);
+          } else {
+            this.meta.set({ page, limit, total: asList(res.data).length, totalPages: 1 });
+          }
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.error.set(errMessage(err));
+          this.loading.set(false);
+        },
+      });
   }
 
   onSearch(value: string): void {
@@ -284,9 +441,7 @@ export class ProductsPage implements OnInit {
       if (!body) {
         return;
       }
-      const req = product
-        ? this.api.update(entityId(product), body)
-        : this.api.create(body);
+      const req = product ? this.api.update(entityId(product), body) : this.api.create(body);
       req.subscribe({
         next: () => {
           this.ui.success(this.i18n.t('common.save'));
@@ -298,12 +453,22 @@ export class ProductsPage implements OnInit {
   }
 
   remove(product: Product): void {
-    this.api.remove(entityId(product)).subscribe({
-      next: () => {
-        this.ui.success(this.i18n.t('common.delete'));
-        this.load();
-      },
-      error: (err: unknown) => this.ui.error(errMessage(err)),
-    });
+    this.confirm
+      .ask({
+        title: 'common.delete',
+        message: 'products.deleteConfirm',
+        confirmKey: 'common.delete',
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.api.remove(entityId(product)).subscribe({
+          next: () => {
+            this.ui.success(this.i18n.t('common.delete'));
+            this.load();
+          },
+          error: (err: unknown) => this.ui.error(errMessage(err)),
+        });
+      });
   }
 }

@@ -11,7 +11,10 @@
     <section class="pane inbox">
       <div class="pane-h">
         <h3>{{ 'notifications.inbox' | t }}</h3>
-        <button mat-icon-button type="button" (click)="loadInbox()">
+        @if (hasUnread()) {
+          <button mat-button type="button" (click)="markAllRead()">{{ 'notifications.markAllRead' | t }}</button>
+        }
+        <button mat-icon-button type="button" (click)="loadInbox()" [attr.aria-label]="'common.refresh' | t">
           <mat-icon>refresh</mat-icon>
         </button>
       </div>
@@ -30,6 +33,11 @@
               <small>{{ bodyOf(item) }}</small>
             </span>
             <time>{{ item.createdAt | date: 'short' }}</time>
+          </button>
+        }
+        @if (hasMore(inboxMeta())) {
+          <button mat-stroked-button type="button" class="more" [disabled]="loadingMore()" (click)="loadInbox(inboxMeta()!.page + 1)">
+            {{ 'common.loadMore' | t }}
           </button>
         }
       </div>
@@ -102,6 +110,11 @@
             }
           </div>
         </article>
+      }
+      @if (hasMore(historyMeta())) {
+        <button mat-stroked-button type="button" class="more" [disabled]="loadingMore()" (click)="loadHistory(historyMeta()!.page + 1)">
+          {{ 'common.loadMore' | t }}
+        </button>
       }
     </div>
   </section>

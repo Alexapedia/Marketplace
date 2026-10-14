@@ -43,6 +43,11 @@
             }
           </button>
         }
+        @if (hasMoreConversations()) {
+          <button mat-stroked-button type="button" class="more" [disabled]="loadingMore()" (click)="moreConversations()">
+            {{ 'common.loadMore' | t }}
+          </button>
+        }
       </div>
     </aside>
 

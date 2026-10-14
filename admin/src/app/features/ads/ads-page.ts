@@ -1,7 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +21,7 @@ import { Banner, entityId, loc, PageMeta } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
 import { ImageUploader } from '../../shared/image-uploader';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+import { ConfirmService } from '../../shared/confirm-dialog';
 
 @Component({
   selector: 'app-ad-dialog',
@@ -38,7 +44,7 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
         <app-image-uploader
           [images]="form.controls.image.value ? [form.controls.image.value] : []"
           [multiple]="false"
-          (imagesChange)="form.patchValue({  image: $event[0]   })"
+          (imagesChange)="form.patchValue({ image: $event[0] })"
         />
       </div>
       <mat-form-field appearance="outline">
@@ -77,13 +83,27 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>{{ 'common.cancel' | t }}</button>
-      <button mat-flat-button (click)="save()" [disabled]="saving()">{{ 'common.save' | t }}</button>
+      <button mat-flat-button (click)="save()" [disabled]="saving()">
+        {{ 'common.save' | t }}
+      </button>
     </mat-dialog-actions>
   `,
   styles: `
-    .dlg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: min(640px, 90vw); padding-top: 8px; }
-    .wide { grid-column: 1 / -1; }
-    .lbl { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .dlg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      min-width: min(640px, 90vw);
+      padding-top: 8px;
+    }
+    .wide {
+      grid-column: 1 / -1;
+    }
+    .lbl {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
   `,
 })
 export class AdDialog {
@@ -109,12 +129,12 @@ export class AdDialog {
 
   private titleOf(lang: 'en' | 'ar'): string {
     const t = this.data.ad?.title;
-    return typeof t === 'string' ? t : t?.[lang] ?? '';
+    return typeof t === 'string' ? t : (t?.[lang] ?? '');
   }
 
   private subOf(lang: 'en' | 'ar'): string {
     const t = this.data.ad?.subtitle;
-    return typeof t === 'string' ? t : t?.[lang] ?? '';
+    return typeof t === 'string' ? t : (t?.[lang] ?? '');
   }
 
   save(): void {
@@ -167,6 +187,7 @@ export class AdDialog {
 export class AdsPage implements OnInit {
   private readonly api = inject(AdsApi);
   private readonly dialog = inject(MatDialog);
+  private readonly confirm = inject(ConfirmService);
   private readonly ui = inject(UiService);
   private readonly i18n = inject(I18nService);
 
@@ -186,17 +207,19 @@ export class AdsPage implements OnInit {
   load(page = this.meta().page): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit: this.meta().limit, placement: this.placement() || undefined }).subscribe({
-      next: (res) => {
-        this.rows.set(asList(res.data));
-        if (res.meta) this.meta.set(res.meta);
-        this.loading.set(false);
-      },
-      error: (err: unknown) => {
-        this.error.set(errMessage(err));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .list({ page, limit: this.meta().limit, placement: this.placement() || undefined })
+      .subscribe({
+        next: (res) => {
+          this.rows.set(asList(res.data));
+          if (res.meta) this.meta.set(res.meta);
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.error.set(errMessage(err));
+          this.loading.set(false);
+        },
+      });
   }
 
   page(ev: PageEvent): void {
@@ -214,11 +237,20 @@ export class AdsPage implements OnInit {
   }
 
   remove(row: Banner): void {
-    if (!confirm(this.i18n.t('common.delete'))) return;
-    this.api.remove(entityId(row)).subscribe({
-      next: () => this.load(),
-      error: (err: unknown) => this.ui.error(errMessage(err)),
-    });
+    this.confirm
+      .ask({
+        title: 'common.delete',
+        message: 'ads.deleteConfirm',
+        confirmKey: 'common.delete',
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.api.remove(entityId(row)).subscribe({
+          next: () => this.load(),
+          error: (err: unknown) => this.ui.error(errMessage(err)),
+        });
+      });
   }
 
   titleOf(row: Banner): string {
@@ -226,7 +258,9 @@ export class AdsPage implements OnInit {
   }
 
   subtitleOf(row: Banner): string {
-    return loc(row.subtitle, this.i18n.lang()) || loc(row.subtitle, 'en') || loc(row.subtitle, 'ar');
+    return (
+      loc(row.subtitle, this.i18n.lang()) || loc(row.subtitle, 'en') || loc(row.subtitle, 'ar')
+    );
   }
 
   imageSrc(row: Banner): string {

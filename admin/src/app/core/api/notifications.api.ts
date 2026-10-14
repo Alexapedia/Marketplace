@@ -28,6 +28,10 @@ export class NotificationsApi {
     return this.api.get<{ count: number }>('/notifications/unread-count');
   }
 
+  markAllRead(): Observable<ApiResult<unknown>> {
+    return this.api.patch<unknown>('/notifications/read-all');
+  }
+
   markRead(id: string): Observable<ApiResult<AppNotification>> {
     return this.api.patch<AppNotification>(`/notifications/${id}/read`);
   }

@@ -10,6 +10,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { PageMeta, productRef, Review } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+import { ConfirmService } from '../../shared/confirm-dialog';
 
 @Component({
   selector: 'app-reviews-page',
@@ -28,7 +29,7 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     <div class="filters">
       @for (kind of types; track kind) {
         <button mat-stroked-button [class.on]="type() === kind" (click)="setType(kind)">
-          {{ ('reviews.' + (kind || 'all')) | t }}
+          {{ 'reviews.' + (kind || 'all') | t }}
         </button>
       }
     </div>
@@ -49,7 +50,9 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
             <th mat-header-cell *matHeaderCellDef>{{ 'reviews.type' | t }}</th>
             <td mat-cell *matCellDef="let row">
               @if (row.targetType === 'product' && productRef(row.targetId); as pid) {
-                <a class="plink" [routerLink]="['/products']" [queryParams]="{ open: pid }">{{ row.targetType }}</a>
+                <a class="plink" [routerLink]="['/products']" [queryParams]="{ open: pid }">{{
+                  row.targetType
+                }}</a>
               } @else {
                 {{ row.targetType }}
               }
@@ -89,15 +92,32 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     }
   `,
   styles: `
-    .full { width: 100%; }
-    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-    .on { background: #c9a45c; color: #12141c; }
-    td { max-width: 280px; }
-    .plink { color: #071345; font-weight: 700; text-decoration: underline; }
+    .full {
+      width: 100%;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .on {
+      background: #c9a45c;
+      color: #12141c;
+    }
+    td {
+      max-width: 280px;
+    }
+    .plink {
+      color: #071345;
+      font-weight: 700;
+      text-decoration: underline;
+    }
   `,
 })
 export class ReviewsPage implements OnInit {
   private readonly api = inject(ReviewsApi);
+  private readonly confirm = inject(ConfirmService);
   private readonly ui = inject(UiService);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -120,19 +140,17 @@ export class ReviewsPage implements OnInit {
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api
-      .list({ page, limit, targetType: this.type() || undefined })
-      .subscribe({
-        next: (res) => {
-          this.rows.set(asList(res.data));
-          this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
-          this.loading.set(false);
-        },
-        error: (err: unknown) => {
-          this.error.set(errMessage(err));
-          this.loading.set(false);
-        },
-      });
+    this.api.list({ page, limit, targetType: this.type() || undefined }).subscribe({
+      next: (res) => {
+        this.rows.set(asList(res.data));
+        this.meta.set(res.meta ?? { page, limit, total: asList(res.data).length, totalPages: 1 });
+        this.loading.set(false);
+      },
+      error: (err: unknown) => {
+        this.error.set(errMessage(err));
+        this.loading.set(false);
+      },
+    });
   }
 
   page(ev: PageEvent): void {
@@ -149,11 +167,21 @@ export class ReviewsPage implements OnInit {
   }
 
   remove(row: Review): void {
-    const id = row.id || row._id;
-    if (!id) return;
-    this.api.remove(id).subscribe({
-      next: () => this.load(),
-      error: (err: unknown) => this.ui.error(errMessage(err)),
-    });
+    this.confirm
+      .ask({
+        title: 'common.delete',
+        message: 'reviews.deleteConfirm',
+        confirmKey: 'common.delete',
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        const id = row.id || row._id;
+        if (!id) return;
+        this.api.remove(id).subscribe({
+          next: () => this.load(),
+          error: (err: unknown) => this.ui.error(errMessage(err)),
+        });
+      });
   }
 }

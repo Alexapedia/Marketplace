@@ -14,7 +14,7 @@ export class UiService {
   }
 }
 
-export function errMessage(err: unknown, fallback = 'Request failed'): string {
+export function errMessage(err: unknown, fallback = requestFailedText()): string {
   if (err instanceof Error && err.message) {
     return err.message;
   }
@@ -29,4 +29,9 @@ export function asList<T>(data: T[] | { items?: T[] } | null | undefined): T[] {
     return data.items;
   }
   return [];
+}
+
+/** Fallback error text in the active UI language (set on <html lang>). */
+export function requestFailedText(): string {
+  return document.documentElement.lang === 'ar' ? 'تعذّر تنفيذ الطلب' : 'Request failed';
 }
