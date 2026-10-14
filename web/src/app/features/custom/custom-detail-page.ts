@@ -16,6 +16,7 @@ import {
 import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/toast/toast.service';
+import { DialogService } from '../../core/dialog/dialog.service';
 
 @Component({
   selector: 'app-custom-detail-page',
@@ -28,6 +29,8 @@ export class CustomDetailPage implements OnInit, OnDestroy {
   private readonly chat = inject(ChatSocket);
   readonly i18n = inject(I18nService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
+  busy = signal(false);
 
   order = signal<CustomOrder | null>(null);
   messages = signal<ChatMessage[]>([]);
@@ -73,6 +76,8 @@ export class CustomDetailPage implements OnInit, OnDestroy {
       this.toast.show(this.i18n.t('selectAddress'));
       return;
     }
+    if (this.busy()) return;
+    this.busy.set(true);
     this.api
       .post(`/custom-orders/${id}/confirm`, {
         proposalId,
@@ -80,16 +85,27 @@ export class CustomDetailPage implements OnInit, OnDestroy {
       })
       .subscribe({
         next: () => {
-          this.toast.show(this.i18n.t('confirmQuote'));
+          this.busy.set(false);
+          this.toast.show(this.i18n.t('quoteConfirmed'));
           this.load(id);
         },
-        error: (e) => this.toast.show(e.message),
+        error: (e) => {
+          this.busy.set(false);
+          this.toast.show(e.message);
+        },
       });
   }
 
-  reject(proposalId: string): void {
+  async reject(proposalId: string): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id') || '';
-    const reason = prompt(this.i18n.t('reason')) || this.i18n.t('rejectQuote');
+    const answer = await this.dialog.prompt({
+      title: 'rejectQuote',
+      inputLabel: 'reason',
+      confirmKey: 'rejectQuote',
+      danger: true,
+    });
+    if (answer === null) return;
+    const reason = answer || this.i18n.t('rejectQuote');
     this.api.post(`/custom-orders/${id}/reject`, { proposalId, reason }).subscribe({
       next: () => this.load(id),
       error: (e) => this.toast.show(e.message),

@@ -4,20 +4,34 @@ import { Favorite, pid, Product } from '../../core/models/models';
 import { PageBar } from '../../shared/page-bar';
 import { ProductCard } from '../../shared/product-card';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { AsyncState } from '../../shared/async-state';
 
 @Component({
   selector: 'app-favorites-page',
-  imports: [PageBar, ProductCard, TranslatePipe],
+  imports: [PageBar, ProductCard, TranslatePipe, AsyncState],
   templateUrl: './favorites-page.html',
 })
 export class FavoritesPage implements OnInit {
   private readonly api = inject(ApiClient);
   products = signal<Product[]>([]);
   favoriteIds = signal<Set<string>>(new Set());
+  loading = signal(true);
+  error = signal<string | null>(null);
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.error.set(null);
     this.api.get<Favorite[]>('/favorites').subscribe({
+      error: (e: Error) => {
+        this.error.set(e.message);
+        this.loading.set(false);
+      },
       next: (res) => {
+        this.loading.set(false);
         const rows = Array.isArray(res.data) ? res.data : [];
         const products = rows
           .map((row) => (row.productId && typeof row.productId === 'object' ? row.productId : null))

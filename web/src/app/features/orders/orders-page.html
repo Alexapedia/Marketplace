@@ -1,16 +1,25 @@
 <div class="w">
   <app-page-bar [title]="('orders' | t)" />
-  @if (!orders().length) {
-    <p class="empty">{{ 'emptyOrders' | t }}</p>
-  } @else {
-    @for (o of orders(); track o._id) {
+  @if (!list.loading()) {
+    @for (o of list.items(); track o._id) {
       <a class="order-card" [routerLink]="['/orders', o._id]">
         <div>
-          <strong>#{{ (o._id || '').slice(-8) }}</strong>
-          <div class="muted">{{ o.grandTotal ?? o.total ?? 0 }} {{ 'currency' | t }}</div>
+          <strong>#{{ o.orderNumber || (o._id || '').slice(-8) }}</strong>
+          <div class="muted">
+            {{ o.grandTotal ?? o.total ?? 0 }} {{ 'currency' | t }}
+            @if (o.createdAt) { · {{ o.createdAt | date: 'mediumDate' : undefined : i18n.lang() }} }
+          </div>
         </div>
         <span class="status-pill">{{ statusLabel(o.orderStatus || o.status || '') }}</span>
       </a>
     }
+    <app-load-more [show]="list.hasMore()" [busy]="list.loadingMore()" (more)="list.more()" />
   }
+  <app-async-state
+    [loading]="list.loading()"
+    [error]="list.error()"
+    [empty]="!list.items().length"
+    emptyKey="emptyOrders"
+    (retry)="list.reload()"
+  />
 </div>

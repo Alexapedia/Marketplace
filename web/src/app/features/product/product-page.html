@@ -22,14 +22,34 @@
         <span class="muted">({{ p.ratingCount ?? 0 }})</span>
         <p>
           <em style="font-style: normal; font-weight: 700; font-size: 22px">
-            {{ priceOf(p) }} {{ 'currency' | t }}
+            {{ unitPrice(p) }} {{ 'currency' | t }}
           </em>
-          @if (onSale(p)) {
+          @if (showsSale(p)) {
             <span class="old">{{ p.price }}</span>
           }
         </p>
         <p class="muted">{{ inStock(p) ? ('stock' | t) : ('out' | t) }}</p>
         <p>{{ desc(p) || '—' }}</p>
+
+        @if (p.variants?.length) {
+          <div class="field">
+            <label for="variant">{{ 'options' | t }}</label>
+            <select
+              id="variant"
+              name="variant"
+              [ngModel]="variant() ? variantKey(variant()!) : ''"
+              (ngModelChange)="pickVariant($event)"
+            >
+              @for (v of p.variants; track v._id || variantKey(v)) {
+                <option [value]="variantKey(v)" [disabled]="(v.stock ?? 0) <= 0">
+                  {{ variantKey(v) }}
+                  @if (v.price != null) { — {{ v.price }} {{ 'currency' | t }} }
+                  @if ((v.stock ?? 0) <= 0) { ({{ 'out' | t }}) }
+                </option>
+              }
+            </select>
+          </div>
+        }
 
         @if (p.sizes?.length) {
           <div class="field">
@@ -58,7 +78,7 @@
         </div>
 
         @if (auth.user()) {
-          <button class="btn wide navy" type="button" [disabled]="!inStock(p)" (click)="addToCart()">
+          <button class="btn wide navy" type="button" [disabled]="!inStock(p) || adding()" (click)="addToCart()">
             {{ 'addToCart' | t }}
           </button>
         } @else {
@@ -88,7 +108,7 @@
         @for (r of reviews().items; track r._id || r.id) {
           <article class="quote">
             <div class="qh">
-              <strong>{{ r.userName || 'Customer' }}</strong>
+              <strong>{{ r.userName || ('customer' | t) }}</strong>
               <app-stars [value]="r.rating" />
             </div>
             <p>{{ r.comment || '' }}</p>
@@ -100,6 +120,6 @@
     }
   } @else {
     <app-page-bar [title]="('allProducts' | t)" />
-    <p class="empty">{{ 'noProducts' | t }}</p>
+    <app-async-state [loading]="loading()" [error]="error()" [empty]="!loading()" emptyKey="noProducts" (retry)="load()" />
   }
 </div>

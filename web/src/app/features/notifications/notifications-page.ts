@@ -1,28 +1,32 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
 import { ApiClient } from '../../core/api/api-client';
+import { PagedList } from '../../core/api/paged-list';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { asItems, loc, NotificationItem } from '../../core/models/models';
+import { loc, NotificationItem } from '../../core/models/models';
+import { ToastService } from '../../core/toast/toast.service';
+import { AsyncState } from '../../shared/async-state';
+import { LoadMore } from '../../shared/load-more';
 import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-notifications-page',
-  imports: [PageBar, TranslatePipe],
+  imports: [DatePipe, PageBar, TranslatePipe, AsyncState, LoadMore],
   templateUrl: './notifications-page.html',
 })
 export class NotificationsPage implements OnInit {
   private readonly api = inject(ApiClient);
+  private readonly toast = inject(ToastService);
   readonly i18n = inject(I18nService);
-  items = signal<NotificationItem[]>([]);
+  readonly list = new PagedList<NotificationItem>(this.api, '/notifications');
 
   ngOnInit(): void {
-    this.load();
+    this.list.reload();
   }
 
-  load(): void {
-    this.api.get<NotificationItem[]>('/notifications').subscribe({
-      next: (res) => this.items.set(asItems<NotificationItem>(res.data)),
-    });
+  idOf(n: NotificationItem): string {
+    return String(n._id || n.id || '');
   }
 
   title(n: NotificationItem): string {
@@ -33,9 +37,37 @@ export class NotificationsPage implements OnInit {
     return loc(n.body, this.i18n.lang());
   }
 
+  hasUnread(): boolean {
+    return this.list.items().some((n) => !n.readAt);
+  }
+
   markRead(n: NotificationItem): void {
-    const id = String(n._id || n.id || '');
+    const id = this.idOf(n);
     if (!id || n.readAt) return;
-    this.api.patch(`/notifications/${id}/read`, {}).subscribe({ next: () => this.load() });
+    this.api.patch(`/notifications/${id}/read`, {}).subscribe({
+      next: () =>
+        this.list.update((items) =>
+          items.map((x) => (this.idOf(x) === id ? { ...x, readAt: new Date().toISOString() } : x)),
+        ),
+      error: (e: Error) => this.toast.show(e.message),
+    });
+  }
+
+  markAllRead(): void {
+    this.api.patch('/notifications/read-all', {}).subscribe({
+      next: () => {
+        const now = new Date().toISOString();
+        this.list.update((items) => items.map((x) => (x.readAt ? x : { ...x, readAt: now })));
+      },
+      error: (e: Error) => this.toast.show(e.message),
+    });
+  }
+
+  remove(n: NotificationItem): void {
+    const id = this.idOf(n);
+    this.api.delete(`/notifications/${id}`).subscribe({
+      next: () => this.list.update((items) => items.filter((x) => this.idOf(x) !== id)),
+      error: (e: Error) => this.toast.show(e.message),
+    });
   }
 }

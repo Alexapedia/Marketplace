@@ -6,24 +6,31 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { media, pid } from '../../core/models/models';
 import { PageBar } from '../../shared/page-bar';
 import { ToastService } from '../../core/toast/toast.service';
+import { StoreConfigService } from '../../core/config/store-config.service';
+import { PriceSummary } from '../../shared/price-summary';
 
 @Component({
   selector: 'app-cart-page',
-  imports: [RouterLink, PageBar, TranslatePipe],
+  imports: [RouterLink, PageBar, TranslatePipe, PriceSummary],
   templateUrl: './cart-page.html',
 })
 export class CartPage implements OnInit {
   readonly cart = inject(CartService);
   private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
+  readonly store = inject(StoreConfigService);
   readonly media = media;
 
   ngOnInit(): void {
     this.cart.refresh();
   }
 
-  total(): number {
+  subtotal(): number {
     return this.cart.items().reduce((n, i) => n + i.unitPrice * i.quantity, 0);
+  }
+
+  total(): number {
+    return this.subtotal() + this.store.deliveryFee();
   }
 
   productId(item: { productId: unknown }): string {

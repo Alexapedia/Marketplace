@@ -2,7 +2,7 @@
   @if (order(); as o) {
     <app-page-bar [title]="title(o)" />
     <div class="panel">
-      <span class="status-pill">{{ o.status || '' }}</span>
+      <span class="status-pill">{{ ('cstatus_' + o.status) | t }}</span>
       <p style="margin: 12px 0">{{ o.description || '' }}</p>
 
       @if (o.attachments?.length) {
@@ -16,11 +16,11 @@
       @for (p of o.proposals || []; track p._id) {
         <div class="quote">
           <div class="qh">
-            <strong>{{ p.productName || 'Quote' }}</strong>
+            <strong>{{ p.productName || ('quote' | t) }}</strong>
             <b>{{ p.price ?? 0 }} {{ 'currency' | t }}</b>
           </div>
           <p>{{ p.notes || '' }}</p>
-          <div class="muted">{{ p.status || '' }}</div>
+          <div class="muted">{{ ('pstatus_' + (p.status || 'sent')) | t }}</div>
           @if (!p.status || p.status === 'sent') {
             <div class="field">
               <label>{{ 'selectAddress' | t }}</label>
@@ -33,7 +33,7 @@
               </select>
             </div>
             <div style="display: flex; gap: 8px; margin-top: 10px">
-              <button class="btn" type="button" (click)="confirm(p._id!)">{{ 'confirmQuote' | t }}</button>
+              <button class="btn" type="button" [disabled]="busy()" (click)="confirm(p._id!)">{{ 'confirmQuote' | t }}</button>
               <button class="btn navy" type="button" (click)="reject(p._id!)">{{ 'rejectQuote' | t }}</button>
             </div>
           }

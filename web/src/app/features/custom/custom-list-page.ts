@@ -1,26 +1,26 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiClient } from '../../core/api/api-client';
+import { PagedList } from '../../core/api/paged-list';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { asItems, Category, CustomOrder, loc, pid } from '../../core/models/models';
+import { Category, CustomOrder, loc } from '../../core/models/models';
+import { AsyncState } from '../../shared/async-state';
+import { LoadMore } from '../../shared/load-more';
 import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-custom-list-page',
-  imports: [RouterLink, PageBar, TranslatePipe],
+  imports: [RouterLink, DatePipe, PageBar, TranslatePipe, AsyncState, LoadMore],
   templateUrl: './custom-list-page.html',
 })
 export class CustomListPage implements OnInit {
-  private readonly api = inject(ApiClient);
   readonly i18n = inject(I18nService);
-
-  orders = signal<CustomOrder[]>([]);
+  readonly list = new PagedList<CustomOrder>(inject(ApiClient), '/custom-orders');
 
   ngOnInit(): void {
-    this.api.get<CustomOrder[]>('/custom-orders').subscribe({
-      next: (res) => this.orders.set(asItems<CustomOrder>(res.data)),
-    });
+    this.list.reload();
   }
 
   title(o: CustomOrder): string {

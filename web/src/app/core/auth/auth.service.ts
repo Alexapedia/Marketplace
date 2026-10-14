@@ -4,7 +4,13 @@ import { ApiClient } from '../api/api-client';
 import { User } from '../models/models';
 import { CartService } from '../cart/cart.service';
 import { FirebasePushService } from '../firebase/firebase-push.service';
-import { TOKEN_KEY } from './token';
+import { REFRESH_KEY, TOKEN_KEY } from './token';
+
+interface AuthSession {
+  user: User;
+  accessToken: string;
+  refreshToken?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,11 +23,11 @@ export class AuthService {
   readonly ready = signal(false);
 
   login(email: string, password: string): Observable<User> {
-    return this.api.post<{ user: User; accessToken: string }>('/auth/login', { email, password }).pipe(
+    return this.api.post<AuthSession>('/auth/login', { email, password }).pipe(
       tap((res) => {
         const token = res.data?.accessToken;
         if (!token) throw new Error('Invalid login response');
-        this.persistToken(token);
+        this.persistToken(token, res.data.refreshToken);
       }),
       switchMap((res) => {
         if (res.data?.user) {
@@ -44,11 +50,11 @@ export class AuthService {
     password: string;
     phone?: string;
   }): Observable<User> {
-    return this.api.post<{ user: User; accessToken: string }>('/auth/register', payload).pipe(
+    return this.api.post<AuthSession>('/auth/register', payload).pipe(
       tap((res) => {
         const token = res.data?.accessToken;
         if (!token) throw new Error('Invalid register response');
-        this.persistToken(token);
+        this.persistToken(token, res.data.refreshToken);
         this.user.set(res.data.user);
       }),
       map((res) => res.data.user),
@@ -104,7 +110,8 @@ export class AuthService {
 
   logout(callApi = true): void {
     if (callApi && this.token()) {
-      this.api.post('/auth/logout').subscribe({ error: () => undefined });
+      const refreshToken = localStorage.getItem(REFRESH_KEY) || undefined;
+      this.api.post('/auth/logout', { refreshToken }).subscribe({ error: () => undefined });
     }
     this.clearSession();
   }
@@ -113,8 +120,9 @@ export class AuthService {
     return !!this.token() && !!this.user();
   }
 
-  private persistToken(token: string): void {
+  private persistToken(token: string, refreshToken?: string): void {
     localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
     this.token.set(token);
   }
 
@@ -124,6 +132,7 @@ export class AuthService {
 
   private clearSession(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
     this.token.set(null);
     this.user.set(null);
     this.cart.clearLocal();

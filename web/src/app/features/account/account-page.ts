@@ -7,6 +7,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/toast/toast.service';
+import { DialogService } from '../../core/dialog/dialog.service';
 
 @Component({
   selector: 'app-account-page',
@@ -19,6 +20,7 @@ export class AccountPage implements OnInit {
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
+  private readonly dialog = inject(DialogService);
 
   supportEmail = signal('');
   supportPhone = signal('');
@@ -48,8 +50,14 @@ export class AccountPage implements OnInit {
     }
   }
 
-  deleteAccount(): void {
-    if (!confirm(this.i18n.t('deleteAccountConfirm'))) return;
+  async deleteAccount(): Promise<void> {
+    const ok = await this.dialog.confirm({
+      title: 'deleteAccount',
+      message: 'deleteAccountConfirm',
+      confirmKey: 'delete',
+      danger: true,
+    });
+    if (!ok) return;
     this.auth.deleteAccount().subscribe({
       next: () => {
         this.toast.show(this.i18n.t('accountDeleted'));

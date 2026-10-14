@@ -3,9 +3,14 @@
   <p style="margin-bottom: 16px">
     <a class="btn" routerLink="/address">{{ 'addAddress' | t }}</a>
   </p>
-  @if (!addresses().length) {
-    <p class="empty">{{ 'noAddresses' | t }}</p>
-  } @else {
+  <app-async-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!addresses().length"
+    emptyKey="noAddresses"
+    (retry)="load()"
+  />
+  @if (!loading()) {
     @for (a of addresses(); track aid(a)) {
       <div class="order-card">
         <div>
@@ -21,9 +26,9 @@
         <div class="row-h">
           <a [routerLink]="['/address', aid(a)]">{{ 'editAddress' | t }}</a>
           @if (!a.isDefault) {
-            <button class="lang" type="button" (click)="setDefault(aid(a))">{{ 'setDefault' | t }}</button>
+            <button class="btn ghost-btn" type="button" (click)="setDefault(aid(a))">{{ 'setDefault' | t }}</button>
           }
-          <button class="lang" type="button" (click)="remove(aid(a))">{{ 'delete' | t }}</button>
+          <button class="btn ghost-btn" type="button" (click)="remove(aid(a))">{{ 'delete' | t }}</button>
         </div>
       </div>
     }

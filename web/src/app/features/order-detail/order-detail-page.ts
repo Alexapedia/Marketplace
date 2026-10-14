@@ -10,10 +10,13 @@ import { PageBar } from '../../shared/page-bar';
 import { Stars } from '../../shared/stars';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/toast/toast.service';
+import { DialogService } from '../../core/dialog/dialog.service';
+import { AsyncState } from '../../shared/async-state';
+import { PriceSummary } from '../../shared/price-summary';
 
 @Component({
   selector: 'app-order-detail-page',
-  imports: [DatePipe, RouterLink, FormsModule, PageBar, OrderTimeline, Stars, TranslatePipe],
+  imports: [DatePipe, RouterLink, FormsModule, PageBar, OrderTimeline, Stars, TranslatePipe, AsyncState, PriceSummary],
   templateUrl: './order-detail-page.html',
 })
 export class OrderDetailPage implements OnInit {
@@ -21,19 +24,42 @@ export class OrderDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   readonly i18n = inject(I18nService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   order = signal<Order | null>(null);
+  loading = signal(true);
+  error = signal<string | null>(null);
+  busy = signal(false);
   rating = 5;
   comment = '';
   readonly media = media;
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id') || '';
-      this.api.get<Order>(`/orders/${id}`).subscribe({
-        next: (res) => this.order.set(res.data),
-      });
+    this.route.paramMap.subscribe(() => this.load());
+  }
+
+  load(): void {
+    const id = this.route.snapshot.paramMap.get('id') || '';
+    this.loading.set(true);
+    this.error.set(null);
+    this.api.get<Order>(`/orders/${id}`).subscribe({
+      next: (res) => {
+        this.order.set(res.data);
+        this.loading.set(false);
+      },
+      error: (e: Error) => {
+        this.error.set(e.message);
+        this.loading.set(false);
+      },
     });
+  }
+
+  statusLabel(): string {
+    return this.i18n.t(`status_${this.status()}`);
+  }
+
+  subtotal(o: Order): number {
+    return o.subtotal ?? (o.items ?? []).reduce((n, i) => n + (i.unitPrice ?? 0) * (i.quantity ?? 1), 0);
   }
 
   status(): string {
@@ -57,17 +83,26 @@ export class OrderDetailPage implements OnInit {
     return pid(p);
   }
 
-  cancel(): void {
+  async cancel(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id') || '';
-    if (!confirm(this.i18n.t('cancelOrderConfirm'))) return;
+    const ok = await this.dialog.confirm({
+      title: 'cancelOrder',
+      message: 'cancelOrderConfirm',
+      confirmKey: 'cancelOrder',
+      danger: true,
+    });
+    if (!ok || this.busy()) return;
+    this.busy.set(true);
     this.api.post(`/orders/${id}/cancel`, {}).subscribe({
       next: () => {
+        this.busy.set(false);
         this.toast.show(this.i18n.t('orderCancelled'));
-        this.api.get<Order>(`/orders/${id}`).subscribe({
-          next: (res) => this.order.set(res.data),
-        });
+        this.load();
       },
-      error: (e) => this.toast.show(e.message),
+      error: (e) => {
+        this.busy.set(false);
+        this.toast.show(e.message);
+      },
     });
   }
 
@@ -84,9 +119,7 @@ export class OrderDetailPage implements OnInit {
       .subscribe({
         next: () => {
           this.toast.show(this.i18n.t('thanksRating'));
-          this.api.get<Order>(`/orders/${id}`).subscribe({
-            next: (res) => this.order.set(res.data),
-          });
+          this.load();
         },
         error: (e) => this.toast.show(e.message),
       });

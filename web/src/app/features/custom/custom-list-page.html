@@ -3,17 +3,26 @@
   <p style="margin-bottom: 16px">
     <a class="btn" routerLink="/custom/new">{{ 'startCustom' | t }}</a>
   </p>
-  @if (!orders().length) {
-    <p class="empty">{{ 'emptyCustom' | t }}</p>
-  } @else {
-    @for (o of orders(); track o._id) {
+  @if (!list.loading()) {
+    @for (o of list.items(); track o._id) {
       <a class="order-card" [routerLink]="['/custom', o._id]">
         <div>
           <strong>{{ title(o) }}</strong>
-          <div class="muted">{{ o.description || '' }}</div>
+          <div class="muted">
+            {{ o.description || '' }}
+            @if (o.createdAt) { · {{ o.createdAt | date: 'mediumDate' : undefined : i18n.lang() }} }
+          </div>
         </div>
-        <span class="status-pill">{{ o.status || '' }}</span>
+        <span class="status-pill">{{ ('cstatus_' + o.status) | t }}</span>
       </a>
     }
+    <app-load-more [show]="list.hasMore()" [busy]="list.loadingMore()" (more)="list.more()" />
   }
+  <app-async-state
+    [loading]="list.loading()"
+    [error]="list.error()"
+    [empty]="!list.items().length"
+    emptyKey="emptyCustom"
+    (retry)="list.reload()"
+  />
 </div>

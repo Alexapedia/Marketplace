@@ -1,29 +1,29 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiClient } from '../../core/api/api-client';
+import { PagedList } from '../../core/api/paged-list';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { asItems, Order } from '../../core/models/models';
+import { Order } from '../../core/models/models';
+import { AsyncState } from '../../shared/async-state';
+import { LoadMore } from '../../shared/load-more';
 import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-orders-page',
-  imports: [RouterLink, PageBar, TranslatePipe],
+  imports: [RouterLink, DatePipe, PageBar, TranslatePipe, AsyncState, LoadMore],
   templateUrl: './orders-page.html',
 })
 export class OrdersPage implements OnInit {
-  private readonly api = inject(ApiClient);
   readonly i18n = inject(I18nService);
-
-  orders = signal<Order[]>([]);
+  readonly list = new PagedList<Order>(inject(ApiClient), '/orders');
 
   ngOnInit(): void {
-    this.api.get<Order[]>('/orders').subscribe({
-      next: (res) => this.orders.set(asItems<Order>(res.data)),
-    });
+    this.list.reload();
   }
 
   statusLabel(status: string): string {
-    return this.i18n.t(`status_${status}`) || status;
+    return this.i18n.t(`status_${status}`);
   }
 }

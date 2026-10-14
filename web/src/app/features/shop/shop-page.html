@@ -1,12 +1,64 @@
 <div class="w">
-  <app-page-bar [title]="('allProducts' | t)" />
-  @if (products().length) {
+  <app-page-bar [title]="(titleKey() | t)" />
+
+  <form class="filters" (submit)="$event.preventDefault(); apply()">
+    <div class="field">
+      <label for="f-cat">{{ 'categories' | t }}</label>
+      <select id="f-cat" name="category" [(ngModel)]="category" (ngModelChange)="apply()">
+        <option value="">{{ 'allCategories' | t }}</option>
+        @for (c of categories(); track c._id || c.id) {
+          <option [value]="c._id || c.id">{{ (c.names || c.name) | loc }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-sort">{{ 'sortBy' | t }}</label>
+      <select id="f-sort" name="sort" [(ngModel)]="sort" (ngModelChange)="apply()">
+        @for (s of sorts; track s.value) {
+          <option [value]="s.value">{{ s.key | t }}</option>
+        }
+      </select>
+    </div>
+    <div class="field price">
+      <label for="f-min">{{ 'priceRange' | t }}</label>
+      <div class="price-inputs">
+        <input id="f-min" type="number" min="0" name="minPrice" [(ngModel)]="minPrice" [placeholder]="'min' | t" />
+        <span>–</span>
+        <input type="number" min="0" name="maxPrice" [(ngModel)]="maxPrice" [placeholder]="'max' | t" [attr.aria-label]="'max' | t" />
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn navy" type="submit">{{ 'apply' | t }}</button>
+      @if (hasFilters()) {
+        <button class="btn ghost-btn" type="button" (click)="clear()">{{ 'clearFilters' | t }}</button>
+      }
+    </div>
+  </form>
+
+  @if (meta() && !loading()) {
+    <p class="muted result-count">{{ meta()!.total }} {{ 'results' | t }}</p>
+  }
+
+  @if (products().length && !loading()) {
     <div class="grid">
       @for (p of products(); track p._id || p.id) {
         <app-product-card [product]="p" />
       }
     </div>
-  } @else {
-    <p class="empty">{{ 'noProducts' | t }}</p>
+    @if (hasMore()) {
+      <div class="load-more">
+        <button class="btn navy" type="button" [disabled]="loadingMore()" (click)="loadMore()">
+          {{ (loadingMore() ? 'loading' : 'loadMore') | t }}
+        </button>
+      </div>
+    }
   }
+  <app-async-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!products().length"
+    emptyKey="noProducts"
+    kind="grid"
+    (retry)="fetch(1)"
+  />
 </div>

@@ -9,6 +9,7 @@ import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { ThemeService } from '../core/theme/theme.service';
 import { ApiClient } from '../core/api/api-client';
+import { StoreConfigService } from '../core/config/store-config.service';
 import {
   bindNotificationSoundUnlock,
   listenForPushSound,
@@ -27,6 +28,7 @@ export class Shell implements OnDestroy {
   readonly cart = inject(CartService);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
+  readonly store = inject(StoreConfigService);
   readonly unread = signal(0);
   private readonly router = inject(Router);
   private readonly api = inject(ApiClient);

@@ -7,10 +7,11 @@ import { ToastService } from './core/toast/toast.service';
 import { StoreConfigService } from './core/config/store-config.service';
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { TelemetryService } from './core/telemetry/telemetry.service';
+import { DialogHost } from './shared/dialog-host';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TranslatePipe],
+  imports: [RouterOutlet, TranslatePipe, DialogHost],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

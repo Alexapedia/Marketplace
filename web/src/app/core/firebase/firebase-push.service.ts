@@ -5,6 +5,7 @@ import { getMessaging, getToken, isSupported, onMessage, type Messaging } from '
 import { environment } from '../../../environments/environment';
 import { ApiClient } from '../api/api-client';
 import { ToastService } from '../toast/toast.service';
+import { StoreConfigService } from '../config/store-config.service';
 import { TOKEN_KEY } from '../auth/token';
 import {
   bindNotificationSoundUnlock,
@@ -17,6 +18,7 @@ export class FirebasePushService {
   private readonly api = inject(ApiClient);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly store = inject(StoreConfigService);
   private messaging?: Messaging;
   private started = false;
 
@@ -46,7 +48,7 @@ export class FirebasePushService {
         this.api.patch('/auth/me', { fcmToken: fcm }).subscribe({ error: () => undefined });
       }
       onMessage(this.messaging, (payload) => {
-        const title = payload.notification?.title || 'Zezo Store';
+        const title = payload.notification?.title || this.store.brandName() || document.title;
         const body = payload.notification?.body || '';
         playNotificationSound();
         this.toast.show(body ? `${title}: ${body}` : title, 3200);

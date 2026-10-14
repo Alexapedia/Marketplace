@@ -18,6 +18,9 @@
             <a [routerLink]="['/product', productId(i)]"><strong>{{ i.nameSnapshot }}</strong></a>
             <div class="muted">
               {{ i.unitPrice }} × {{ i.quantity }}
+              @if (i.variant) {
+                · {{ i.variant }}
+              }
               @if (i.size) {
                 · {{ i.size }}
               }
@@ -30,15 +33,12 @@
           </div>
           <div>
             <div>{{ i.unitPrice * i.quantity }} {{ 'currency' | t }}</div>
-            <button class="lang" type="button" (click)="remove(i._id!)">{{ 'remove' | t }}</button>
+            <button class="icon-btn" type="button" (click)="remove(i._id!)">{{ 'remove' | t }}</button>
           </div>
         </div>
       }
       <div class="cod">💵 {{ 'cod' | t }}</div>
-      <p style="display: flex; justify-content: space-between; font-weight: 700; margin: 12px 0 16px">
-        <span>{{ 'total' | t }}</span>
-        <span>{{ total() }} {{ 'currency' | t }}</span>
-      </p>
+      <app-price-summary [subtotal]="subtotal()" [deliveryFee]="store.deliveryFee()" [total]="total()" />
       <a class="btn wide navy" routerLink="/checkout">{{ 'checkout' | t }}</a>
     </div>
   }

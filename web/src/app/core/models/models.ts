@@ -38,10 +38,19 @@ export interface Product {
   salePrice?: number;
   stock?: number;
   sizes?: string[];
+  variants?: ProductVariant[];
   flags?: { featured?: boolean; newArrival?: boolean; bestSeller?: boolean };
   categoryId?: string | Category;
   ratingAvg?: number;
   ratingCount?: number;
+}
+
+export interface ProductVariant {
+  _id?: string;
+  sku?: string;
+  name?: string;
+  price?: number;
+  stock?: number;
 }
 
 export interface Category {
@@ -124,6 +133,7 @@ export interface CartItem {
   unitPrice: number;
   quantity: number;
   size?: string;
+  variant?: string;
 }
 
 export interface Cart {
@@ -137,20 +147,35 @@ export interface OrderItem {
   unitPrice?: number;
   quantity?: number;
   size?: string;
+  variant?: string;
+}
+
+export interface OrderAddress {
+  fullName?: string;
+  phone?: string;
+  city?: string;
+  street?: string;
+  notes?: string;
 }
 
 export interface Order {
   _id?: string;
+  orderNumber?: string;
   status?: string;
   orderStatus?: string;
+  subtotal?: number;
+  discount?: number;
+  deliveryFee?: number;
   total?: number;
   grandTotal?: number;
+  paymentMethod?: string;
   createdAt?: string;
   rating?: number;
   ratingComment?: string;
   items?: OrderItem[];
   notes?: string;
-  addressSnapshot?: Address;
+  address?: OrderAddress;
+  rejectionReason?: string;
 }
 
 export interface CustomField {
@@ -172,6 +197,7 @@ export interface CustomOrder {
   attachments?: string[];
   fields?: Record<string, unknown>;
   proposals?: CustomProposal[];
+  createdAt?: string;
 }
 
 export interface CustomProposal {

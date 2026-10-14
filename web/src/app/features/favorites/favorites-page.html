@@ -1,12 +1,18 @@
 <div class="w">
   <app-page-bar [title]="('favorites' | t)" />
-  @if (!products().length) {
-    <p class="empty">{{ 'emptyFav' | t }}</p>
-  } @else {
+  @if (products().length && !loading()) {
     <div class="grid">
       @for (p of products(); track p._id || p.id) {
         <app-product-card [product]="p" [liked]="true" />
       }
     </div>
   }
+  <app-async-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!products().length"
+    emptyKey="emptyFav"
+    kind="grid"
+    (retry)="load()"
+  />
 </div>

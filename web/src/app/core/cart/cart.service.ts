@@ -26,8 +26,8 @@ export class CartService {
       .subscribe();
   }
 
-  add(productId: string, quantity: number, size?: string) {
-    return this.api.post<Cart>('/cart/items', { productId, quantity, size }).pipe(
+  add(productId: string, quantity: number, size?: string, variant?: string) {
+    return this.api.post<Cart>('/cart/items', { productId, quantity, size, variant }).pipe(
       tap((res) => this.setItems(res.data?.items ?? [])),
     );
   }

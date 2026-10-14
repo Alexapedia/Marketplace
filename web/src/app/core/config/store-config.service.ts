@@ -7,6 +7,7 @@ import { normalizeCurrency } from './currency';
 export class StoreConfigService {
   private readonly api = inject(ApiClient);
   readonly currency = signal('SAR');
+  readonly deliveryFee = signal(0);
   readonly brandName = signal('');
   readonly logo = signal('');
   readonly blocked = signal(false);
@@ -21,6 +22,7 @@ export class StoreConfigService {
       next: (res) => {
         const tenant = res.data?.tenant;
         this.currency.set(normalizeCurrency(res.data?.settings?.currency ?? tenant?.currency));
+        this.deliveryFee.set(Math.max(0, Number(res.data?.settings?.deliveryFee ?? 0)));
         const name = tenant?.branding?.name || tenant?.name || '';
         this.brandName.set(name);
         this.logo.set(tenant?.branding?.logo || '');
@@ -28,8 +30,8 @@ export class StoreConfigService {
         const primary = tenant?.branding?.primary || '#071345';
         const accent = tenant?.branding?.accent || '#c9a45c';
         const root = document.documentElement;
-        root.style.setProperty('--zz-navy', primary);
-        root.style.setProperty('--zz-gold', accent);
+        root.style.setProperty('--brand-primary', primary);
+        root.style.setProperty('--brand-accent', accent);
         if (tenant?.branding?.favicon) {
           let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
           if (!link) {

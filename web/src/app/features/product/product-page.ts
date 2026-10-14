@@ -11,6 +11,7 @@ import {
   onSale,
   priceOf,
   Product,
+  ProductVariant,
   productDesc,
   productName,
   Review,
@@ -18,11 +19,12 @@ import {
 } from '../../core/models/models';
 import { PageBar } from '../../shared/page-bar';
 import { Stars } from '../../shared/stars';
+import { AsyncState } from '../../shared/async-state';
 import { ToastService } from '../../core/toast/toast.service';
 
 @Component({
   selector: 'app-product-page',
-  imports: [RouterLink, FormsModule, PageBar, Stars, TranslatePipe],
+  imports: [RouterLink, FormsModule, PageBar, Stars, TranslatePipe, AsyncState],
   templateUrl: './product-page.html',
 })
 export class ProductPage implements OnInit {
@@ -36,6 +38,10 @@ export class ProductPage implements OnInit {
   product = signal<Product | null>(null);
   reviews = signal<ReviewsPayload>({ items: [] });
   gallery = signal(0);
+  loading = signal(true);
+  error = signal<string | null>(null);
+  adding = signal(false);
+  variant = signal<ProductVariant | null>(null);
   qty = 1;
   size = '';
   rating = 5;
@@ -48,18 +54,58 @@ export class ProductPage implements OnInit {
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id') || '';
-      this.api.get<Product>(`/products/${id}`).subscribe({
-        next: (res) => {
-          this.product.set(res.data);
-          const sizes = res.data.sizes ?? [];
-          this.size = sizes[0] ?? '';
-        },
-      });
+      this.load(id);
       this.api.get<ReviewsPayload>('/reviews', { targetType: 'product', targetId: id }).subscribe({
         next: (res) => this.reviews.set(res.data ?? { items: [] }),
         error: () => this.reviews.set({ items: [] }),
       });
     });
+  }
+
+  load(id = this.route.snapshot.paramMap.get('id') || ''): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.gallery.set(0);
+    this.qty = 1;
+    this.api.get<Product>(`/products/${id}`).subscribe({
+      next: (res) => {
+        this.product.set(res.data);
+        this.size = res.data.sizes?.[0] ?? '';
+        const variants = res.data.variants ?? [];
+        this.variant.set(variants.find((v) => (v.stock ?? 0) > 0) ?? variants[0] ?? null);
+        this.loading.set(false);
+      },
+      error: (e: Error) => {
+        this.product.set(null);
+        this.error.set(e.message);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  pickVariant(key: string): void {
+    const p = this.product();
+    this.variant.set(p?.variants?.find((v) => this.variantKey(v) === key) ?? null);
+    this.qty = 1;
+  }
+
+  variantKey(v: ProductVariant): string {
+    return v.name || v.sku || '';
+  }
+
+  /** Effective unit price, honouring the selected variant's price. */
+  unitPrice(p: Product): number {
+    const v = this.variant();
+    return v?.price != null ? v.price : priceOf(p);
+  }
+
+  showsSale(p: Product): boolean {
+    return this.variant()?.price == null && onSale(p);
+  }
+
+  stockOf(p: Product): number {
+    const v = this.variant();
+    return v?.stock != null ? v.stock : (p.stock ?? 0);
   }
 
   name(p: Product): string {
@@ -75,7 +121,7 @@ export class ProductPage implements OnInit {
   }
 
   inStock(p: Product): boolean {
-    return (p.stock ?? 0) > 0;
+    return this.stockOf(p) > 0;
   }
 
   addToCart(): void {
@@ -85,10 +131,21 @@ export class ProductPage implements OnInit {
       this.toast.show(this.i18n.t('pickSize'));
       return;
     }
-    this.cart.add(String(p._id || p.id), this.qty, this.size || undefined).subscribe({
-      next: () => this.toast.show(this.i18n.t('added')),
-      error: (e) => this.toast.show(e.message),
-    });
+    if (this.adding()) return;
+    this.adding.set(true);
+    const v = this.variant();
+    this.cart
+      .add(String(p._id || p.id), this.qty, this.size || undefined, v ? this.variantKey(v) : undefined)
+      .subscribe({
+        next: () => {
+          this.adding.set(false);
+          this.toast.show(this.i18n.t('added'));
+        },
+        error: (e) => {
+          this.adding.set(false);
+          this.toast.show(e.message);
+        },
+      });
   }
 
   submitReview(ev: Event): void {
@@ -117,7 +174,8 @@ export class ProductPage implements OnInit {
   }
 
   incQty(): void {
-    const max = this.product()?.stock ?? 99;
+    const p = this.product();
+    const max = p ? this.stockOf(p) : 99;
     if (this.qty < max) this.qty++;
   }
 }

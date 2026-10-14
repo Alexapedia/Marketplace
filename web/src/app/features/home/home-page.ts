@@ -9,7 +9,6 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { LocPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import {
   Ad,
-  AppPublicConfig,
   Category,
   flattenCategories,
   loc,
@@ -18,12 +17,13 @@ import {
   Review,
 } from '../../core/models/models';
 import { ProductCard } from '../../shared/product-card';
+import { AsyncState } from '../../shared/async-state';
 import { Stars } from '../../shared/stars';
 import { ToastService } from '../../core/toast/toast.service';
 
 @Component({
   selector: 'app-home-page',
-  imports: [RouterLink, FormsModule, TranslatePipe, LocPipe, ProductCard, Stars],
+  imports: [RouterLink, FormsModule, TranslatePipe, LocPipe, ProductCard, Stars, AsyncState],
   templateUrl: './home-page.html',
 })
 export class HomePage implements OnInit {
@@ -39,22 +39,37 @@ export class HomePage implements OnInit {
   highlights = signal<Review[]>([]);
   ads = signal<Ad[]>([]);
   heroAd = signal<Ad | null>(null);
+  loading = signal(true);
+  error = signal<string | null>(null);
   siteRating = 5;
   siteComment = '';
   readonly media = media;
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    const list = <T>(path: string, params?: Record<string, string | number | boolean>) =>
+      this.api.get<T[]>(path, params).pipe(catchError(() => of({ data: [] as T[] })));
     forkJoin({
       cats: this.api.get<Category[]>('/categories'),
-      feat: this.api.get<Product[]>('/products', { featured: true, limit: 8 }),
-      arr: this.api.get<Product[]>('/products', { newArrival: true, limit: 8 }),
-      best: this.api.get<Product[]>('/products', { bestSeller: true, limit: 8 }),
-      cfg: this.api.get<AppPublicConfig>('/app/config'),
+      feat: list<Product>('/products', { featured: true, limit: 8 }),
+      arr: list<Product>('/products', { newArrival: true, limit: 8 }),
+      best: list<Product>('/products', { bestSeller: true, limit: 8 }),
       ads: this.api.get<Ad[]>('/ads', { placement: 'home' }).pipe(catchError(() => of({ data: [] as Ad[] }))),
       revs: this.api
         .get<Review[]>('/reviews/highlights', { limit: 12 })
         .pipe(catchError(() => of({ data: [] as Review[] }))),
-    }).subscribe(({ cats, feat, arr, best, ads, revs }) => {
+    }).subscribe({
+      error: (e: Error) => {
+        this.error.set(e.message);
+        this.loading.set(false);
+      },
+      next: ({ cats, feat, arr, best, ads, revs }) => {
+      this.loading.set(false);
       this.categories.set(cats.data ?? []);
       this.featured.set(feat.data ?? []);
       this.arrivals.set(arr.data ?? []);
@@ -63,6 +78,7 @@ export class HomePage implements OnInit {
       this.ads.set(adList);
       this.heroAd.set(adList.find((a) => a.active !== false) ?? null);
       this.highlights.set(revs.data ?? []);
+      },
     });
   }
 

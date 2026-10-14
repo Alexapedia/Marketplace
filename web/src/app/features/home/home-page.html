@@ -17,7 +17,7 @@
 </section>
 
 <div class="w">
-  @if (ads().length > 1) {
+  @if (ads().length) {
     <div class="ads-row">
       @for (ad of ads(); track ad._id || $index) {
         @if (adRoute(ad).external) {
@@ -43,6 +43,9 @@
     <div>✨ {{ 'trustCustom' | t }}<small>{{ 'trustCustomSub' | t }}</small></div>
   </div>
 
+  <app-async-state [loading]="loading()" [error]="error()" kind="grid" (retry)="load()" />
+
+  @if (flatCats().length) {
   <h2 class="sec">{{ 'categories' | t }}</h2>
   <div class="cats">
     @for (c of flatCats(); track c._id || c.id) {
@@ -56,6 +59,7 @@
       </a>
     }
   </div>
+  }
 
   @if (featured().length) {
     <h2 class="sec">
@@ -99,7 +103,7 @@
       @for (r of highlights(); track r._id || r.id) {
         <article class="quote">
           <div class="qh">
-            <strong>{{ r.userName || 'Customer' }}</strong>
+            <strong>{{ r.userName || ('customer' | t) }}</strong>
             <app-stars [value]="r.rating" />
           </div>
           <p>{{ r.comment || '' }}</p>
@@ -126,6 +130,6 @@
       <b style="font-size: 20px">{{ 'customCtaTitle' | t }}</b>
       <p>{{ 'customCtaBody' | t }}</p>
     </div>
-    <a class="btn" routerLink="/custom">{{ 'getApp' | t }}</a>
+    <a class="btn" [routerLink]="auth.user() ? '/custom/new' : '/login'">{{ 'startCustom' | t }}</a>
   </div>
 </div>

@@ -35,9 +35,13 @@ export class ApiClient {
       .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
   }
 
-  post<T>(path: string, body: unknown = {}): Observable<ApiResult<T>> {
+  post<T>(
+    path: string,
+    body: unknown = {},
+    headers?: Record<string, string>,
+  ): Observable<ApiResult<T>> {
     return this.http
-      .post<ApiEnvelope<T>>(`${this.base}${path}`, body)
+      .post<ApiEnvelope<T>>(`${this.base}${path}`, body, { headers })
       .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
   }
 
