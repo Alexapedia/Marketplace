@@ -278,6 +278,21 @@ table.mat-mdc-table,
 .mat-mdc-header-cell {
   padding: 14px 18px !important;
   border-bottom-color: var(--zz-line) !important;
+  /* Every column: header and its values centered on the same axis. */
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+/* Block / flex content inside cells must center too (thumbnails, chips, link rows). */
+.mat-mdc-cell > img,
+.mat-mdc-cell > .thumb {
+  margin-inline: auto;
+}
+
+.mat-mdc-cell > .langs,
+.mat-mdc-cell .actions,
+.mat-mdc-cell .row-actions {
+  justify-content: center;
 }
 
 .mat-mdc-row:hover {
