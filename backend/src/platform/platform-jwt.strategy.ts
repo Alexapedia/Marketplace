@@ -5,6 +5,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Model } from 'mongoose';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PlatformUser, PlatformUserDocument } from '../schemas/platform-user.schema';
+import { platformJwtSecret } from '../common/utils/secrets';
 
 export type PlatformJwtPayload = {
   sub: string;
@@ -31,10 +32,7 @@ export class PlatformJwtStrategy extends PassportStrategy(Strategy, 'platform-jw
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        config.get<string>('JWT_PLATFORM_SECRET') ||
-        config.get<string>('JWT_SECRET') ||
-        'change-me-in-production',
+      secretOrKey: platformJwtSecret(config),
     });
   }
 

@@ -6,6 +6,7 @@ import { Ad, AdDocument } from '../schemas/ad.schema';
 import { AppConfig, AppConfigDocument } from '../schemas/app-config.schema';
 import { UpsertAdDto } from './dto/ad.dto';
 import { TenantContext } from '../tenant/tenant.context';
+import { searchRegex } from '../common/utils/mongo';
 
 @Injectable()
 export class AdsService implements OnModuleInit {
@@ -56,7 +57,7 @@ export class AdsService implements OnModuleInit {
     if (query?.active === 'true') filter.active = true;
     if (query?.active === 'false') filter.active = false;
     if (query?.search) {
-      const rx = new RegExp(query.search, 'i');
+      const rx = searchRegex(query.search);
       filter.$or = [{ 'title.en': rx }, { 'title.ar': rx }, { link: rx }];
     }
     const [items, total] = await Promise.all([

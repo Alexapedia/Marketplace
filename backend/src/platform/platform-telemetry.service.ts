@@ -7,6 +7,7 @@ import {
   PlatformEventDocument,
 } from '../schemas/platform-event.schema';
 import { TenantContext } from '../tenant/tenant.context';
+import { paginationMeta } from '../common/dto/pagination.dto';
 
 export type TelemetryKind = 'crash' | 'error' | 'issue';
 export type TelemetryChannel = 'website' | 'admin' | 'mobile' | 'holder' | 'api';
@@ -64,18 +65,34 @@ export class PlatformTelemetryService {
     return { recorded: true };
   }
 
-  async list(filter: { status?: string; channel?: string; tenantId?: string }) {
+  async list(filter: {
+    status?: string;
+    channel?: string;
+    tenantId?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const page = filter.page ?? 1;
+    const limit = filter.limit ?? 20;
     const q: Record<string, unknown> = {};
     if (filter.status === 'open' || filter.status === 'resolved') {
       q.status = filter.status;
     }
     if (filter.channel) q.channel = filter.channel;
     if (filter.tenantId) q.tenantId = filter.tenantId;
-    const rows = await this.events.find(q).sort({ lastSeen: -1 }).limit(200).lean();
-    return rows.map((e) => ({
-      ...e,
-      id: String(e._id),
-    }));
+    const [rows, total] = await Promise.all([
+      this.events
+        .find(q)
+        .sort({ lastSeen: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      this.events.countDocuments(q),
+    ]);
+    return {
+      data: rows.map((e) => ({ ...e, id: String(e._id) })),
+      meta: paginationMeta(total, page, limit),
+    };
   }
 
   async resolve(id: string) {

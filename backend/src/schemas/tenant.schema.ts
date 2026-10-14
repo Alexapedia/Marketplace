@@ -11,7 +11,7 @@ export class TenantDomain {
   @Prop({ required: true, lowercase: true, trim: true })
   host: string;
 
-  @Prop({ required: true, enum: ['website', 'admin'] })
+  @Prop({ type: String, required: true, enum: ['website', 'admin'] })
   channel: TenantDomainChannel;
 }
 
@@ -59,7 +59,7 @@ export class Tenant {
   @Prop({ required: true, trim: true })
   name: string;
 
-  @Prop({ enum: ['active', 'suspended'], default: 'active' })
+  @Prop({ type: String, enum: ['active', 'suspended'], default: 'active' })
   status: TenantStatus;
 
   @Prop({ type: [TenantDomain], default: [] })

@@ -26,7 +26,7 @@ export class Ad {
   @Prop({ type: Types.ObjectId, ref: 'Category', default: null })
   categoryId?: Types.ObjectId | null;
 
-  @Prop({ enum: AD_PLACEMENTS, default: 'home' })
+  @Prop({ type: String, enum: AD_PLACEMENTS, default: 'home' })
   placement: AdPlacement;
 
   @Prop({ default: true })

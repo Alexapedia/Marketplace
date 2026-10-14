@@ -15,6 +15,7 @@ import {
 import { TotpService } from '../tenant/totp.service';
 import { LoginDto } from '../auth/dto/login.dto';
 import { PlatformJwtPayload } from './platform-jwt.strategy';
+import { platformJwtSecret } from '../common/utils/secrets';
 
 @Injectable()
 export class PlatformAuthService {
@@ -27,11 +28,7 @@ export class PlatformAuthService {
   ) {}
 
   private secret() {
-    return (
-      this.config.get<string>('JWT_PLATFORM_SECRET') ||
-      this.config.get<string>('JWT_SECRET') ||
-      'change-me-in-production'
-    );
+    return platformJwtSecret(this.config);
   }
 
   private sign(user: PlatformUserDocument) {

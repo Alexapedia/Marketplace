@@ -9,6 +9,7 @@ import { Model } from 'mongoose';
 import { STAFF_ROLES } from '../common/constants';
 import { paginationMeta } from '../common/dto/pagination.dto';
 import { AuditLog, AuditLogDocument } from '../schemas/audit-log.schema';
+import { searchRegex } from '../common/utils/mongo';
 import {
   Conversation,
   ConversationDocument,
@@ -607,7 +608,7 @@ export class AdminService {
       filter.status = status;
     }
     if (search) {
-      const rx = new RegExp(search, 'i');
+      const rx = searchRegex(search);
       filter.$or = [{ name: rx }, { email: rx }, { phone: rx }];
     }
     const [items, total] = await Promise.all([
@@ -668,7 +669,7 @@ export class AdminService {
       filter.role = role;
     }
     if (search) {
-      const rx = new RegExp(search, 'i');
+      const rx = searchRegex(search);
       filter.$or = [{ name: rx }, { email: rx }, { phone: rx }];
     }
     const [items, total] = await Promise.all([
@@ -730,7 +731,7 @@ export class AdminService {
   async auditLogs(page: number, limit: number, search?: string) {
     const filter: Record<string, unknown> = {};
     if (search) {
-      const rx = new RegExp(search, 'i');
+      const rx = searchRegex(search);
       filter.$or = [{ action: rx }, { entity: rx }, { ip: rx }];
     }
     const [items, total] = await Promise.all([

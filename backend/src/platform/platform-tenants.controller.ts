@@ -26,6 +26,7 @@ import type { Request } from 'express';
 import { PlatformJwtGuard } from './platform-jwt.guard';
 import type { PlatformAuthUser } from './platform-jwt.strategy';
 import { PlatformTenantsService } from './platform-tenants.service';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 class DomainDto {
   @IsString()
@@ -168,7 +169,7 @@ export class PlatformTenantsController {
   }
 
   @Get('audit')
-  audit(@Query('tenantId') tenantId?: string) {
-    return this.tenants.audits(tenantId);
+  audit(@Query() page: PaginationDto, @Query('tenantId') tenantId?: string) {
+    return this.tenants.audits(tenantId, page.page, page.limit);
   }
 }

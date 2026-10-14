@@ -8,7 +8,7 @@ export class PlatformEvent {
   @Prop({ required: true, index: true, unique: true })
   fingerprint: string;
 
-  @Prop({ required: true, enum: ['crash', 'error', 'issue'], index: true })
+  @Prop({ type: String, required: true, enum: ['crash', 'error', 'issue'], index: true })
   kind: 'crash' | 'error' | 'issue';
 
   @Prop({
@@ -45,7 +45,7 @@ export class PlatformEvent {
   @Prop({ default: Date.now, index: true })
   lastSeen: Date;
 
-  @Prop({ enum: ['open', 'resolved'], default: 'open', index: true })
+  @Prop({ type: String, enum: ['open', 'resolved'], default: 'open', index: true })
   status: 'open' | 'resolved';
 }
 

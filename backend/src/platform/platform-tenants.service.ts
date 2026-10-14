@@ -17,6 +17,7 @@ import { TenantContext } from '../tenant/tenant.context';
 import { AppChannel } from '../tenant/tenant.context';
 import { TenantService } from '../tenant/tenant.service';
 import { PlatformInsightsService } from './platform-insights.service';
+import { paginationMeta } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class PlatformTenantsService {
@@ -181,9 +182,26 @@ export class PlatformTenantsService {
     return this.tenants.publicView(doc);
   }
 
-  async audits(tenantId?: string) {
+  async audits(tenantId?: string, page = 1, limit = 20) {
     const filter = tenantId ? { tenantId } : {};
-    return this.auditModel.find(filter).sort({ createdAt: -1 }).limit(100).lean();
+    const [rows, total, tenants] = await Promise.all([
+      this.auditModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      this.auditModel.countDocuments(filter),
+      this.tenantModel.find().select('name slug').lean(),
+    ]);
+    const names = new Map(tenants.map((t) => [String(t._id), t.name]));
+    return {
+      data: rows.map((r) => ({
+        ...r,
+        tenantName: r.tenantId ? names.get(String(r.tenantId)) : undefined,
+      })),
+      meta: paginationMeta(total, page, limit),
+    };
   }
 
   async resetStaff2fa(actorId: string, ip: string | undefined, tenantId: string, userId: string) {

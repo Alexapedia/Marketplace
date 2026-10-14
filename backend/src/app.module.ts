@@ -24,6 +24,7 @@ import { FavoritesModule } from './favorites/favorites.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { HealthController } from './health/health.controller';
 import { HomeModule } from './home/home.module';
+import { MailModule } from './mail/mail.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
@@ -48,6 +49,7 @@ import { UploadsModule } from './uploads/uploads.module';
     TenantModule,
     DatabaseModule,
     FirebaseModule,
+    MailModule,
     AuditModule,
     AuthModule,
     CatalogModule,

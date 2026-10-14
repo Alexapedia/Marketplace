@@ -12,7 +12,7 @@ import { ChatRealtimeService } from '../chat/chat-realtime.service';
 import { CUSTOM_ORDER_STATUSES } from '../common/constants';
 import { paginationMeta } from '../common/dto/pagination.dto';
 import { AuthUser } from '../common/types/auth-user';
-import { toObjectId } from '../common/utils/mongo';
+import { searchRegex, toObjectId } from '../common/utils/mongo';
 import { NotificationsService } from '../notifications/notifications.service';
 import { OrdersService } from '../orders/orders.service';
 import {
@@ -355,6 +355,7 @@ export class CustomOrdersService {
 
   async listAdmin(query: {
     status?: string;
+    search?: string;
     page?: number;
     limit?: number;
   }) {
@@ -363,6 +364,19 @@ export class CustomOrdersService {
     const filter: Record<string, unknown> = {};
     if (query.status) {
       filter.status = query.status;
+    }
+    if (query.search?.trim()) {
+      const rx = searchRegex(query.search);
+      const users = await this.userModel
+        .find({ $or: [{ name: rx }, { email: rx }, { phone: rx }] })
+        .select('_id')
+        .limit(200)
+        .lean();
+      filter.$or = [
+        { description: rx },
+        { 'proposals.productName': rx },
+        { userId: { $in: users.map((u) => u._id) } },
+      ];
     }
     const [items, total] = await Promise.all([
       this.customModel

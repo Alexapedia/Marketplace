@@ -22,7 +22,9 @@ import {
 import { Role, RoleDocument } from '../schemas/role.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { MailService } from '../mail/mail.service';
 import { TenantContext } from '../tenant/tenant.context';
+import { TenantService } from '../tenant/tenant.service';
 import { TotpService } from '../tenant/totp.service';
 import { FirebaseAuthDto } from './dto/firebase-auth.dto';
 import { LoginDto } from './dto/login.dto';
@@ -42,6 +44,8 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly firebaseAdmin: FirebaseAdminService,
     private readonly totp: TotpService,
+    private readonly mail: MailService,
+    private readonly tenants: TenantService,
   ) {}
 
   private staffType(role: string): 'customer' | 'staff' {
@@ -64,6 +68,49 @@ export class AuthService {
       aud: 'tenant',
     };
     return this.jwt.sign(payload);
+  }
+
+  private hashToken(token: string) {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private refreshTtlMs() {
+    const days = Number(this.config.get<string>('REFRESH_TOKEN_DAYS') || 30);
+    return days * 24 * 60 * 60 * 1000;
+  }
+
+  /** Issues a rotating refresh token (`<userId>.<random>`), keeping the newest 10 per user. */
+  private async issueRefreshToken(user: UserDocument) {
+    const token = `${String(user._id)}.${randomBytes(32).toString('hex')}`;
+    await this.userModel.updateOne(
+      { _id: user._id },
+      { $pull: { refreshTokens: { expiresAt: { $lt: new Date() } } } },
+    );
+    await this.userModel.updateOne(
+      { _id: user._id },
+      {
+        $push: {
+          refreshTokens: {
+            $each: [
+              {
+                hash: this.hashToken(token),
+                expiresAt: new Date(Date.now() + this.refreshTtlMs()),
+              },
+            ],
+            $slice: -10,
+          },
+        },
+      },
+    );
+    return token;
+  }
+
+  private async session(user: UserDocument) {
+    return {
+      user: await this.present(user),
+      accessToken: this.sign(user),
+      refreshToken: await this.issueRefreshToken(user),
+    };
   }
 
   private challengeToken(user: UserDocument, purpose: 'verify' | 'setup') {
@@ -138,7 +185,7 @@ export class AuthService {
       role: 'customer',
       status: 'active',
     });
-    return { user: await this.present(user), accessToken: this.sign(user) };
+    return this.session(user);
   }
 
   async login(dto: LoginDto) {
@@ -174,7 +221,7 @@ export class AuthService {
       }
       return this.beginStaffSetup(user);
     }
-    return { user: await this.present(user), accessToken: this.sign(user) };
+    return this.session(user);
   }
 
   async verifyStaff2fa(challengeToken: string, code: string) {
@@ -194,7 +241,7 @@ export class AuthService {
     user.failedLoginCount = 0;
     user.lockUntil = undefined;
     await user.save();
-    return { user: await this.present(user), accessToken: this.sign(user) };
+    return this.session(user);
   }
 
   async setupStaff2fa(challengeToken: string, code: string) {
@@ -208,11 +255,7 @@ export class AuthService {
     user.failedLoginCount = 0;
     user.lockUntil = undefined;
     await user.save();
-    return {
-      user: await this.present(user),
-      accessToken: this.sign(user),
-      backupCodes: backup,
-    };
+    return { ...(await this.session(user)), backupCodes: backup };
   }
 
   async firebase(dto: FirebaseAuthDto) {
@@ -258,7 +301,7 @@ export class AuthService {
       throw new ForbiddenException('Account deleted');
     }
 
-    return { user: await this.present(user), accessToken: this.sign(user) };
+    return this.session(user);
   }
 
   async me(userId: string) {
@@ -313,6 +356,37 @@ export class AuthService {
     return { deleted: true };
   }
 
+  async refresh(refreshToken: string) {
+    const userId = refreshToken.split('.')[0];
+    if (!/^[a-f0-9]{24}$/.test(userId)) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    const hash = this.hashToken(refreshToken);
+    // Atomically consume the token so a replayed token cannot be used twice.
+    const user = await this.userModel.findOneAndUpdate(
+      {
+        _id: userId,
+        refreshTokens: { $elemMatch: { hash, expiresAt: { $gt: new Date() } } },
+      },
+      { $pull: { refreshTokens: { hash } } },
+      { new: true },
+    );
+    if (!user || user.status !== 'active') {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    return this.session(user);
+  }
+
+  async logout(userId: string, refreshToken?: string) {
+    if (refreshToken) {
+      await this.userModel.updateOne(
+        { _id: userId },
+        { $pull: { refreshTokens: { hash: this.hashToken(refreshToken) } } },
+      );
+    }
+    return { message: 'Logged out' };
+  }
+
   async forgotPassword(email: string) {
     const user = await this.userModel.findOne({ email: email.toLowerCase() });
     const generic = {
@@ -331,6 +405,8 @@ export class AuthService {
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
     });
 
+    await this.sendResetEmail(user, token);
+
     const isDev = this.config.get<string>('NODE_ENV') !== 'production';
     return isDev ? { ...generic, resetToken: token } : generic;
   }
@@ -342,9 +418,52 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired token');
     }
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    await this.userModel.findByIdAndUpdate(record.userId, { passwordHash });
+    await this.userModel.findByIdAndUpdate(record.userId, {
+      passwordHash,
+      refreshTokens: [],
+    });
     await this.resetModel.deleteMany({ userId: record.userId });
     return { message: 'Password updated' };
+  }
+
+  private async sendResetEmail(user: UserDocument, token: string) {
+    const tenant = await this.tenants.findById(this.tenantIdOf(user));
+    const storeName = tenant?.branding?.name || tenant?.name || 'Store';
+    const host = tenant?.domains?.find((d) => d.channel === 'website')?.host;
+    const base =
+      this.config.get<string>('WEB_URL') ||
+      (host
+        ? `${/^(localhost|127\.0\.0\.1)(:|$)/.test(host) ? 'http' : 'https'}://${host}`
+        : undefined);
+    const link = base
+      ? `${base.replace(/\/$/, '')}/reset?token=${encodeURIComponent(token)}`
+      : undefined;
+    const ar = user.language === 'ar';
+    const lines = ar
+      ? [
+          `مرحباً ${user.name}،`,
+          `تلقينا طلباً لإعادة تعيين كلمة المرور لحسابك في ${storeName}.`,
+          ...(link ? [`لإعادة التعيين افتح الرابط: ${link}`] : []),
+          `أو أدخل هذا الرمز في التطبيق: ${token}`,
+          'تنتهي صلاحية الرمز خلال ساعة. إذا لم تطلب ذلك فتجاهل هذه الرسالة.',
+        ]
+      : [
+          `Hi ${user.name},`,
+          `We received a request to reset your ${storeName} password.`,
+          ...(link ? [`Reset it here: ${link}`] : []),
+          `Or enter this code in the app: ${token}`,
+          'The code expires in 1 hour. If you did not request this, ignore this email.',
+        ];
+    await this.mail.send(
+      {
+        to: user.email,
+        subject: ar
+          ? `إعادة تعيين كلمة المرور - ${storeName}`
+          : `Reset your ${storeName} password`,
+        text: lines.join('\n\n'),
+      },
+      storeName,
+    );
   }
 
   private async beginStaffSetup(user: UserDocument) {

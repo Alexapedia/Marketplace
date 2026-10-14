@@ -51,6 +51,13 @@ export class User {
   @Prop({ type: [String], default: [], select: false })
   backupCodeHashes: string[];
 
+  @Prop({
+    type: [{ _id: false, hash: String, expiresAt: Date }],
+    default: [],
+    select: false,
+  })
+  refreshTokens: { hash: string; expiresAt: Date }[];
+
   @Prop({ default: 0 })
   failedLoginCount: number;
 
@@ -71,6 +78,7 @@ UserSchema.set('toJSON', {
     delete (ret as { passwordHash?: string }).passwordHash;
     delete (ret as { totpSecret?: string }).totpSecret;
     delete (ret as { backupCodeHashes?: string[] }).backupCodeHashes;
+    delete (ret as { refreshTokens?: unknown }).refreshTokens;
     return ret;
   },
 });

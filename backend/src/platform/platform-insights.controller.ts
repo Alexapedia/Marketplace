@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PlatformJwtGuard } from './platform-jwt.guard';
 import { PlatformInsightsService } from './platform-insights.service';
 import { PlatformTelemetryService } from './platform-telemetry.service';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @ApiTags('platform')
 @ApiBearerAuth()
@@ -21,11 +22,18 @@ export class PlatformInsightsController {
 
   @Get('issues')
   issues(
+    @Query() page: PaginationDto,
     @Query('status') status?: string,
     @Query('channel') channel?: string,
     @Query('tenantId') tenantId?: string,
   ) {
-    return this.telemetry.list({ status, channel, tenantId });
+    return this.telemetry.list({
+      status,
+      channel,
+      tenantId,
+      page: page.page,
+      limit: page.limit,
+    });
   }
 
   @Patch('issues/:id')

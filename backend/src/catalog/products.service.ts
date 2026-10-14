@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { paginationMeta } from '../common/dto/pagination.dto';
-import { toObjectId } from '../common/utils/mongo';
+import { toObjectId, searchRegex } from '../common/utils/mongo';
 import { Product, ProductDocument } from '../schemas/product.schema';
 import { CreateProductDto, UpdateProductDto } from './dto/catalog.dto';
 
@@ -17,6 +17,8 @@ export interface ProductQuery {
   page?: number;
   limit?: number;
   sort?: string;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 @Injectable()
@@ -36,7 +38,7 @@ export class ProductsService {
 
   private async list(query: ProductQuery, publicOnly: boolean) {
     const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 20;
+    const limit = Math.min(Number(query.limit) || 20, 100);
     const filter: Record<string, unknown> = {};
 
     if (publicOnly) {
@@ -61,8 +63,22 @@ export class ProductsService {
       filter['flags.bestSeller'] = true;
     }
     if (query.search) {
-      const rx = new RegExp(query.search, 'i');
+      const rx = searchRegex(query.search);
       filter.$or = [{ 'names.en': rx }, { 'names.ar': rx }];
+    }
+
+    const minPrice = Number(query.minPrice);
+    const maxPrice = Number(query.maxPrice);
+    if (Number.isFinite(minPrice) || Number.isFinite(maxPrice)) {
+      const effective = {
+        $cond: [{ $gt: [{ $ifNull: ['$salePrice', 0] }, 0] }, '$salePrice', '$price'],
+      };
+      filter.$expr = {
+        $and: [
+          ...(Number.isFinite(minPrice) ? [{ $gte: [effective, minPrice] }] : []),
+          ...(Number.isFinite(maxPrice) ? [{ $lte: [effective, maxPrice] }] : []),
+        ],
+      };
     }
 
     const sort = this.parseSort(query.sort);
@@ -217,7 +233,7 @@ export class ProductsService {
     }
     const dir = sort.startsWith('-') ? -1 : 1;
     const field = sort.replace(/^-/, '');
-    const allowed = ['price', 'createdAt', 'sortOrder', 'stock', 'salePrice'];
+    const allowed = ['price', 'createdAt', 'sortOrder', 'stock', 'salePrice', 'ratingAvg'];
     if (!allowed.includes(field)) {
       return { sortOrder: 1, createdAt: -1 } as const;
     }

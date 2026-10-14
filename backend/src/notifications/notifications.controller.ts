@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Patch, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PaginationDto, paginationMeta } from '../common/dto/pagination.dto';
@@ -29,9 +29,20 @@ export class NotificationsController {
     return { count: await this.notifications.unreadCount(user.userId) };
   }
 
+  @Patch('read-all')
+  markAllRead(@CurrentUser() user: AuthUser) {
+    return this.notifications.markAllRead(user.userId);
+  }
+
   @Patch(':id/read')
   async markRead(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     toObjectId(id);
     return this.notifications.markRead(user.userId, id);
+  }
+
+  @Delete(':id')
+  remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    toObjectId(id);
+    return this.notifications.removeMine(user.userId, id);
   }
 }

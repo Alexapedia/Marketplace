@@ -10,6 +10,7 @@ import { PlatformJwtStrategy } from './platform-jwt.strategy';
 import { PlatformTelemetryController } from './platform-telemetry.controller';
 import { PlatformTenantsController } from './platform-tenants.controller';
 import { PlatformTenantsService } from './platform-tenants.service';
+import { platformJwtSecret } from '../common/utils/secrets';
 
 @Module({
   imports: [
@@ -17,10 +18,7 @@ import { PlatformTenantsService } from './platform-tenants.service';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret:
-          config.get<string>('JWT_PLATFORM_SECRET') ||
-          config.get<string>('JWT_SECRET') ||
-          'change-me-in-production',
+        secret: platformJwtSecret(config),
         signOptions: { expiresIn: '8h' },
       }),
     }),

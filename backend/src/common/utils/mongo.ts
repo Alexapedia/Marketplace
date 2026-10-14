@@ -14,3 +14,8 @@ export function generateOrderNumber(): string {
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `PM-${ymd}-${rand}`;
 }
+
+/** Case-insensitive regex for user-supplied search text (special chars escaped). */
+export function searchRegex(text: string): RegExp {
+  return new RegExp(text.trim().slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+}

@@ -227,6 +227,12 @@ export class AdminController {
     return this.customOrders.updateAdmin(id, dto);
   }
 
+  @Get('custom-orders/:id/messages')
+  @Permissions('chats.read')
+  customMessages(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.customOrders.listMessages(user, id);
+  }
+
   @Post('custom-orders/:id/proposals')
   @Permissions('custom-orders.write')
   sendProposal(

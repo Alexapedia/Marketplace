@@ -9,6 +9,7 @@ import { AuthUser } from '../common/types/auth-user';
 import { Role, RoleDocument } from '../schemas/role.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { TenantContext } from '../tenant/tenant.context';
+import { tenantJwtSecret } from '../common/utils/secrets';
 
 export interface JwtPayload {
   sub: string;
@@ -30,7 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get<string>('JWT_SECRET') || 'change-me-in-production',
+      secretOrKey: tenantJwtSecret(config),
     });
   }
 

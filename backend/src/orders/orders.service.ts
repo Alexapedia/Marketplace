@@ -13,7 +13,7 @@ import { CartService } from '../cart/cart.service';
 import { ProductsService } from '../catalog/products.service';
 import { ORDER_STATUSES } from '../common/constants';
 import { paginationMeta } from '../common/dto/pagination.dto';
-import { generateOrderNumber, toObjectId } from '../common/utils/mongo';
+import { generateOrderNumber, toObjectId, searchRegex } from '../common/utils/mongo';
 import { NotificationsService } from '../notifications/notifications.service';
 import { Order, OrderDocument, OrderItem } from '../schemas/order.schema';
 import { Product, ProductDocument } from '../schemas/product.schema';
@@ -323,8 +323,8 @@ export class OrdersService implements OnModuleInit {
     }
     if (query.search) {
       filter.$or = [
-        { orderNumber: new RegExp(query.search, 'i') },
-        { 'address.fullName': new RegExp(query.search, 'i') },
+        { orderNumber: searchRegex(query.search) },
+        { 'address.fullName': searchRegex(query.search) },
       ];
     }
     const [items, total] = await Promise.all([

@@ -2,7 +2,6 @@ import {
   Injectable,
   NestMiddleware,
   NotFoundException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { TenantContext } from './tenant.context';
@@ -96,10 +95,10 @@ export class TenantMiddleware implements NestMiddleware {
         return;
       }
       const { tenant, channel } = resolved;
+      // Always-open paths stay reachable for suspended/disabled stores so
+      // clients can read the tenant status and show the right screen.
       if (!isAlwaysOpen(path)) {
         this.tenants.assertChannel(tenant, channel);
-      } else if (tenant.status === 'suspended' && !isAlwaysOpen(path)) {
-        throw new ServiceUnavailableException('This store is suspended');
       }
       TenantContext.run(
         {

@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 import { FirebaseAuthDto } from './dto/firebase-auth.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
+import { LogoutDto, RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
@@ -41,6 +42,12 @@ export class AuthController {
   @Post('2fa/setup')
   setup2fa(@Body() dto: Verify2faDto) {
     return this.auth.setupStaff2fa(dto.challengeToken, dto.code);
+  }
+
+  @Public()
+  @Post('refresh')
+  refresh(@Body() dto: RefreshTokenDto) {
+    return this.auth.refresh(dto.refreshToken);
   }
 
   @Public()
@@ -81,7 +88,7 @@ export class AuthController {
 
   @ApiBearerAuth()
   @Post('logout')
-  logout() {
-    return { message: 'Logged out' };
+  logout(@CurrentUser() user: AuthUser, @Body() dto: LogoutDto) {
+    return this.auth.logout(user.userId, dto.refreshToken);
   }
 }

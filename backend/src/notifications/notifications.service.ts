@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
@@ -91,6 +91,28 @@ export class NotificationsService {
       { readAt: new Date() },
       { new: true },
     );
+  }
+
+  async markAllRead(userId: string) {
+    const res = await this.notificationModel.updateMany(
+      {
+        userId: new Types.ObjectId(userId),
+        $or: [{ readAt: { $exists: false } }, { readAt: null }],
+      },
+      { readAt: new Date() },
+    );
+    return { updated: res.modifiedCount };
+  }
+
+  async removeMine(userId: string, id: string) {
+    const res = await this.notificationModel.deleteOne({
+      _id: id,
+      userId: new Types.ObjectId(userId),
+    });
+    if (!res.deletedCount) {
+      throw new NotFoundException('Notification not found');
+    }
+    return { deleted: true };
   }
 
   async unreadCount(userId: string) {

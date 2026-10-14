@@ -11,7 +11,7 @@ export class Review {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true, enum: REVIEW_TARGETS, index: true })
+  @Prop({ type: String, required: true, enum: REVIEW_TARGETS, index: true })
   targetType: ReviewTarget;
 
   @Prop({ type: Types.ObjectId, index: true })

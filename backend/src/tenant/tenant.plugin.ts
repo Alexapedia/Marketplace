@@ -72,18 +72,22 @@ export function applyTenantPlugin(schema: Schema): Schema {
     }
   });
 
-  (schema as Schema & { pre: (e: string, fn: (...args: never[]) => void) => void }).pre(
+  // Mongoose 9 calls insertMany pre-hooks with (docs, options); older versions
+  // passed (next, docs). Locate the docs array either way.
+  (schema as Schema & { pre: (e: string, fn: (...args: unknown[]) => void) => void }).pre(
     'insertMany',
-    function (next: (err?: Error) => void, docs: Array<Record<string, unknown>>) {
+    function (...args: unknown[]) {
+      const docs = args.find(Array.isArray) as Array<Record<string, unknown>> | undefined;
       const tenantId = TenantContext.isPlatform() ? undefined : TenantContext.tenantId();
-      if (tenantId) {
+      if (tenantId && docs) {
         for (const doc of docs) {
-          if (!doc['tenantId']) {
+          if (doc && !doc['tenantId']) {
             doc['tenantId'] = tenantId;
           }
         }
       }
-      next();
+      const next = args.find((a) => typeof a === 'function') as (() => void) | undefined;
+      next?.();
     },
   );
 
