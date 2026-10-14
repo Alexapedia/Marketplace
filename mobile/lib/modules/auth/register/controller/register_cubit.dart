@@ -61,6 +61,13 @@ class RegisterCubit extends Cubit<RegisterState> {
             data: token,
             keyType: LocalEnumKey.accessToken,
           );
+          final refresh = extractRefreshToken(r.response);
+          if (refresh.isNotEmpty) {
+            await sl.get<HandleMultiCallLocal>().saveLocalData(
+              data: refresh,
+              keyType: LocalEnumKey.refreshToken,
+            );
+          }
           await PreferenceUtils.setString(StorageKey.userFullName, user.name);
           await sl.get<AppControllerCubit>().exitGuestMode();
         }

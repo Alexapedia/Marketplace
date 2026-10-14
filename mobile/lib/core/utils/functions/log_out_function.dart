@@ -19,8 +19,14 @@ Future<void> logOut({String? msg, bool isUseLogoutApi = true}) async {
     keyType: LocalEnumKey.accessToken,
   );
   if (token != null && isUseLogoutApi) {
+    final refresh = await sl.get<HandleMultiCallLocal>().getLocalData(
+      keyType: LocalEnumKey.refreshToken,
+    );
     try {
-      await sl.get<ApiConsumer>().post(EndPoints.logout, body: {});
+      await sl.get<ApiConsumer>().post(
+        EndPoints.logout,
+        body: {if (refresh != null && refresh.isNotEmpty) 'refreshToken': refresh},
+      );
     } catch (_) {}
   }
   if (msg != null) AppToast(msg, isError: true);

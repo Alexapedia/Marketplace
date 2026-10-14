@@ -7,6 +7,7 @@ import '../../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/infinite_scroll.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../controller/custom_orders_list_cubit.dart';
@@ -52,11 +53,19 @@ class CustomOrdersListBody extends StatelessWidget {
             ),
           );
         }
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-          itemCount: state.items.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 10),
-          itemBuilder: (context, i) => CustomOrderTile(order: state.items[i]),
+        final cubit = context.read<CustomOrdersListCubit>();
+        return InfiniteScroll(
+          onRefresh: cubit.refresh,
+          onLoadMore: cubit.loadMore,
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+            itemCount: state.items.length + (state.loadingMore ? 1 : 0),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            itemBuilder: (context, i) => i >= state.items.length
+                ? const LoadMoreFooter()
+                : CustomOrderTile(order: state.items[i]),
+          ),
         );
       },
     );

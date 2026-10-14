@@ -8,6 +8,7 @@ class ProductDetailsState extends Equatable {
     this.error = '',
     this.quantity = 1,
     this.selectedSize,
+    this.selectedVariant,
     this.reviews = const ReviewsPayload(),
   });
   final RequestStatus status;
@@ -16,9 +17,10 @@ class ProductDetailsState extends Equatable {
   final String error;
   final int quantity;
   final String? selectedSize;
+  final String? selectedVariant;
   final ReviewsPayload reviews;
   @override
-  List<Object?> get props => [status, productId, product, error, quantity, selectedSize, reviews];
+  List<Object?> get props => [status, productId, product, error, quantity, selectedSize, selectedVariant, reviews];
   ProductDetailsState copyWith({
     RequestStatus? status,
     String? productId,
@@ -26,6 +28,7 @@ class ProductDetailsState extends Equatable {
     String? error,
     int? quantity,
     String? selectedSize,
+    String? selectedVariant,
     ReviewsPayload? reviews,
   }) =>
       ProductDetailsState(
@@ -35,6 +38,7 @@ class ProductDetailsState extends Equatable {
         error: error ?? this.error,
         quantity: quantity ?? this.quantity,
         selectedSize: selectedSize ?? this.selectedSize,
+        selectedVariant: selectedVariant ?? this.selectedVariant,
         reviews: reviews ?? this.reviews,
       );
 }

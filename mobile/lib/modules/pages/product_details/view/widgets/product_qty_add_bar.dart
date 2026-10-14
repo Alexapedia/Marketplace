@@ -19,6 +19,7 @@ class ProductQtyAddBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inStock = product.stockFor(state.selectedVariant) > 0;
     return SafeArea(
       top: false,
       child: Padding(
@@ -54,15 +55,16 @@ class ProductQtyAddBar extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: AppButton(
-                onTap: product.inStock
+                onTap: inStock
                     ? () => AppControllerCubit.get(context).addToCart(
                           context,
                           productId: product.id,
+                          variant: state.selectedVariant,
                           size: state.selectedSize,
                           quantity: state.quantity,
                         )
                     : null,
-                title: product.inStock
+                title: inStock
                     ? 'add_to_cart'.tr()
                     : 'out_of_stock'.tr(),
               ),

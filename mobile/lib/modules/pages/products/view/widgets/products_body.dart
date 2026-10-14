@@ -7,10 +7,13 @@ import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../controller/products_cubit.dart';
+import 'products_filter_sheet.dart';
 import 'products_grid_with_ads.dart';
 
 class ProductsBody extends StatelessWidget {
-  const ProductsBody({super.key});
+  const ProductsBody({super.key, this.autofocus = false});
+
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -19,15 +22,35 @@ class ProductsBody extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: TextField(
-            controller: cubit.searchController,
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: 'search_hint'.tr(),
-              prefixIcon: const Icon(Icons.search),
-            ),
-            onChanged: cubit.onSearchChanged,
-            onSubmitted: (v) => cubit.load(search: v),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: cubit.searchController,
+                  autofocus: autofocus,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: 'search_hint'.tr(),
+                    prefixIcon: const Icon(Icons.search),
+                  ),
+                  onChanged: cubit.onSearchChanged,
+                  onSubmitted: (v) => cubit.load(search: v),
+                ),
+              ),
+              const SizedBox(width: 8),
+              BlocBuilder<ProductsCubit, ProductsState>(
+                buildWhen: (a, b) => a.hasFilters != b.hasFilters,
+                builder: (context, state) => IconButton.filledTonal(
+                  tooltip: 'filters'.tr(),
+                  onPressed: () => showProductsFilterSheet(context, cubit),
+                  icon: Badge(
+                    isLabelVisible: state.hasFilters,
+                    smallSize: 8,
+                    child: const Icon(Icons.tune),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -43,7 +66,7 @@ class ProductsBody extends StatelessWidget {
               final items = loading
                   ? List.generate(
                       6,
-                      (_) => const ProductModel(name: 'Product', price: 99),
+                      (_) => const ProductModel(name: 'Loading product', price: 99),
                     )
                   : state.items;
               if (!loading && items.isEmpty) {
@@ -52,11 +75,23 @@ class ProductsBody extends StatelessWidget {
                   icon: Icons.inventory_2_outlined,
                 );
               }
-              return Skeletonizer(
-                enabled: loading,
-                child: ProductsGridWithAds(
-                  products: items,
-                  ads: loading ? const [] : state.ads,
+              return RefreshIndicator(
+                onRefresh: () => cubit.load(),
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (n) {
+                    if (n.metrics.pixels >= n.metrics.maxScrollExtent - 400) {
+                      cubit.loadMore();
+                    }
+                    return false;
+                  },
+                  child: Skeletonizer(
+                    enabled: loading,
+                    child: ProductsGridWithAds(
+                      products: items,
+                      ads: loading ? const [] : state.ads,
+                      loadingMore: state.loadingMore,
+                    ),
+                  ),
                 ),
               );
             },

@@ -114,7 +114,7 @@ final GoRouter appRouter = GoRouter(
       );
     }),
     getRouteInstance(AppRouterKeys.search, (state) {
-      return const ProductsScreen();
+      return const ProductsScreen(autofocus: true);
     }),
     getRouteInstance(AppRouterKeys.notificationScreen, (_) => const NotificationScreen()),
     getRouteInstance(AppRouterKeys.cart, (_) => const CartScreen()),

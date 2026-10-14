@@ -7,6 +7,7 @@ import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/app_text_field.dart';
 import '../../../../../core/components/circle_back_button.dart';
 import '../../../../../core/components/gold_stepper.dart';
+import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/components/loading_item.dart';
 import '../../../../../core/models/color_model.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
@@ -46,6 +47,9 @@ class CustomOrderBody extends StatelessWidget {
           builder: (context, state) {
             if (state.status == RequestStatus.loading) {
               return const LoadingItem();
+            }
+            if (state.status == RequestStatus.failed) {
+              return FailedShape(msg: state.error, onTapRefresh: cubit.loadCategories);
             }
             return AdaptivePage(
               child: ListView(

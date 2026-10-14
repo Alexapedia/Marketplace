@@ -15,4 +15,6 @@ class StorageKey {
   static const String onboardingSeen = 'onboarding_seen';
   static const String fcmToken = 'fcm_token';
   static const String analyticsSession = 'analytics_session';
+  static const String brandPrimary = 'brand_primary';
+  static const String brandAccent = 'brand_accent';
 }

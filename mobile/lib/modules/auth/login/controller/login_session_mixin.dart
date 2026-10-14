@@ -8,6 +8,13 @@ mixin LoginSessionMixin on Cubit<LoginState> {
       data: token,
       keyType: LocalEnumKey.accessToken,
     );
+    final refresh = extractRefreshToken(json);
+    if (refresh.isNotEmpty) {
+      await sl.get<HandleMultiCallLocal>().saveLocalData(
+        data: refresh,
+        keyType: LocalEnumKey.refreshToken,
+      );
+    }
     if (user.id.isNotEmpty) {
       await sl.get<HandleMultiCallLocal>().saveLocalData(
         data: user.id,

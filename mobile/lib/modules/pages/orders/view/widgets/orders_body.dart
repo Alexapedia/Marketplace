@@ -6,6 +6,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import '../../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/infinite_scroll.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../controller/orders_cubit.dart';
@@ -38,23 +39,41 @@ class OrdersBody extends StatelessWidget {
           );
         }
         final loading = state.status != RequestStatus.loaded;
+        final cubit = context.read<OrdersCubit>();
         if (!loading && state.items.isEmpty) {
-          return EmptyState(
-            title: 'empty_orders'.tr(),
-            subtitle: 'empty_orders_hint'.tr(),
-            icon: Icons.receipt_long_outlined,
+          return RefreshIndicator(
+            onRefresh: cubit.refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.sizeOf(context).height * 0.6,
+                  child: EmptyState(
+                    title: 'empty_orders'.tr(),
+                    subtitle: 'empty_orders_hint'.tr(),
+                    icon: Icons.receipt_long_outlined,
+                  ),
+                ),
+              ],
+            ),
           );
         }
         return Skeletonizer(
           enabled: loading,
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: loading ? 4 : state.items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 10),
-            itemBuilder: (context, i) {
-              if (loading) return const ListTile(title: Text('Order'));
-              return OrderTile(order: state.items[i]);
-            },
+          child: InfiniteScroll(
+            onRefresh: cubit.refresh,
+            onLoadMore: cubit.loadMore,
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: loading ? 4 : state.items.length + (state.loadingMore ? 1 : 0),
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (context, i) {
+                if (loading) return ListTile(title: Text('order'.tr()));
+                if (i >= state.items.length) return const LoadMoreFooter();
+                return OrderTile(order: state.items[i]);
+              },
+            ),
           ),
         );
       },

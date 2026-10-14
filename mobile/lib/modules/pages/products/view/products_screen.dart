@@ -13,7 +13,10 @@ class ProductsScreen extends StatelessWidget {
     this.categoryId,
     this.search,
     this.query = const {},
+    this.autofocus = false,
   });
+
+  final bool autofocus;
 
   final String? title;
   final String? categoryId;
@@ -32,7 +35,7 @@ class ProductsScreen extends StatelessWidget {
       )..load(),
       child: Scaffold(
         appBar: AppBar(title: Text(title ?? 'search_products'.tr())),
-        body: SafeArea(child: const AdaptivePage(child: ProductsBody())),
+        body: SafeArea(child: AdaptivePage(child: ProductsBody(autofocus: autofocus))),
       ),
     );
   }

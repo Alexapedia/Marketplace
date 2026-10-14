@@ -76,6 +76,12 @@ dynamic unwrapData(dynamic json) {
   return json;
 }
 
+String extractRefreshToken(dynamic json) {
+  final data = unwrapData(json);
+  final map = asMap(data);
+  return asString(map['refreshToken'] ?? json?['refreshToken']);
+}
+
 String extractToken(dynamic json) {
   final data = unwrapData(json);
   final map = asMap(data);

@@ -11,10 +11,12 @@ class ProductsGridWithAds extends StatelessWidget {
     super.key,
     required this.products,
     required this.ads,
+    this.loadingMore = false,
   });
 
   final List<ProductModel> products;
   final List<BannerModel> ads;
+  final bool loadingMore;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +77,20 @@ class ProductsGridWithAds extends StatelessWidget {
       );
     }
 
-    return CustomScrollView(slivers: slivers);
+    if (loadingMore) {
+      slivers.add(
+        const SliverPadding(
+          padding: EdgeInsets.only(bottom: 24),
+          sliver: SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator.adaptive()),
+          ),
+        ),
+      );
+    }
+
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: slivers,
+    );
   }
 }

@@ -133,9 +133,16 @@ class AppControllerCubit extends Cubit<AppControllerState> {
   Future<void> loadConfig() async {
     final response = await sl.get<ApiConsumer>().get(EndPoints.appConfig);
     response.fold((_) {}, (success) {
-      final settings = AppConfigModel.fromJson(success.response).settings;
+      final config = AppConfigModel.fromJson(success.response);
+      final settings = config.settings;
+      final primary = _hexOrEmpty(config.tenant?.primary);
+      final accent = _hexOrEmpty(config.tenant?.accent);
+      PreferenceUtils.setString(StorageKey.brandPrimary, primary);
+      PreferenceUtils.setString(StorageKey.brandAccent, accent);
       emit(
         state.copyWith(
+          brandPrimary: primary,
+          brandAccent: accent,
           supportEmail: asString(settings['supportEmail']),
           supportPhone: asString(settings['supportPhone']),
           currency: asString(settings['currency']).toUpperCase().isEmpty
@@ -144,6 +151,19 @@ class AppControllerCubit extends Cubit<AppControllerState> {
         ),
       );
     });
+  }
+
+  static String _hexOrEmpty(String? value) {
+    final v = (value ?? '').trim();
+    return RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(v) ? v : '';
+  }
+
+  /// Brand colors cached from the last launch, applied before the config loads.
+  void restoreBrand() {
+    emit(state.copyWith(
+      brandPrimary: _hexOrEmpty(PreferenceUtils.getString(StorageKey.brandPrimary, '')),
+      brandAccent: _hexOrEmpty(PreferenceUtils.getString(StorageKey.brandAccent, '')),
+    ));
   }
 
   Future<void> loadMe() async {

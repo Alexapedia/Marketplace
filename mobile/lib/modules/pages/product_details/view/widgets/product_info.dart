@@ -28,6 +28,10 @@ class ProductInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<AppColors>()!.gold;
+    final variant = product.variantFor(state.selectedVariant);
+    final unitPrice = product.priceFor(state.selectedVariant);
+    final stock = product.stockFor(state.selectedVariant);
+    final showSale = variant?.price == null && product.isOnSale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,14 +54,14 @@ class ProductInfo extends StatelessWidget {
         Row(
           children: [
             Text(
-              '${product.displayPrice.toStringAsFixed(0)} ${AppString.currency}',
+              '${unitPrice.toStringAsFixed(0)} ${AppString.currency}',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
                 color: gold,
               ),
             ),
-            if (product.isOnSale) ...[
+            if (showSale) ...[
               const SizedBox(width: 8),
               Text(
                 product.price.toStringAsFixed(0),
@@ -70,16 +74,40 @@ class ProductInfo extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          product.inStock
-              ? 'stock_count'.tr(namedArgs: {'count': '${product.stock}'})
+          stock > 0
+              ? 'stock_count'.tr(namedArgs: {'count': '$stock'})
               : 'out_of_stock'.tr(),
           style: TextStyle(
-            color: product.inStock
+            color: stock > 0
                 ? Theme.of(context).colorScheme.tertiary
                 : Theme.of(context).colorScheme.error,
             fontSize: 12,
           ),
         ),
+        if (product.variants.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text('options'.tr(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: product.variants
+                .map(
+                  (v) => ChoiceChip(
+                    label: Text(
+                      v.price == null
+                          ? v.key
+                          : '${v.key} · ${v.price!.toStringAsFixed(0)} ${AppString.currency}',
+                    ),
+                    selected: state.selectedVariant == v.key,
+                    onSelected: v.inStock
+                        ? (_) => context.read<ProductDetailsCubit>().setVariant(v.key)
+                        : null,
+                  ),
+                )
+                .toList(),
+          ),
+        ],
         if (product.sizes.isNotEmpty) ...[
           const SizedBox(height: 12),
           Wrap(

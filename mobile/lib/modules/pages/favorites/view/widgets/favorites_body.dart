@@ -55,7 +55,10 @@ class FavoritesBody extends StatelessWidget {
         }
         return Skeletonizer(
           enabled: loading,
-          child: GridView.builder(
+          child: RefreshIndicator(
+            onRefresh: () => context.read<FavoritesCubit>().load(),
+            child: GridView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(12),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: context.catalogColumns,
@@ -74,6 +77,7 @@ class FavoritesBody extends StatelessWidget {
               index: i,
               heroScope: 'fav-$i',
             ),
+          ),
           ),
         );
       },

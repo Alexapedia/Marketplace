@@ -14,6 +14,8 @@ class AppControllerState extends Equatable {
     this.supportEmail = '',
     this.supportPhone = '',
     this.currency = 'SAR',
+    this.brandPrimary = '',
+    this.brandAccent = '',
   });
 
   final int countOfUnReadNot;
@@ -28,6 +30,10 @@ class AppControllerState extends Equatable {
   final String supportEmail;
   final String supportPhone;
   final String currency;
+
+  /// Tenant brand colors as #RRGGBB ('' = app defaults).
+  final String brandPrimary;
+  final String brandAccent;
 
   bool get isDark => themeMode == ThemeMode.dark;
   bool isFavorite(String productId) => favoriteIds.contains(productId);
@@ -46,6 +52,8 @@ class AppControllerState extends Equatable {
     supportEmail,
     supportPhone,
     currency,
+    brandPrimary,
+    brandAccent,
   ];
 
   AppControllerState copyWith({
@@ -61,6 +69,8 @@ class AppControllerState extends Equatable {
     String? supportEmail,
     String? supportPhone,
     String? currency,
+    String? brandPrimary,
+    String? brandAccent,
   }) => AppControllerState(
     countOfUnReadNot: countOfUnReadNot ?? this.countOfUnReadNot,
     cartItemsCount: cartItemsCount ?? this.cartItemsCount,
@@ -74,5 +84,7 @@ class AppControllerState extends Equatable {
     supportEmail: supportEmail ?? this.supportEmail,
     supportPhone: supportPhone ?? this.supportPhone,
     currency: currency ?? this.currency,
+    brandPrimary: brandPrimary ?? this.brandPrimary,
+    brandAccent: brandAccent ?? this.brandAccent,
   );
 }

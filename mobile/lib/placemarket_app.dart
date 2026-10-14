@@ -17,16 +17,40 @@ class PlaceMarketApp extends StatelessWidget {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
-  static final ThemeData _lightTheme = light(AppColors.lightDefaults);
-  static final ThemeData _darkTheme = dark(AppColors.darkDefaults);
+  static final Map<String, ThemeData> _themes = {};
+
+  /// Themes with the tenant's brand colors layered over the defaults.
+  /// Primary only tints light mode; dark mode keeps its light-on-dark primary.
+  static ThemeData _theme(bool isDark, String primary, String accent) {
+    return _themes.putIfAbsent('$isDark|$primary|$accent', () {
+      final overrides = <String, dynamic>{
+        if (accent.isNotEmpty) ...{'gold': accent, 'pinkAccent': accent},
+        if (!isDark && primary.isNotEmpty) ...{
+          'primary': primary,
+          'secondary': primary,
+          'gradientStart': primary,
+          'textPrimaryLight': primary,
+        },
+        if (isDark && accent.isNotEmpty) ...{'gradientStart': accent, 'gradientEnd': accent},
+      };
+      return isDark
+          ? dark(overrides.isEmpty ? AppColors.darkDefaults : AppColors.fromJson(overrides, dark: true))
+          : light(overrides.isEmpty ? AppColors.lightDefaults : AppColors.fromJson(overrides));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AppControllerCubit>(
-      create: (context) => sl.get<AppControllerCubit>()..initServices(),
+      create: (context) => sl.get<AppControllerCubit>()
+        ..restoreBrand()
+        ..initServices(),
       child: screenUtilHandler(
         child: BlocBuilder<AppControllerCubit, AppControllerState>(
-          buildWhen: (prev, curr) => prev.themeMode != curr.themeMode,
+          buildWhen: (prev, curr) =>
+              prev.themeMode != curr.themeMode ||
+              prev.brandPrimary != curr.brandPrimary ||
+              prev.brandAccent != curr.brandAccent,
           builder: (context, state) {
             return MaterialApp.router(
               localizationsDelegates: context.localizationDelegates,
@@ -34,8 +58,8 @@ class PlaceMarketApp extends StatelessWidget {
               locale: context.locale,
               debugShowCheckedModeBanner: false,
               title: AppString.appName,
-              theme: _lightTheme,
-              darkTheme: _darkTheme,
+              theme: _theme(false, state.brandPrimary, state.brandAccent),
+              darkTheme: _theme(true, state.brandPrimary, state.brandAccent),
               themeMode: state.themeMode,
               routerConfig: appRouter,
             );

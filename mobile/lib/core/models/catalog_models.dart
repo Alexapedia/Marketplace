@@ -41,6 +41,7 @@ class ProductVariant {
   final String value;
   final double? price;
   final int stock;
+  final String sku;
 
   const ProductVariant({
     this.id = '',
@@ -48,7 +49,12 @@ class ProductVariant {
     this.value = '',
     this.price,
     this.stock = 0,
+    this.sku = '',
   });
+
+  /// Identifier the cart API matches against (variant name, else SKU).
+  String get key => name.isNotEmpty ? name : sku;
+  bool get inStock => stock > 0;
 
   factory ProductVariant.fromJson(dynamic json) {
     final map = asMap(json);
@@ -58,6 +64,7 @@ class ProductVariant {
       value: localized(map['value'] ?? map['name']),
       price: map['price'] == null ? null : asDouble(map['price']),
       stock: asInt(map['stock']),
+      sku: asString(map['sku']),
     );
   }
 }
@@ -111,6 +118,19 @@ class ProductModel {
   double get displayPrice => isOnSale ? salePrice! : price;
   bool get inStock => stock > 0;
   String get cover => images.isNotEmpty ? images.first : '';
+
+  ProductVariant? variantFor(String? key) {
+    if (key == null || key.isEmpty) return null;
+    for (final v in variants) {
+      if (v.key == key) return v;
+    }
+    return null;
+  }
+
+  /// Unit price honouring the selected variant's own price.
+  double priceFor(String? variantKey) => variantFor(variantKey)?.price ?? displayPrice;
+
+  int stockFor(String? variantKey) => variantFor(variantKey)?.stock ?? stock;
 
   factory ProductModel.fromJson(dynamic json) {
     final map = asMap(json);

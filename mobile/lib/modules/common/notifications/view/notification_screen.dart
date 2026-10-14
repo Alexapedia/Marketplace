@@ -17,6 +17,18 @@ class NotificationScreen extends StatelessWidget {
         appBar: AppBar(
           leading: const CircleBackButton(),
           title: Text('notifications'.tr()),
+          actions: [
+            BlocBuilder<NotificationsCubit, NotificationsState>(
+              buildWhen: (a, b) => a.hasUnread != b.hasUnread,
+              builder: (context, state) => state.hasUnread
+                  ? IconButton(
+                      tooltip: 'mark_all_read'.tr(),
+                      onPressed: () => context.read<NotificationsCubit>().markAllRead(),
+                      icon: const Icon(Icons.done_all),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
         ),
         body: SafeArea(child: const NotificationsBody()),
       ),

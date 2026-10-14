@@ -28,6 +28,7 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
             product: product,
             quantity: 1,
             selectedSize: product.sizes.isNotEmpty ? product.sizes.first : null,
+            selectedVariant: _defaultVariant(product),
           ),
         );
         loadReviews(id);
@@ -63,8 +64,21 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
     });
   }
 
+  String? _defaultVariant(ProductModel product) {
+    if (product.variants.isEmpty) return null;
+    final inStock = product.variants.where((v) => v.inStock);
+    return (inStock.isNotEmpty ? inStock.first : product.variants.first).key;
+  }
+
   void setSize(String size) => emit(state.copyWith(selectedSize: size));
-  void setQty(int q) => emit(state.copyWith(quantity: q.clamp(1, 99)));
+
+  void setVariant(String key) => emit(state.copyWith(selectedVariant: key, quantity: 1));
+
+  void setQty(int q) {
+    final stock = state.product?.stockFor(state.selectedVariant) ?? 99;
+    final max = stock > 0 ? stock.clamp(1, 99) : 1;
+    emit(state.copyWith(quantity: q.clamp(1, max)));
+  }
 
   Future<void> toggleFav() async {
     final p = state.product;

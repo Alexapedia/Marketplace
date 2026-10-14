@@ -47,6 +47,17 @@ class DioConsumer implements ApiConsumer {
     '/auth/firebase',
   ];
 
+  static const _noRefreshPaths = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/refresh',
+    '/auth/logout',
+    '/auth/firebase',
+    '/telemetry/',
+  ];
+  static const _retriedKey = 'pm_retried_after_refresh';
+  Completer<String?>? _refreshing;
+
   int _inflight = 0;
   final List<Completer<void>> _waiters = [];
   static const _maxConcurrent = 4;
@@ -293,7 +304,23 @@ class DioConsumer implements ApiConsumer {
       },
       onError: (DioException e, ErrorInterceptorHandler handler) async {
         if (e.response?.statusCode == 401) {
-          await _handleUnauthorized(e.requestOptions.path);
+          final options = e.requestOptions;
+          final canRefresh = options.extra[AppString.requiresTokenKey] != false &&
+              options.extra[_retriedKey] != true &&
+              !_noRefreshPaths.any(options.path.contains);
+          if (canRefresh) {
+            final token = await _refreshAccessToken();
+            if (token != null) {
+              try {
+                options.extra[_retriedKey] = true;
+                options.headers[AppString.headerAuthorization] = 'Bearer $token';
+                return handler.resolve(await client.fetch(options));
+              } on DioException catch (retryError) {
+                return handler.next(retryError);
+              }
+            }
+          }
+          await _handleUnauthorized(options.path);
         }
         final code = e.response?.statusCode ?? 0;
         if (code >= 500 && !e.requestOptions.path.contains('/telemetry/')) {
@@ -308,6 +335,51 @@ class DioConsumer implements ApiConsumer {
         return handler.next(e);
       },
     );
+  }
+
+  /// Exchanges the stored refresh token (single flight). Returns the new
+  /// access token, or null when the session cannot be renewed.
+  Future<String?> _refreshAccessToken() async {
+    final pending = _refreshing;
+    if (pending != null) return pending.future;
+    final completer = Completer<String?>();
+    _refreshing = completer;
+    try {
+      final storage = sl<HandleMultiCallLocal>();
+      final refresh = await storage.getLocalData(keyType: LocalEnumKey.refreshToken);
+      if (refresh == null || refresh.isEmpty) {
+        completer.complete(null);
+        return null;
+      }
+      // Bare client: no interceptors, so a failing refresh cannot recurse.
+      final bare = Dio(
+        BaseOptions(
+          baseUrl: client.options.baseUrl,
+          connectTimeout: client.options.connectTimeout,
+          receiveTimeout: client.options.receiveTimeout,
+          headers: {'X-Client': 'mobile'},
+        ),
+      );
+      final res = await bare.post(EndPoints.refresh, data: {'refreshToken': refresh});
+      final data = (res.data is Map ? res.data['data'] : null) as Map?;
+      final access = data?['accessToken']?.toString();
+      final nextRefresh = data?['refreshToken']?.toString();
+      if (access == null || access.isEmpty) {
+        completer.complete(null);
+        return null;
+      }
+      await storage.saveLocalData(data: access, keyType: LocalEnumKey.accessToken);
+      if (nextRefresh != null && nextRefresh.isNotEmpty) {
+        await storage.saveLocalData(data: nextRefresh, keyType: LocalEnumKey.refreshToken);
+      }
+      completer.complete(access);
+      return access;
+    } catch (_) {
+      if (!completer.isCompleted) completer.complete(null);
+      return null;
+    } finally {
+      _refreshing = null;
+    }
   }
 
   Future<void> _handleUnauthorized(String path) async {

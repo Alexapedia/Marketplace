@@ -19,6 +19,7 @@ class EndPoints {
   static const String firebaseAuth = '/auth/firebase';
   static const String me = '/auth/me';
   static const String logout = '/auth/logout';
+  static const String refresh = '/auth/refresh';
   static const String deleteAccount = '/auth/me';
 
   static const String ads = '/ads';
@@ -54,6 +55,8 @@ class EndPoints {
 
   static const String notifications = '/notifications';
   static String readNotification(String id) => '/notifications/$id/read';
+  static const String readAllNotifications = '/notifications/read-all';
+  static String notification(String id) => '/notifications/$id';
 
   static String get origin {
     return baseUrl.replaceFirst(RegExp(r'/api/v1/?$'), '');

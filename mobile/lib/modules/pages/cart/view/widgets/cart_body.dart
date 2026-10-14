@@ -48,7 +48,7 @@ class CartBody extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, i) {
               if (loading) {
-                return const ListTile(title: Text('Item'), subtitle: Text('0'));
+                return ListTile(title: Text('loading'.tr()), subtitle: const Text('0'));
               }
               return CartItemTile(item: items[i]);
             },

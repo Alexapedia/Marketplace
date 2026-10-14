@@ -239,6 +239,17 @@ class NotificationModel {
     this.data = const {},
   });
 
+  NotificationModel markedRead() => NotificationModel(
+        id: id,
+        title: title,
+        body: body,
+        isRead: true,
+        createdAt: createdAt,
+        type: type,
+        referenceId: referenceId,
+        data: data,
+      );
+
   factory NotificationModel.fromJson(dynamic json) {
     final map = asMap(json);
     final data = asMap(map['data']);
