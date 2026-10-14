@@ -1,4 +1,7 @@
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -37,6 +40,12 @@ export class Shell {
   private readonly api = inject(PlatformApi);
 
   readonly issueCount = signal(0);
+  readonly isMobile = toSignal(
+    inject(BreakpointObserver)
+      .observe('(max-width: 900px)')
+      .pipe(map((s) => s.matches)),
+    { initialValue: false },
+  );
 
   readonly groups = [
     {
@@ -78,8 +87,8 @@ export class Shell {
   });
 
   private refreshIssues(): void {
-    this.api.issues({ status: 'open' }).subscribe({
-      next: (res) => this.issueCount.set((res.data || []).length),
+    this.api.issues({ status: 'open', limit: 1 }).subscribe({
+      next: (res) => this.issueCount.set(res.meta?.total ?? (res.data || []).length),
       error: () => undefined,
     });
   }

@@ -135,6 +135,7 @@ export interface PlatformAudit {
   actorId?: string;
   action: string;
   tenantId?: string;
+  tenantName?: string;
   meta?: unknown;
   ip?: string;
   createdAt?: string;

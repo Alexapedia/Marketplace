@@ -40,8 +40,8 @@ export class LoginPage {
   private challengeToken = '';
 
   readonly form = this.fb.nonNullable.group({
-    email: ['holder@placemarket.com', [Validators.required, Validators.email]],
-    password: ['Holder@123456', [Validators.required, Validators.minLength(8)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
     code: [''],
   });
   readonly pinSlots = [0, 1, 2, 3, 4, 5];

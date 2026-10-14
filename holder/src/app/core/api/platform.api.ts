@@ -1,6 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { PlatformAudit, PlatformIssue, PlatformOverview, PlatformReports, TenantRow } from '../models/models';
+import {
+  PlatformAudit,
+  PlatformIssue,
+  PlatformOverview,
+  PlatformReports,
+  TenantRow,
+} from '../models/models';
 import { ApiClient, ApiResult } from './api-client';
 
 @Injectable({ providedIn: 'root' })
@@ -43,15 +49,25 @@ export class PlatformApi {
     return this.api.post<{ reset: boolean }>(`/platform/tenants/${id}/staff/${userId}/reset-2fa`);
   }
 
-  audit(tenantId?: string): Observable<ApiResult<PlatformAudit[]>> {
-    return this.api.get<PlatformAudit[]>('/platform/audit', tenantId ? { tenantId } : undefined);
+  audit(params?: {
+    tenantId?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<ApiResult<PlatformAudit[]>> {
+    return this.api.get<PlatformAudit[]>('/platform/audit', params);
   }
 
   reports(): Observable<ApiResult<PlatformReports>> {
     return this.api.get<PlatformReports>('/platform/reports');
   }
 
-  issues(params?: { status?: string; channel?: string; tenantId?: string }): Observable<ApiResult<PlatformIssue[]>> {
+  issues(params?: {
+    status?: string;
+    channel?: string;
+    tenantId?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<ApiResult<PlatformIssue[]>> {
     return this.api.get<PlatformIssue[]>('/platform/issues', params);
   }
 

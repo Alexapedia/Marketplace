@@ -53,6 +53,11 @@ export const en: Dict = {
     resolve: 'Resolve',
     open: 'Open',
     resolved: 'Resolved',
+    loadMore: 'Load more',
+    confirm: 'Confirm',
+    saved: 'Saved',
+    menu: 'Menu',
+    delete: 'Delete',
   },
   overview: {
     title: 'Command center',
@@ -128,6 +133,17 @@ export const en: Dict = {
     products: 'Products',
     orders: 'Orders',
     search: 'Search stores',
+    suspendConfirm:
+      'Suspend this store? Its website, admin and app will stop working until reactivated.',
+    suspended: 'Store suspended',
+    activated: 'Store activated',
+    reset2faConfirm:
+      'Reset two-factor authentication for this staff member? They will set it up again on next sign-in.',
+    reset2faDone: '2FA reset — they will re-enroll on next sign-in',
+    domainsHint: 'Hostnames that route to this store. Each host can belong to one store only.',
+    host: 'Host',
+    channel: 'Channel',
+    addDomain: 'Add domain',
   },
   audit: {
     title: 'Audit log',
@@ -190,6 +206,11 @@ export const ar: Dict = {
     resolve: 'إغلاق',
     open: 'مفتوح',
     resolved: 'مغلق',
+    loadMore: 'عرض المزيد',
+    confirm: 'تأكيد',
+    saved: 'تم الحفظ',
+    menu: 'القائمة',
+    delete: 'حذف',
   },
   overview: {
     title: 'مركز القيادة',
@@ -265,6 +286,16 @@ export const ar: Dict = {
     products: 'المنتجات',
     orders: 'الطلبات',
     search: 'ابحث عن متجر',
+    suspendConfirm: 'إيقاف هذا المتجر؟ سيتوقف الموقع ولوحة التحكم والتطبيق حتى إعادة التفعيل.',
+    suspended: 'تم إيقاف المتجر',
+    activated: 'تم تفعيل المتجر',
+    reset2faConfirm:
+      'إعادة تعيين التحقق الثنائي لهذا الموظف؟ سيقوم بإعداده مجدداً عند تسجيل الدخول.',
+    reset2faDone: 'تمت إعادة التعيين — سيُعد التحقق عند الدخول القادم',
+    domainsHint: 'النطاقات التي تقود إلى هذا المتجر. كل نطاق يتبع متجراً واحداً فقط.',
+    host: 'النطاق',
+    channel: 'القناة',
+    addDomain: 'إضافة نطاق',
   },
   audit: {
     title: 'سجل التدقيق',

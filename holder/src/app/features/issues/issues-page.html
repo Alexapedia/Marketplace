@@ -19,17 +19,14 @@
     }
   </div>
 
-  @if (error()) {
-    <p class="err">{{ error() }}</p>
-  }
-
+  @if (!loading()) {
   <div class="list">
     @for (item of rows(); track idOf(item) || item.message) {
       <article class="hd-card incident" (click)="toggle(item)">
         <div class="top">
           <span class="hd-pill warn">{{ item.kind }}</span>
           <span class="hd-pill">{{ item.channel }}</span>
-          <span class="hd-pill" [class.on]="item.status === 'resolved'" [class.warn]="item.status !== 'resolved'">{{ item.status || 'open' }}</span>
+          <span class="hd-pill" [class.on]="item.status === 'resolved'" [class.warn]="item.status !== 'resolved'">{{ (item.status === 'resolved' ? 'common.resolved' : 'common.open') | t }}</span>
           <span class="count">{{ item.count }} {{ 'issues.count' | t }}</span>
           @if (item.status !== 'resolved') {
             <button type="button" class="resolve" [disabled]="busy() === idOf(item)" (click)="resolve(item, $event)">
@@ -43,8 +40,13 @@
           <pre>{{ item.stack }}</pre>
         }
       </article>
-    } @empty {
-      <p class="muted">{{ 'issues.none' | t }}</p>
     }
   </div>
+  @if (hasMore()) {
+    <button mat-stroked-button type="button" class="more" [disabled]="loadingMore()" (click)="reload(meta()!.page + 1)">
+      {{ 'common.loadMore' | t }}
+    </button>
+  }
+  }
+  <hd-state [loading]="loading()" [error]="error()" [empty]="!rows().length" emptyKey="issues.none" (retry)="reload()" />
 </div>

@@ -1,5 +1,10 @@
 <mat-sidenav-container class="shell">
-  <mat-sidenav mode="side" opened class="sidenav">
+  <mat-sidenav
+    #nav
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile()"
+    class="sidenav"
+  >
     <div class="brand">
       <div class="mark">P</div>
       <div>
@@ -11,7 +16,7 @@
       <p class="group">{{ group.labelKey | t }}</p>
       <mat-nav-list class="nav">
         @for (item of group.items; track item.path) {
-          <a mat-list-item [routerLink]="item.path" routerLinkActive="active">
+          <a mat-list-item [routerLink]="item.path" routerLinkActive="active" (click)="isMobile() && nav.close()">
             <mat-icon matListItemIcon [matBadge]="item.badge ? issueCount() || null : null" matBadgeSize="small" matBadgeColor="warn">{{ item.icon }}</mat-icon>
             <span matListItemTitle>{{ item.labelKey | t }}</span>
           </a>
@@ -28,6 +33,11 @@
   </mat-sidenav>
   <mat-sidenav-content>
     <mat-toolbar class="topbar">
+      @if (isMobile()) {
+        <button mat-icon-button (click)="nav.toggle()" [attr.aria-label]="'common.menu' | t">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
       <div class="crumb">
         <span class="live">{{ 'common.live' | t }}</span>
       </div>
