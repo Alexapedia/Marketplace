@@ -1,4 +1,5 @@
-.wrap { min-height: calc(100vh - 140px); }
+.wrap { min-height: calc(100vh - 140px); 
+padding: 20px;}
 .drawer { width: min(480px, 96vw); padding: 22px; }
 .drawer-h { display: flex; justify-content: space-between; align-items: center; }
 .drawer-h h3 { margin: 0; font-size: 18px; }

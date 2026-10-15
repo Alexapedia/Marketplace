@@ -35,57 +35,59 @@ import { ConfirmService } from '../../shared/confirm-dialog';
     ImageUploader,
   ],
   template: `
-    <h2 mat-dialog-title>{{ (data.category ? 'common.edit' : 'categories.create') | t }}</h2>
-    <mat-dialog-content [formGroup]="form" class="dlg">
-      <mat-form-field appearance="outline"
-        ><mat-label>{{ 'common.nameEn' | t }}</mat-label
-        ><input matInput formControlName="nameEn"
-      /></mat-form-field>
-      <mat-form-field appearance="outline"
-        ><mat-label>{{ 'common.nameAr' | t }}</mat-label
-        ><input matInput formControlName="nameAr"
-      /></mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'categories.parent' | t }}</mat-label>
-        <mat-select formControlName="parentId">
-          <mat-option [value]="''">—</mat-option>
-          @for (c of data.categories; track id(c)) {
-            <mat-option [value]="id(c)">{{ locName(c) }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'categories.type' | t }}</mat-label>
-        <mat-select formControlName="type">
-          <mat-option value="standard">standard</mat-option>
-          <mat-option value="custom">custom</mat-option>
-          <mat-option value="both">both</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline"
-        ><mat-label>{{ 'categories.sortOrder' | t }}</mat-label
-        ><input matInput type="number" formControlName="sortOrder"
-      /></mat-form-field>
-      <mat-form-field appearance="outline"
-        ><mat-label>{{ 'common.status' | t }}</mat-label>
-        <mat-select formControlName="status">
-          <mat-option value="published">published</mat-option>
-          <mat-option value="unpublished">unpublished</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <div class="wide">
-        <div class="lbl">{{ 'categories.image' | t }}</div>
-        <app-image-uploader
-          [images]="form.controls.image.value ? [form.controls.image.value] : []"
-          [multiple]="false"
-          (imagesChange)="form.patchValue({ image: $event[0] || '' })"
-        />
-      </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>{{ 'common.cancel' | t }}</button>
-      <button mat-flat-button (click)="save()">{{ 'common.save' | t }}</button>
-    </mat-dialog-actions>
+    <div style="padding: 20px 24px">
+      <h2 mat-dialog-title>{{ (data.category ? 'common.edit' : 'categories.create') | t }}</h2>
+      <mat-dialog-content [formGroup]="form" class="dlg">
+        <mat-form-field appearance="outline"
+          ><mat-label>{{ 'common.nameEn' | t }}</mat-label
+          ><input matInput formControlName="nameEn"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>{{ 'common.nameAr' | t }}</mat-label
+          ><input matInput formControlName="nameAr"
+        /></mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'categories.parent' | t }}</mat-label>
+          <mat-select formControlName="parentId">
+            <mat-option [value]="''">—</mat-option>
+            @for (c of data.categories; track id(c)) {
+              <mat-option [value]="id(c)">{{ locName(c) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'categories.type' | t }}</mat-label>
+          <mat-select formControlName="type">
+            <mat-option value="standard">standard</mat-option>
+            <mat-option value="custom">custom</mat-option>
+            <mat-option value="both">both</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>{{ 'categories.sortOrder' | t }}</mat-label
+          ><input matInput type="number" formControlName="sortOrder"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>{{ 'common.status' | t }}</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="published">published</mat-option>
+            <mat-option value="unpublished">unpublished</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="wide">
+          <div class="lbl">{{ 'categories.image' | t }}</div>
+          <app-image-uploader
+            [images]="form.controls.image.value ? [form.controls.image.value] : []"
+            [multiple]="false"
+            (imagesChange)="form.patchValue({ image: $event[0] || '' })"
+          />
+        </div>
+      </mat-dialog-content>
+      <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close>{{ 'common.cancel' | t }}</button>
+        <button mat-flat-button (click)="save()">{{ 'common.save' | t }}</button>
+      </mat-dialog-actions>
+    </div>
   `,
   styles: `
     .dlg {

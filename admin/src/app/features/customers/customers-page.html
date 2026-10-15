@@ -1,4 +1,5 @@
-<div class="head">
+<div class="body">
+  <div class="head">
   <h2 class="page-h">{{ 'customers.title' | t }}</h2>
 </div>
 <mat-form-field appearance="outline" class="search">
@@ -47,3 +48,5 @@
   <mat-paginator [length]="meta().total" [pageSize]="meta().limit" [pageIndex]="meta().page - 1" (page)="page($event)" />
   </div>
 }
+
+</div>

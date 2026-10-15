@@ -25,7 +25,8 @@ import { ConfirmService } from '../../shared/confirm-dialog';
     RouterLink,
   ],
   template: `
-    <h2 class="page-h">{{ 'reviews.title' | t }}</h2>
+   <div class="body">
+     <h2 class="page-h">{{ 'reviews.title' | t }}</h2>
     <div class="filters">
       @for (kind of types; track kind) {
         <button mat-stroked-button [class.on]="type() === kind" (click)="setType(kind)">
@@ -90,8 +91,12 @@ import { ConfirmService } from '../../shared/confirm-dialog';
         />
       </div>
     }
+   </div>
   `,
   styles: `
+  .body {
+    padding: 20px;
+  }
     .full {
       width: 100%;
     }

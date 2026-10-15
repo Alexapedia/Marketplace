@@ -15,8 +15,9 @@ import { asList, errMessage } from '../../shared/ui.service';
   selector: 'app-audit-logs-page',
   imports: [DatePipe, MatTableModule, MatPaginatorModule, MatFormFieldModule, MatInputModule, TranslatePipe, AsyncState],
   template: `
+  <div class="body">
     <h2 class="page-h">{{ 'audit.title' | t }}</h2>
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" style="  margin-bottom: 20px;">
       <mat-label>{{ 'common.search' | t }}</mat-label>
       <input matInput (keyup.enter)="onSearch($any($event.target).value)" />
     </mat-form-field>
@@ -50,8 +51,11 @@ import { asList, errMessage } from '../../shared/ui.service';
       <mat-paginator [length]="meta().total" [pageSize]="meta().limit" [pageIndex]="meta().page - 1" (page)="page($event)" />
       </div>
     }
+    </div>
   `,
-  styles: `.full { width: 100%; }`,
+  styles: `.full { width: 100%; } .body{
+  padding: 20px;
+  }`,
 })
 export class AuditLogsPage implements OnInit {
   private readonly api = inject(AuditLogsApi);
