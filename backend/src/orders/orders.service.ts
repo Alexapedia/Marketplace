@@ -75,9 +75,13 @@ export class OrdersService implements OnModuleInit {
       throw new BadRequestException('Cart is empty');
     }
 
+    const products = await this.productModel.find({
+      _id: { $in: cart.items.map((i) => i.productId) },
+    });
+    const byId = new Map(products.map((p) => [String(p._id), p]));
     const items: OrderItem[] = [];
     for (const cartItem of cart.items) {
-      const product = await this.productModel.findById(cartItem.productId);
+      const product = byId.get(String(cartItem.productId));
       if (!product || product.status !== 'published') {
         throw new BadRequestException(
           `Product ${cartItem.nameSnapshot} is unavailable`,
@@ -112,51 +116,68 @@ export class OrdersService implements OnModuleInit {
     const deliveryFee = await this.appConfig.deliveryFee();
     const total = subtotal - discount + deliveryFee;
 
+    const stockLines = items.map((i) => ({
+      productId: i.productId,
+      variant: i.variant,
+      quantity: i.quantity,
+      name: i.nameSnapshot,
+    }));
+    // Takes stock atomically first; throws "out of stock" if another
+    // checkout got there before us.
+    await this.products.reserveStock(stockLines);
+
     let order: OrderDocument | null = null;
-    for (let attempt = 0; attempt < 6; attempt++) {
-      try {
-        order = await this.orderModel.create({
-          userId: new Types.ObjectId(userId),
-          orderNumber: generateOrderNumber(),
-          items,
-          address,
-          subtotal,
-          discount,
-          deliveryFee,
-          total,
-          paymentMethod: 'COD',
-          paymentStatus: 'pending',
-          orderStatus: 'pending',
-          channel: this.resolveChannel(dto.channel ?? clientHeader),
-          notes: dto.notes,
-          ...(idempotencyKey ? { idempotencyKey } : {}),
-          statusHistory: [
-            {
-              status: 'pending',
-              at: new Date(),
-              actorId: new Types.ObjectId(userId),
-              note: 'Order created',
-            },
-          ],
-        });
-        break;
-      } catch (err: unknown) {
-        if ((err as { code?: number }).code === 11000 && idempotencyKey) {
-          const dup = await this.orderModel.findOne({
+    try {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        try {
+          order = await this.orderModel.create({
             userId: new Types.ObjectId(userId),
-            idempotencyKey,
+            orderNumber: generateOrderNumber(),
+            items,
+            address,
+            subtotal,
+            discount,
+            deliveryFee,
+            total,
+            paymentMethod: 'COD',
+            paymentStatus: 'pending',
+            orderStatus: 'pending',
+            channel: this.resolveChannel(dto.channel ?? clientHeader),
+            notes: dto.notes,
+            ...(idempotencyKey ? { idempotencyKey } : {}),
+            statusHistory: [
+              {
+                status: 'pending',
+                at: new Date(),
+                actorId: new Types.ObjectId(userId),
+                note: 'Order created',
+              },
+            ],
           });
-          if (dup) {
-            return dup;
+          break;
+        } catch (err: unknown) {
+          if ((err as { code?: number }).code === 11000 && idempotencyKey) {
+            const dup = await this.orderModel.findOne({
+              userId: new Types.ObjectId(userId),
+              idempotencyKey,
+            });
+            if (dup) {
+              // A concurrent request with the same key already placed this
+              // order and took its stock; give ours back.
+              await this.products.releaseStock(stockLines);
+              return dup;
+            }
+          }
+          if (attempt === 5) {
+            throw err;
           }
         }
-        if (attempt === 5) {
-          throw err;
-        }
       }
+    } catch (err) {
+      await this.products.releaseStock(stockLines);
+      throw err;
     }
 
-    await this.products.applyStockDelta(items, -1);
     await this.cart.clear(userId);
     if (order) {
       await this.notifyNewOrder(order);

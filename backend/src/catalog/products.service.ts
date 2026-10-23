@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { paginationMeta } from '../common/dto/pagination.dto';
@@ -20,6 +20,13 @@ export interface ProductQuery {
   minPrice?: number;
   maxPrice?: number;
 }
+
+export type StockLine = {
+  productId?: { toString(): string } | string;
+  variant?: string;
+  quantity: number;
+  name?: string;
+};
 
 @Injectable()
 export class ProductsService {
@@ -186,41 +193,84 @@ export class ProductsService {
     return product.stock ?? 0;
   }
 
-  async applyStockDelta(
-    items: {
-      productId?: { toString(): string } | string;
-      variant?: string;
-      quantity: number;
-    }[],
-    direction: 1 | -1,
-  ) {
+  /**
+   * Atomically takes stock for every line. A line only decrements when enough
+   * stock remains, so concurrent checkouts cannot oversell. If any line is
+   * short, lines already taken are put back and the call throws.
+   */
+  async reserveStock(items: StockLine[]): Promise<void> {
+    const taken: StockLine[] = [];
     for (const item of items) {
-      if (!item.productId) {
+      const qty = Math.abs(Number(item.quantity) || 0);
+      if (!item.productId || !qty) {
         continue;
       }
-      const qty = Math.abs(Number(item.quantity) || 0) * direction;
-      if (!qty) {
-        continue;
-      }
-      const product = await this.productModel.findById(
-        toObjectId(String(item.productId)),
-      );
-      if (!product) {
-        continue;
-      }
-      if (item.variant && product.variants?.length) {
-        const variant = product.variants.find(
-          (v) => v.name === item.variant || v.sku === item.variant,
+      const ok = await this.takeStock(item, qty);
+      if (!ok) {
+        await this.releaseStock(taken);
+        throw new BadRequestException(
+          `Product ${item.name ?? ''} is out of stock`.replace('  ', ' '),
         );
-        if (variant) {
-          variant.stock = Math.max(0, (variant.stock ?? 0) + qty);
-          await product.save();
+      }
+      taken.push(item);
+    }
+  }
+
+  /** Atomically returns stock for every line (no read-modify-write). */
+  async releaseStock(items: StockLine[]): Promise<void> {
+    for (const item of items) {
+      const qty = Math.abs(Number(item.quantity) || 0);
+      if (!item.productId || !qty) {
+        continue;
+      }
+      const _id = toObjectId(String(item.productId));
+      if (item.variant) {
+        const res = await this.productModel.updateOne(
+          { _id, variants: { $elemMatch: this.variantMatch(item.variant) } },
+          { $inc: { 'variants.$.stock': qty } },
+        );
+        if (res.matchedCount) {
           continue;
         }
       }
-      product.stock = Math.max(0, (product.stock ?? 0) + qty);
-      await product.save();
+      await this.productModel.updateOne({ _id }, { $inc: { stock: qty } });
     }
+  }
+
+  /** Kept for existing callers: +1 releases, -1 reserves. */
+  async applyStockDelta(items: StockLine[], direction: 1 | -1) {
+    return direction === 1 ? this.releaseStock(items) : this.reserveStock(items);
+  }
+
+  private async takeStock(item: StockLine, qty: number): Promise<boolean> {
+    const _id = toObjectId(String(item.productId));
+    if (item.variant) {
+      const hasVariant = await this.productModel.exists({
+        _id,
+        variants: { $elemMatch: this.variantMatch(item.variant) },
+      });
+      if (hasVariant) {
+        const res = await this.productModel.updateOne(
+          {
+            _id,
+            variants: {
+              $elemMatch: { ...this.variantMatch(item.variant), stock: { $gte: qty } },
+            },
+          },
+          { $inc: { 'variants.$.stock': -qty } },
+        );
+        return res.modifiedCount === 1;
+      }
+    }
+    const res = await this.productModel.updateOne(
+      { _id, stock: { $gte: qty } },
+      { $inc: { stock: -qty } },
+    );
+    return res.modifiedCount === 1;
+  }
+
+  private variantMatch(variant: string) {
+    return { $or: [{ name: variant }, { sku: variant }] };
   }
 
   private isTrue(value: unknown) {
