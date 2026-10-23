@@ -35,8 +35,8 @@ export interface ConfirmData {
   `,
   styles: `
     .danger {
-      --mat-button-filled-container-color: #be123c;
-      --mat-button-filled-label-text-color: #fff;
+      --mat-button-filled-container-color: var(--m-danger);
+      --mat-button-filled-label-text-color: var(--m-surface);
     }
   `,
 })

@@ -184,6 +184,11 @@ h4 {
   background: color-mix(in srgb, var(--m-accent) 35%, transparent);
 }
 
+// Playfair defaults to old-style figures; dashboards need lining numerals.
+.m-num {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
 // ---- Material polish -----------------------------------------------------
 
 .mat-mdc-unelevated-button:not(:disabled) {
@@ -367,7 +372,7 @@ h4 {
   font-weight: 600;
   font-size: clamp(28px, 2.6vw, 36px);
   line-height: 1.1;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   letter-spacing: -0.01em;
 }
 
