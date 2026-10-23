@@ -93,4 +93,12 @@ export const ALLOWED_UPLOAD_MIMES = [
   'application/pdf',
 ];
 
+/** Stored extension per allowed MIME type; never taken from the client filename. */
+export const MIME_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'application/pdf': '.pdf',
+};
+
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;

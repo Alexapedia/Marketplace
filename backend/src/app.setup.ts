@@ -31,5 +31,16 @@ export function configureApp(app: NestExpressApplication): void {
   if (!existsSync(uploadDir)) {
     mkdirSync(uploadDir, { recursive: true });
   }
-  app.useStaticAssets(uploadDir, { prefix: '/uploads/' });
+  app.useStaticAssets(uploadDir, {
+    prefix: '/uploads/',
+    // User uploads are data, never documents: block MIME sniffing and any
+    // script/frame execution even if a file is opened directly.
+    setHeaders: (res) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+      );
+    },
+  });
 }
