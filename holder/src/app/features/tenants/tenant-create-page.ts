@@ -1,4 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map, startWith } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
+import { MAISON } from '../../shared/maison';
+import { HdBrandPreview } from '../../shared/brand-preview';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,44 +16,141 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-tenant-create-page',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, TranslatePipe, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    TranslatePipe,
+    RouterLink,
+    MAISON,
+    HdBrandPreview,
+  ],
   template: `
     <div class="hd-page">
-      <a class="back" routerLink="/tenants">{{ 'common.back' | t }}</a>
-      <p class="hd-kicker">{{ 'nav.control' | t }}</p>
-      <h2 class="hd-h">{{ 'tenants.new' | t }}</h2>
-      <form [formGroup]="form" (ngSubmit)="submit()" class="hd-card form">
-        <mat-form-field><mat-label>{{ 'tenants.slug' | t }}</mat-label><input matInput formControlName="slug" /></mat-form-field>
-        <mat-form-field><mat-label>{{ 'tenants.name' | t }}</mat-label><input matInput formControlName="name" /></mat-form-field>
-        <mat-form-field><mat-label>{{ 'tenants.adminEmail' | t }}</mat-label><input matInput type="email" formControlName="adminEmail" /></mat-form-field>
-        <mat-form-field><mat-label>{{ 'tenants.adminPassword' | t }}</mat-label><input matInput type="password" formControlName="adminPassword" /></mat-form-field>
-        <mat-form-field><mat-label>{{ 'tenants.websiteHost' | t }}</mat-label><input matInput formControlName="websiteHost" /></mat-form-field>
-        <mat-form-field><mat-label>{{ 'tenants.adminHost' | t }}</mat-label><input matInput formControlName="adminHost" /></mat-form-field>
-        <mat-form-field>
-          <mat-label>{{ 'tenants.currency' | t }}</mat-label>
-          <mat-select formControlName="currency">
-            @for (code of currencies; track code) {
-              <mat-option [value]="code">{{ code }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <div class="colors">
-          <mat-form-field><mat-label>{{ 'tenants.primary' | t }}</mat-label><input matInput formControlName="primary" /></mat-form-field>
-          <mat-form-field><mat-label>{{ 'tenants.accent' | t }}</mat-label><input matInput formControlName="accent" /></mat-form-field>
+      <a class="back m-press" routerLink="/tenants">
+        <mat-icon aria-hidden="true" class="flip">arrow_back</mat-icon>{{ 'common.back' | t }}
+      </a>
+      <header class="hd-head">
+        <div [mReveal]="0">
+          <p class="hd-kicker">{{ 'nav.control' | t }}</p>
+          <h1 class="hd-h">{{ 'tenants.new' | t }}</h1>
+          <p class="hd-lead">{{ 'tenants.createLead' | t }}</p>
+          <span class="m-rule" [mReveal]="1"></span>
         </div>
-        @if (error()) { <p class="err">{{ error() }}</p> }
-        <button mat-flat-button type="submit" [disabled]="loading()">{{ 'common.create' | t }}</button>
+      </header>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="layout">
+        <div class="col">
+          <section class="hd-card" [mReveal]="1">
+            <h2 class="hd-card-title">{{ 'tenants.identity' | t }}</h2>
+            <div class="two">
+              <mat-form-field><mat-label>{{ 'tenants.slug' | t }}</mat-label><input matInput formControlName="slug" /></mat-form-field>
+              <mat-form-field><mat-label>{{ 'tenants.name' | t }}</mat-label><input matInput formControlName="name" /></mat-form-field>
+              <mat-form-field>
+                <mat-label>{{ 'tenants.currency' | t }}</mat-label>
+                <mat-select formControlName="currency">
+                  @for (code of currencies; track code) {
+                    <mat-option [value]="code">{{ code }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </section>
+          <section class="hd-card" [mReveal]="2">
+            <h2 class="hd-card-title">{{ 'tenants.firstAdmin' | t }}</h2>
+            <div class="two">
+              <mat-form-field><mat-label>{{ 'tenants.adminEmail' | t }}</mat-label><input matInput type="email" formControlName="adminEmail" /></mat-form-field>
+              <mat-form-field><mat-label>{{ 'tenants.adminPassword' | t }}</mat-label><input matInput type="password" formControlName="adminPassword" /></mat-form-field>
+            </div>
+          </section>
+          <section class="hd-card" [mReveal]="3">
+            <h2 class="hd-card-title">{{ 'tenants.hosts' | t }}</h2>
+            <div class="two">
+              <mat-form-field><mat-label>{{ 'tenants.websiteHost' | t }}</mat-label><input matInput formControlName="websiteHost" /></mat-form-field>
+              <mat-form-field><mat-label>{{ 'tenants.adminHost' | t }}</mat-label><input matInput formControlName="adminHost" /></mat-form-field>
+            </div>
+          </section>
+        </div>
+        <aside class="col">
+          <section class="hd-card" [mReveal]="4">
+            <h2 class="hd-card-title">{{ 'tenants.colors' | t }}</h2>
+            <div class="colors">
+              <mat-form-field>
+                <mat-label>{{ 'tenants.primary' | t }}</mat-label>
+                <span matTextPrefix class="sw" [style.background]="v().primary"></span>
+                <input matInput formControlName="primary" dir="ltr" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>{{ 'tenants.accent' | t }}</mat-label>
+                <span matTextPrefix class="sw" [style.background]="v().accent"></span>
+                <input matInput formControlName="accent" dir="ltr" />
+              </mat-form-field>
+            </div>
+            <p class="m-eyebrow pv">{{ 'tenants.preview' | t }}</p>
+            <hd-brand-preview [name]="v().name" [primary]="v().primary" [accent]="v().accent" />
+          </section>
+          @if (error()) { <p class="err" role="alert">{{ error() }}</p> }
+          <button mat-flat-button type="submit" class="go" [disabled]="loading()">
+            <mat-icon>add_business</mat-icon>{{ 'common.create' | t }}
+          </button>
+        </aside>
       </form>
     </div>
   `,
   styles: `
-    .back { color: var(--zz-muted); text-decoration: none; font-size: 13px; font-weight: 700; }
-    .hd-kicker { margin-top: 10px; }
-    .form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; max-width: 840px; margin-top: 16px; }
-    .colors { display: contents; }
-    button { justify-self: start; margin-top: 8px; }
-    .err { color: #9f1239; grid-column: 1 / -1; }
-    @media (max-width: 720px) { .form { grid-template-columns: 1fr; } }
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      color: var(--m-ink-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .back:hover { color: var(--m-ink); }
+    .back mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    :host-context([dir='rtl']) .flip { transform: scaleX(-1); }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .col { display: grid; gap: 20px; }
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 16px;
+    }
+    .colors { display: grid; gap: 12px; margin-bottom: 20px; }
+    .sw {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      margin-inline-end: 10px;
+      vertical-align: -3px;
+      box-shadow: 0 0 0 1px var(--m-line);
+    }
+    .pv { margin: 0 0 12px; }
+    .go { justify-self: stretch; }
+    .err {
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: var(--m-r-sm);
+      background: color-mix(in srgb, var(--m-danger) 12%, var(--m-surface));
+      color: var(--m-danger);
+      font-size: 13px;
+    }
+    @media (max-width: 1023.98px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 599.98px) {
+      .two { grid-template-columns: 1fr; }
+    }
   `,
 })
 export class TenantCreatePage {
@@ -70,6 +172,14 @@ export class TenantCreatePage {
     primary: ['#071345'],
     accent: ['#c9a45c'],
   });
+  /** Live values for the brand preview (visual only). */
+  readonly v = toSignal(
+    this.form.valueChanges.pipe(
+      startWith(null),
+      map(() => this.form.getRawValue()),
+    ),
+    { initialValue: this.form.getRawValue() },
+  );
 
   submit(): void {
     if (this.form.invalid || this.loading()) {
