@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/models/color_model.dart';
+import 'tokens.dart';
+import 'typography.dart';
 
 ThemeData dark(AppColors c) {
   final base = ColorScheme.dark(
@@ -20,6 +22,8 @@ ThemeData dark(AppColors c) {
     surface: c.surfaceDark,
     onSurface: c.textPrimaryDark,
     surfaceContainerHighest: c.surfaceContainerDark,
+    inverseSurface: AppColors.blackColor,
+    onInverseSurface: AppColors.whiteColor,
     outline: c.hintDark,
     outlineVariant: c.borderDark,
     shadow: Colors.black,
@@ -29,6 +33,7 @@ ThemeData dark(AppColors c) {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    fontFamily: kFontFamily,
     extensions: {c},
     colorScheme: base,
     scaffoldBackgroundColor: c.backgroundDark,
@@ -47,6 +52,7 @@ ThemeData dark(AppColors c) {
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       titleTextStyle: TextStyle(
+        fontFamily: kFontFamily,
         color: c.textPrimaryDark,
         fontSize: 18,
         fontWeight: FontWeight.w700,
@@ -54,16 +60,9 @@ ThemeData dark(AppColors c) {
       iconTheme: IconThemeData(color: c.textPrimaryDark),
       actionsIconTheme: IconThemeData(color: c.gold),
     ),
-    textTheme: TextTheme(
-      displayLarge: TextStyle(color: c.textPrimaryDark, letterSpacing: -0.5),
-      headlineMedium: TextStyle(
-        color: c.textPrimaryDark,
-        fontWeight: FontWeight.w700,
-      ),
-      titleLarge: TextStyle(color: c.textPrimaryDark, fontWeight: FontWeight.w600),
-      bodyLarge: TextStyle(color: c.textPrimaryDark, height: 1.45),
-      bodyMedium: TextStyle(color: c.textPrimaryDark, height: 1.4),
-      bodySmall: TextStyle(color: c.textSecondary, height: 1.35),
+    textTheme: buildTextTheme(
+      onSurface: c.textPrimaryDark,
+      secondary: c.textSecondary,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -87,12 +86,24 @@ ThemeData dark(AppColors c) {
       filled: true,
       fillColor: c.surfaceContainerDark,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.borderDark),
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: c.inputBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: c.inputBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.gold, width: 2),
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: base.primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: base.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: base.error, width: 2),
       ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(

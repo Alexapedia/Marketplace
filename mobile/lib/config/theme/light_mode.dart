@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/models/color_model.dart';
+import 'tokens.dart';
+import 'typography.dart';
 
 ThemeData light(AppColors c) {
   final base = ColorScheme.light(
@@ -21,6 +23,8 @@ ThemeData light(AppColors c) {
     surface: c.surfaceLight,
     onSurface: c.textPrimaryLight,
     surfaceContainerHighest: c.surfaceContainerLight,
+    inverseSurface: AppColors.blackColor,
+    onInverseSurface: AppColors.whiteColor,
     outline: c.border,
     outlineVariant: c.divider,
     shadow: AppColors.blackColor.withValues(alpha: 0.10),
@@ -30,6 +34,7 @@ ThemeData light(AppColors c) {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    fontFamily: kFontFamily,
     extensions: {c},
     colorScheme: base,
     scaffoldBackgroundColor: c.backgroundLight,
@@ -48,32 +53,18 @@ ThemeData light(AppColors c) {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
       titleTextStyle: TextStyle(
+        fontFamily: kFontFamily,
         color: c.textPrimaryLight,
         fontSize: 18,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.3,
       ),
       iconTheme: IconThemeData(color: c.textPrimaryLight),
-      actionsIconTheme: IconThemeData(color: c.gold),
+      actionsIconTheme: IconThemeData(color: c.textPrimaryLight),
     ),
-    textTheme: TextTheme(
-      displayLarge: TextStyle(color: c.textPrimaryLight, letterSpacing: -0.5),
-      headlineMedium: TextStyle(
-        color: c.textPrimaryLight,
-        fontWeight: FontWeight.w700,
-      ),
-      titleLarge: TextStyle(
-        color: c.textPrimaryLight,
-        fontWeight: FontWeight.w600,
-      ),
-      titleMedium: TextStyle(
-        color: c.textPrimaryLight,
-        fontWeight: FontWeight.w500,
-      ),
-      bodyLarge: TextStyle(color: c.textPrimaryLight, height: 1.45),
-      bodyMedium: TextStyle(color: c.textPrimaryLight, height: 1.4),
-      bodySmall: TextStyle(color: c.textSecondary, height: 1.35),
-      labelLarge: TextStyle(color: c.primary, fontWeight: FontWeight.w600),
+    textTheme: buildTextTheme(
+      onSurface: c.textPrimaryLight,
+      secondary: c.textSecondary,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -88,26 +79,34 @@ ThemeData light(AppColors c) {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: c.primary,
-        side: BorderSide(color: c.gold, width: 1.5),
+        side: BorderSide(color: base.primary, width: 1.5),
         minimumSize: const Size(double.infinity, 54),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: c.surfaceContainerLight,
+      fillColor: c.surfaceLight,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: c.inputBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: c.inputBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.gold, width: 2),
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: base.primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: base.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: AppRadius.input,
+        borderSide: BorderSide(color: base.error, width: 2),
       ),
     ),
     cardTheme: CardThemeData(
