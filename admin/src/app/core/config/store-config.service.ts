@@ -49,11 +49,6 @@ export class StoreConfigService {
     const primary = tenant.branding?.primary || '#071345';
     const accent = tenant.branding?.accent || '#c9a45c';
     const root = document.documentElement;
-    root.style.setProperty('--zz-navy', primary);
-    root.style.setProperty('--pm-ink', primary);
-    root.style.setProperty('--pm-sidebar', primary);
-    root.style.setProperty('--pm-gold', accent);
-    root.style.setProperty('--zz-gold', accent);
     applyBrand(primary, accent, root);
     if (tenant.branding?.favicon) {
       let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
