@@ -31,22 +31,10 @@ class ProductShareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (filled) {
-      return ProductCircleAction(
-        icon: Icons.ios_share_rounded,
-        tooltip: 'a11y_share'.tr(),
-        onTap: () => _share(context),
-      );
-    }
-    return IconButton.filledTonal(
+    return ProductCircleAction(
+      icon: Icons.ios_share_rounded,
       tooltip: 'a11y_share'.tr(),
-      style: IconButton.styleFrom(
-        backgroundColor: Theme.of(context).brightness == Brightness.light
-            ? Colors.white.withValues(alpha: 0.92)
-            : Colors.black.withValues(alpha: 0.92),
-      ),
-      onPressed: () => _share(context),
-      icon: const Icon(Icons.ios_share_rounded, size: 18),
+      onTap: () => _share(context),
     );
   }
 }

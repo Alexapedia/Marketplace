@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../config/theme/maison.dart';
 import '../../../../../core/components/circle_back_button.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../controller/product_details_cubit.dart';
+import 'product_details_body.dart';
 import 'product_favorite_button.dart';
 import 'product_gallery.dart';
 import 'product_info.dart';
@@ -14,42 +16,48 @@ class ProductPortraitView extends StatelessWidget {
     super.key,
     required this.product,
     required this.state,
+    this.heroTag = '',
   });
 
   final ProductModel product;
   final ProductDetailsState state;
+  final String heroTag;
 
   @override
   Widget build(BuildContext context) {
+    final m = context.maison;
+    final galleryHeight = productGalleryHeight(context);
     return Scaffold(
+      extendBody: true,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 360,
+            expandedHeight: galleryHeight,
             pinned: true,
+            stretch: true,
+            backgroundColor: m.canvas,
+            leadingWidth: 64,
             leading: const Padding(
-              padding: EdgeInsets.all(8),
-              child: CircleBackButton(),
+              padding: EdgeInsetsDirectional.only(start: 12),
+              child: Center(child: CircleBackButton()),
             ),
             actions: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: ProductShareButton(product: product),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 8, 8, 8),
-                child: ProductFavoriteButton(product: product),
-              ),
+              ProductShareButton(product: product),
+              const SizedBox(width: 4),
+              ProductFavoriteButton(product: product),
+              const SizedBox(width: 8),
             ],
             flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [StretchMode.zoomBackground],
               background: ProductGallery(
                 images: product.images.isEmpty ? [''] : product.images,
+                heroTag: heroTag,
               ),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
               child: ProductInfo(
                 product: product,
                 state: state,
@@ -58,7 +66,7 @@ class ProductPortraitView extends StatelessWidget {
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
       ),
       bottomNavigationBar: ProductQtyAddBar(product: product, state: state),

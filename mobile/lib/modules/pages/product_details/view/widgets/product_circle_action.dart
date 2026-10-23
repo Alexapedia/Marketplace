@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/components/maison.dart';
+
 class ProductCircleAction extends StatelessWidget {
   const ProductCircleAction({
     super.key,
@@ -15,15 +17,10 @@ class ProductCircleAction extends StatelessWidget {
   final String? tooltip;
 
   @override
-  Widget build(BuildContext context) {
-    return IconButton.filledTonal(
-      tooltip: tooltip,
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: 0.92),
-        foregroundColor: color ?? Theme.of(context).colorScheme.onSurface,
-      ),
-      onPressed: onTap,
-      icon: Icon(icon, size: 18),
-    );
-  }
+  Widget build(BuildContext context) => GlassCircleButton(
+    icon: icon,
+    onPressed: onTap,
+    tooltip: tooltip,
+    color: color,
+  );
 }

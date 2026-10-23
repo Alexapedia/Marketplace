@@ -16,10 +16,12 @@ class ProductSplitView extends StatelessWidget {
     super.key,
     required this.product,
     required this.state,
+    this.heroTag = '',
   });
 
   final ProductModel product;
   final ProductDetailsState state;
+  final String heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -32,30 +34,32 @@ class ProductSplitView extends StatelessWidget {
             Expanded(
               flex: 10,
               child: ColoredBox(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
                 child: Stack(
                   children: [
                     ProductGallery(
                       images: product.images.isEmpty ? [''] : product.images,
                       showThumbs: !context.isCompactHeight,
+                      heroTag: heroTag,
+                      lip: false,
                     ),
                     const PositionedDirectional(
-                      start: 12,
-                      top: 12,
+                      start: 8,
+                      top: 8,
                       child: CircleBackButton(),
                     ),
                     if (!context.isCompactHeight) ...[
                       PositionedDirectional(
-                        end: 52,
-                        top: 12,
+                        end: 56,
+                        top: 8,
                         child: ProductShareButton(
                           product: product,
                           filled: true,
                         ),
                       ),
                       PositionedDirectional(
-                        end: 12,
-                        top: 12,
+                        end: 8,
+                        top: 8,
                         child: ProductFavoriteButton(
                           product: product,
                           filled: true,
@@ -72,7 +76,12 @@ class ProductSplitView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        32,
+                        40,
+                        32,
+                        16,
+                      ),
                       child: ProductInfo(
                         product: product,
                         state: state,
