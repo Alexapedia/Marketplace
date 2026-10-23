@@ -181,7 +181,7 @@
   padding: 12px 16px;
   border: 1px solid var(--m-line);
   border-radius: var(--m-r-sm);
-  background: var(--m-surface-2);
+  background-color: var(--m-surface-2);
   color: var(--m-ink);
   outline: none;
   transition:
@@ -196,14 +196,14 @@
   }
   &:focus,
   &:focus-visible {
-    background: var(--m-surface);
+    background-color: var(--m-surface);
     border-color: var(--m-accent);
     box-shadow: var(--m-focus);
     outline: none;
   }
   &[readonly] {
     color: var(--m-ink-muted);
-    background: transparent;
+    background-color: transparent;
   }
 }
 .field textarea {
