@@ -259,6 +259,10 @@ class DioConsumer implements ApiConsumer {
         return FetchDataException(error.message);
       case DioExceptionType.badResponse:
         final code = error.response?.statusCode ?? 0;
+        final serverMessage = _serverMessage(error.response);
+        if (serverMessage != null && code != StatusCode.badRequest) {
+          return FetchDataException(serverMessage);
+        }
         switch (code) {
           case StatusCode.badRequest:
             return BadRequestException(handleError(error.response!));
@@ -274,6 +278,19 @@ class DioConsumer implements ApiConsumer {
           default:
             return FetchDataException();
         }
+    }
+  }
+
+  /// The backend's `message` (string or list) from an error body, or null.
+  String? _serverMessage(Response? response) {
+    if (response == null || response.statusCode == 429) return null;
+    try {
+      final json = handleResponseAsJson(response);
+      final m = json['message'];
+      final text = m is List ? m.map((e) => e.toString()).join('\n') : m?.toString();
+      return (text == null || text.trim().isEmpty) ? null : text;
+    } catch (_) {
+      return null;
     }
   }
 

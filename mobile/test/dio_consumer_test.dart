@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:placemarket_mobile/core/connection/concept/exceptions.dart';
 import 'package:placemarket_mobile/core/connection/implementation/dio_consumer.dart';
 import 'package:placemarket_mobile/core/utils/constant/storage_key.dart';
 
@@ -81,5 +82,38 @@ void main() {
     const storage = FlutterSecureStorage();
     expect(await storage.read(key: StorageKey.accessToken), isNull);
     expect(await storage.read(key: StorageKey.refershToken), isNull);
+  });
+
+  group('server error messages', () {
+    Future<String> leftFor(int status, String body) async {
+      await setUpTestLocator();
+      server = await TestServer.start((req, b) => (status: status, body: body));
+      final result = await DioConsumer(client: Dio()).get('/products');
+      expect(result.isLeft(), isTrue);
+      return result.fold((l) => l, (_) => '');
+    }
+
+    test('503 store suspended returns the server message', () async {
+      final msg = await leftFor(503,
+          '{"success":false,"statusCode":503,"message":"This store is suspended"}');
+      expect(msg, contains('This store is suspended'));
+    });
+
+    test('500 with a server message returns that message', () async {
+      final msg = await leftFor(
+          500, '{"success":false,"statusCode":500,"message":"Boom happened"}');
+      expect(msg, contains('Boom happened'));
+    });
+
+    test('500 without a message keeps the generic message', () async {
+      final msg = await leftFor(500, '{"success":false}');
+      expect(msg, InternalServerException().toString());
+    });
+
+    test('404 with a server message returns that message', () async {
+      final msg = await leftFor(
+          404, '{"success":false,"statusCode":404,"message":"Product gone"}');
+      expect(msg.toLowerCase(), contains('product gone'));
+    });
   });
 }
