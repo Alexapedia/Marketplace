@@ -269,7 +269,12 @@ export class AuthService {
       );
     }
 
-    let decoded: { uid: string; email?: string; name?: string };
+    let decoded: {
+      uid: string;
+      email?: string;
+      email_verified?: boolean;
+      name?: string;
+    };
     try {
       decoded = await this.firebaseAdmin.verifyIdToken(dto.idToken);
     } catch {
@@ -277,12 +282,19 @@ export class AuthService {
     }
 
     const email = decoded.email?.toLowerCase();
-    let user = await this.userModel.findOne({
-      $or: [
-        { firebaseUid: decoded.uid },
-        ...(email ? [{ email }] : []),
-      ],
-    });
+    let user = await this.userModel.findOne({ firebaseUid: decoded.uid });
+    if (!user && email) {
+      user = await this.userModel.findOne({ email });
+      // Linking by email is only safe when Firebase has verified that the
+      // caller owns the address; otherwise anyone could claim the account.
+      if (user && decoded.email_verified !== true) {
+        throw new UnauthorizedException('Verify your email address to sign in');
+      }
+    }
+    // Staff must use password + TOTP; Firebase would bypass 2FA.
+    if (user && this.staffType(user.role) === 'staff') {
+      throw new ForbiddenException('Staff must sign in with email and 2FA');
+    }
 
     if (!user) {
       user = await this.userModel.create({

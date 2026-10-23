@@ -30,6 +30,7 @@ export interface TestCtx {
 export async function bootApp(
   suite: string,
   env: Record<string, string | undefined> = {},
+  overrides: Array<{ provide: unknown; useValue: unknown }> = [],
 ): Promise<TestCtx> {
   // Suites run in one process (--runInBand); restore env on close so one
   // suite's overrides (e.g. NODE_ENV=staging) never leak into the next.
@@ -45,9 +46,11 @@ export async function bootApp(
   // Required only after env is set so ConfigModule picks up the e2e database.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { AppModule } = require('../../src/app.module');
-  const moduleFixture = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
+  const builder = Test.createTestingModule({ imports: [AppModule] });
+  for (const o of overrides) {
+    builder.overrideProvider(o.provide).useValue(o.useValue);
+  }
+  const moduleFixture = await builder.compile();
   const app = moduleFixture.createNestApplication<NestExpressApplication>();
   configureApp(app);
   // Listen once so concurrent supertest requests share one server instead of
