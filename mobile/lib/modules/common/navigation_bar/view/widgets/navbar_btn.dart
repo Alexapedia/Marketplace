@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../controller/navigation_bar_cubit.dart' show NavItemData;
+import '../../../../../config/theme/tokens.dart';
 import '../../../../../core/models/color_model.dart';
+import '../../../../../core/utils/functions/motion.dart';
 
 class NavbarBtn extends StatelessWidget {
   const NavbarBtn({
@@ -39,13 +41,14 @@ class NavbarBtn extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
+                  duration: context.motion(AppDurations.base),
+                  curve: AppCurves.standard,
                   width: 38,
                   height: 26,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: isSelected ? activeBg : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Icon(
                     isSelected ? item.activeIcon : item.icon,
@@ -55,14 +58,18 @@ class NavbarBtn extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item.label.tr(),
-                  style: labelStyle?.copyWith(
-                    color: isSelected
-                        ? (dark ? gold : AppColors.blackColor)
-                        : muted,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ).animate(target: isSelected ? 1 : 0).fadeIn(duration: 180.ms),
+                      item.label.tr(),
+                      style: labelStyle?.copyWith(
+                        color: isSelected
+                            ? (dark ? gold : AppColors.blackColor)
+                            : muted,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      ),
+                    )
+                    .animate(target: isSelected ? 1 : 0)
+                    .fadeIn(duration: context.motion(180.ms)),
               ],
             ),
           ),
