@@ -13,6 +13,11 @@ import { join } from 'path';
 export function configureApp(app: NestExpressApplication): void {
   const config = app.get(ConfigService);
 
+  // Behind nginx/cloudflared every request otherwise comes from the proxy's
+  // IP, so rate limits would be shared by all users. Trusting only private
+  // hops keeps X-Forwarded-For unspoofable for clients on the open internet.
+  app.set('trust proxy', trustProxySetting(config.get<string>('TRUST_PROXY')));
+
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -43,4 +48,14 @@ export function configureApp(app: NestExpressApplication): void {
       );
     },
   });
+}
+
+/** TRUST_PROXY: hop count, true/false, or an Express trust list. */
+export function trustProxySetting(raw?: string): boolean | number | string {
+  const value = raw?.trim();
+  if (!value) return 'loopback, linklocal, uniquelocal';
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  if (/^\d+$/.test(value)) return Number(value);
+  return value;
 }
