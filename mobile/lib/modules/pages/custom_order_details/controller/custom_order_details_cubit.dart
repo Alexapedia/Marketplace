@@ -7,10 +7,11 @@ import '../../../../core/models/custom_order_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'custom_order_details_state.dart';
 
-class CustomOrderDetailsCubit extends Cubit<CustomOrderDetailsState> {
+class CustomOrderDetailsCubit extends Cubit<CustomOrderDetailsState> with SafeEmitMixin<CustomOrderDetailsState> {
   CustomOrderDetailsCubit() : super(const CustomOrderDetailsState());
 
   Future<void> load(String id) async {

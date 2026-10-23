@@ -7,10 +7,11 @@ import '../../../../core/models/catalog_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'categories_state.dart';
 
-class CategoriesCubit extends Cubit<CategoriesState> {
+class CategoriesCubit extends Cubit<CategoriesState> with SafeEmitMixin<CategoriesState> {
   CategoriesCubit() : super(const CategoriesState());
 
   Future<void> load() async {

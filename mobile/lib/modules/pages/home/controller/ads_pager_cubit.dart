@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
-class AdsPagerCubit extends Cubit<int> {
+class AdsPagerCubit extends Cubit<int> with SafeEmitMixin<int> {
   AdsPagerCubit() : super(0);
 
   final PageController pageController = PageController(

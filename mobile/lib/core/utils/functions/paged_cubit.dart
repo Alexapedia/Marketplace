@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../constant/app_enum.dart';
 import 'app_toast.dart';
 import 'fetch_page.dart';
+import 'safe_emit.dart';
 
 class PagedState<T> extends Equatable {
   const PagedState({
@@ -43,7 +44,7 @@ class PagedState<T> extends Equatable {
 }
 
 /// Cubit for a paginated `{ data, meta }` endpoint with refresh + load more.
-abstract class PagedCubit<T> extends Cubit<PagedState<T>> {
+abstract class PagedCubit<T> extends Cubit<PagedState<T>> with SafeEmitMixin<PagedState<T>> {
   PagedCubit() : super(PagedState<T>());
 
   String get path;

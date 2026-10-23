@@ -21,13 +21,14 @@ import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/print_state.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../core/utils/functions/shared_preferance_utils.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'login_state.dart';
 part 'login_session_mixin.dart';
 part 'login_social_mixin.dart';
 
 class LoginCubit extends Cubit<LoginState>
-    with LoginSessionMixin, LoginSocialMixin {
+    with SafeEmitMixin<LoginState>, LoginSessionMixin, LoginSocialMixin {
   LoginCubit() : super(const LoginState());
 
   static LoginCubit get(context) => BlocProvider.of(context);

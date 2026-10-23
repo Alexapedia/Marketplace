@@ -13,6 +13,7 @@ import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/constant/storage_key.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../core/utils/functions/shared_preferance_utils.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'on_boarding_state.dart';
 
@@ -21,7 +22,7 @@ class OnBoardingPageChanged {
   final int page;
 }
 
-class OnBoardingBloc extends Cubit<OnBoardingState> {
+class OnBoardingBloc extends Cubit<OnBoardingState> with SafeEmitMixin<OnBoardingState> {
   OnBoardingBloc() : super(const OnBoardingState()) {
     load();
   }

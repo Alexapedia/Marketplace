@@ -7,10 +7,11 @@ import '../../../../core/models/catalog_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'favorites_state.dart';
 
-class FavoritesCubit extends Cubit<FavoritesState> {
+class FavoritesCubit extends Cubit<FavoritesState> with SafeEmitMixin<FavoritesState> {
   FavoritesCubit() : super(const FavoritesState());
 
   Future<void> load() async {

@@ -6,6 +6,7 @@ import '../../../pages/categories/view/categories_screen.dart';
 import '../../../pages/home/view/home_screen.dart';
 import '../../../pages/orders/view/orders_screen.dart';
 import '../../../pages/profile/view/profile_screen.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'navigation_bar_state.dart';
 
@@ -20,7 +21,7 @@ class NavItemData {
   final String label;
 }
 
-class NavigationBarCubit extends Cubit<NavigationBarState> {
+class NavigationBarCubit extends Cubit<NavigationBarState> with SafeEmitMixin<NavigationBarState> {
   NavigationBarCubit() : super(const NavigationBarState());
 
   final List<NavItemData> navItems = const [

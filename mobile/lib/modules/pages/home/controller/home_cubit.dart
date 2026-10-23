@@ -10,10 +10,11 @@ import '../../../../core/models/review_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'home_state.dart';
 
-class HomeCubit extends Cubit<HomeState> {
+class HomeCubit extends Cubit<HomeState> with SafeEmitMixin<HomeState> {
   HomeCubit() : super(const HomeState());
 
   Future<void> load() async {

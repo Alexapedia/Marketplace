@@ -9,10 +9,11 @@ import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/fetch_page.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../config/app_controller/app_controller_cubit.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'notifications_state.dart';
 
-class NotificationsCubit extends Cubit<NotificationsState> {
+class NotificationsCubit extends Cubit<NotificationsState> with SafeEmitMixin<NotificationsState> {
   NotificationsCubit() : super(const NotificationsState());
 
   Future<void> load({bool silent = false}) async {

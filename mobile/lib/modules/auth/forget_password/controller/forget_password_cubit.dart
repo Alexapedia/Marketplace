@@ -7,10 +7,11 @@ import '../../../../core/connection/interfaces/api_consumer.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'forget_password_state.dart';
 
-class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
+class ForgetPasswordCubit extends Cubit<ForgetPasswordState> with SafeEmitMixin<ForgetPasswordState> {
   ForgetPasswordCubit() : super(const ForgetPasswordState());
 
   static ForgetPasswordCubit get(context) => BlocProvider.of(context);

@@ -19,10 +19,11 @@ import '../../core/utils/functions/json_helpers.dart';
 import '../../core/utils/functions/require_auth.dart';
 import '../../core/utils/functions/service_locator.dart';
 import '../../core/utils/functions/shared_preferance_utils.dart';
+import '../../core/utils/functions/safe_emit.dart';
 
 part 'app_controller_state.dart';
 
-class AppControllerCubit extends Cubit<AppControllerState> {
+class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<AppControllerState> {
   AppControllerCubit() : super(const AppControllerState());
 
   static AppControllerCubit get(context) => BlocProvider.of(context);

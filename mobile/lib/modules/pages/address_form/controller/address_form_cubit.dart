@@ -6,10 +6,11 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/models/address_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../addresses/controller/addresses_cubit.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'address_form_state.dart';
 
-class AddressFormCubit extends Cubit<AddressFormState> {
+class AddressFormCubit extends Cubit<AddressFormState> with SafeEmitMixin<AddressFormState> {
   AddressFormCubit(this.initial) : super(AddressFormState.from(initial)) {
     label = TextEditingController(text: initial?.label ?? 'Home');
     name = TextEditingController(text: initial?.fullName ?? '');

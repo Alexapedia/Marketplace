@@ -13,10 +13,11 @@ import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../config/app_controller/app_controller_cubit.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'checkout_state.dart';
 
-class CheckOutCubit extends Cubit<CheckOutState> {
+class CheckOutCubit extends Cubit<CheckOutState> with SafeEmitMixin<CheckOutState> {
   CheckOutCubit() : super(const CheckOutState());
 
   final notes = TextEditingController();

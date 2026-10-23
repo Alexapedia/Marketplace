@@ -16,10 +16,11 @@ import '../../../../core/utils/functions/handle_multi_callback.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../core/utils/functions/shared_preferance_utils.dart';
 import '../../../../core/utils/functions/version_compare.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'splash_state.dart';
 part 'splash_boot_mixin.dart';
 
-class SplashCubit extends Cubit<SplashState> with SplashBootMixin {
+class SplashCubit extends Cubit<SplashState> with SafeEmitMixin<SplashState>, SplashBootMixin {
   SplashCubit() : super(const SplashState());
 }

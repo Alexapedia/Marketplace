@@ -17,12 +17,13 @@ import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'custom_order_state.dart';
 part 'custom_order_submit_mixin.dart';
 
 class CustomOrderCubit extends Cubit<CustomOrderState>
-    with CustomOrderSubmitMixin {
+    with SafeEmitMixin<CustomOrderState>, CustomOrderSubmitMixin {
   CustomOrderCubit() : super(const CustomOrderState());
 
   @override

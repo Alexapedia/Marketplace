@@ -10,10 +10,11 @@ import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../config/app_controller/app_controller_cubit.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'cart_state.dart';
 
-class CartCubit extends Cubit<CartState> {
+class CartCubit extends Cubit<CartState> with SafeEmitMixin<CartState> {
   CartCubit() : super(const CartState());
 
   Future<void> load() async {

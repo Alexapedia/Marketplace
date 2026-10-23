@@ -13,10 +13,11 @@ import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/handle_multi_callback.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'chat_state.dart';
 
-class ChatCubit extends Cubit<ChatState> {
+class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
   ChatCubit() : super(const ChatState());
 
   final text = TextEditingController();

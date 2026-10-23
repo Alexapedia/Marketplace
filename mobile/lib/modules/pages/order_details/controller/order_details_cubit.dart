@@ -7,10 +7,11 @@ import '../../../../core/models/catalog_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'order_details_state.dart';
 
-class OrderDetailsCubit extends Cubit<OrderDetailsState> {
+class OrderDetailsCubit extends Cubit<OrderDetailsState> with SafeEmitMixin<OrderDetailsState> {
   OrderDetailsCubit() : super(const OrderDetailsState());
 
   Future<void> load(String id) async {
