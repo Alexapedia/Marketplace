@@ -41,6 +41,15 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
   `,
   styles: `
     :host { display: block; }
+    /* Nested inside a card/pane: drop the second card chrome. */
+    :host-context(.pane) .state,
+    :host-context(.panel) .state,
+    :host-context(.mat-mdc-card) .state,
+    :host-context(.mat-mdc-dialog-content) .state {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
     .state {
       border-radius: var(--m-r-lg);
       background: var(--m-surface);
