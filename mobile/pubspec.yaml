@@ -68,3 +68,11 @@ flutter:
           weight: 600
         - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
           weight: 700
+    # Official google/fonts variable fonts (OFL, see assets/fonts/OFL-*.txt).
+    # Weights are applied through the wght axis (see typography.dart).
+    - family: PlayfairDisplay
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay-Variable.ttf
+    - family: ElMessiri
+      fonts:
+        - asset: assets/fonts/ElMessiri-Variable.ttf
