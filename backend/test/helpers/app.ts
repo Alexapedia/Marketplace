@@ -52,7 +52,9 @@ export async function bootApp(
       transformOptions: { enableImplicitConversion: true },
     }),
   );
-  await app.init();
+  // Listen once so concurrent supertest requests share one server instead of
+  // each opening (and racing on) its own ephemeral listener.
+  await app.listen(0, '127.0.0.1');
 
   const slug = (process.env.DEFAULT_TENANT_SLUG || 'zezo').toLowerCase();
   const tenant: any = await TenantContext.run({ kind: 'platform' }, () =>
