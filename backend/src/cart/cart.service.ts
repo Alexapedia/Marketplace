@@ -75,10 +75,16 @@ export class CartService {
     if (!product || product.status !== 'published') {
       throw new BadRequestException('Product is unavailable');
     }
-    const stock = this.products.stockFor(product, dto.variant);
-    if (stock < dto.quantity) {
-      throw new BadRequestException('Insufficient stock');
+    if (
+      dto.variant &&
+      product.variants?.length &&
+      !product.variants.some(
+        (v) => v.name === dto.variant || v.sku === dto.variant,
+      )
+    ) {
+      throw new BadRequestException('Unknown variant');
     }
+    const stock = this.products.stockFor(product, dto.variant);
     const unitPrice = this.products.effectivePrice(product, dto.variant);
     const cart = await this.getOrCreate(userId);
     const existing = cart.items.find(
@@ -87,6 +93,9 @@ export class CartService {
         (item.variant || '') === (dto.variant || '') &&
         (item.size || '') === (dto.size || ''),
     );
+    if (stock < (existing?.quantity ?? 0) + dto.quantity) {
+      throw new BadRequestException('Insufficient stock');
+    }
     if (existing) {
       existing.quantity += dto.quantity;
       existing.unitPrice = unitPrice;
@@ -119,6 +128,13 @@ export class CartService {
         (i) => String((i as { _id?: Types.ObjectId })._id) !== itemId,
       ) as typeof cart.items;
     } else {
+      const product = await this.productModel.findById(item.productId);
+      if (
+        !product ||
+        dto.quantity > this.products.stockFor(product, item.variant)
+      ) {
+        throw new BadRequestException('Insufficient stock');
+      }
       item.quantity = dto.quantity;
     }
     cart.markModified('items');

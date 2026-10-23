@@ -80,7 +80,7 @@ describe('orders (characterization)', () => {
     expect(await stockOf(p._id)).toBe(3);
   });
 
-  it('checkout of more than stock is rejected (cart qty raised via PATCH)', async () => {
+  it('raising cart qty past stock via PATCH is rejected and the line is unchanged', async () => {
     const c = await newCustomer();
     const p = await createProduct(ctx, { price: 100, stock: 1 });
     const cart = await addToCart(c.token, p._id, 1);
@@ -90,10 +90,10 @@ describe('orders (characterization)', () => {
       .patch(`${api}/cart/items/${itemId}`)
       .set(auth(c.token))
       .send({ quantity: 2 })
-      .expect(200);
+      .expect(400);
 
-    const res = await checkout(c.token, c.addressId).expect(400);
-    expect(JSON.stringify(res.body)).toContain('out of stock');
+    const after = await ctx.http().get(`${api}/cart`).set(auth(c.token)).expect(200);
+    expect(after.body.data.items[0].quantity).toBe(1);
     expect(await stockOf(p._id)).toBe(1);
   });
 
