@@ -31,6 +31,9 @@ export async function bootApp(
   suite: string,
   env: Record<string, string | undefined> = {},
 ): Promise<TestCtx> {
+  // Suites run in one process (--runInBand); restore env on close so one
+  // suite's overrides (e.g. NODE_ENV=staging) never leak into the next.
+  const envSnapshot = { ...process.env };
   process.env.MONGODB_URI = `${process.env.E2E_MONGODB_BASE || 'mongodb://127.0.0.1:27017'}/placemarket_e2e_${suite}`;
   process.env.NODE_ENV = 'test';
   process.env.EXPOSE_RESET_TOKEN = 'true';
@@ -104,6 +107,10 @@ export async function bootApp(
     close: async () => {
       await app.get<Connection>(getConnectionToken()).dropDatabase();
       await app.close();
+      for (const key of Object.keys(process.env)) {
+        if (!(key in envSnapshot)) delete process.env[key];
+      }
+      Object.assign(process.env, envSnapshot);
     },
   };
 }
