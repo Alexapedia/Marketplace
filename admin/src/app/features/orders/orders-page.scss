@@ -92,3 +92,9 @@
   position: fixed;
   z-index: 19;
 }
+
+// Order numbers and dates read as one token; let other columns wrap instead.
+.mat-column-orderNumber,
+.mat-column-createdAt {
+  white-space: nowrap;
+}
