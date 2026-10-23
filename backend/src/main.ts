@@ -8,6 +8,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { SocketIoAdapter } from './chat/socket-io.adapter';
+import { corsOptions, swaggerEnabled } from './common/utils/cors';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -23,15 +24,12 @@ async function bootstrap() {
     }),
   );
 
-  const origins = (config.get<string>('CORS_ORIGINS') || '')
-    .split(',')
-    .map((o) => o.trim())
-    .filter(Boolean);
-  const isProd = config.get('NODE_ENV') === 'production';
-  app.enableCors({
-    origin: isProd && origins.length && !origins.includes('*') ? origins : true,
-    credentials: true,
-  });
+  const env = {
+    NODE_ENV: config.get<string>('NODE_ENV'),
+    CORS_ORIGINS: config.get<string>('CORS_ORIGINS'),
+    SWAGGER_ENABLED: config.get<string>('SWAGGER_ENABLED'),
+  };
+  app.enableCors(corsOptions(env));
 
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
@@ -44,14 +42,16 @@ async function bootstrap() {
   }
   app.useStaticAssets(uploadDir, { prefix: '/uploads/' });
 
-  const swagger = new DocumentBuilder()
-    .setTitle('PlaceMarket API')
-    .setDescription('PlaceMarket REST API v1')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swagger);
-  SwaggerModule.setup('docs', app, document, { useGlobalPrefix: false });
+  if (swaggerEnabled(env)) {
+    const swagger = new DocumentBuilder()
+      .setTitle('PlaceMarket API')
+      .setDescription('PlaceMarket REST API v1')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swagger);
+    SwaggerModule.setup('docs', app, document, { useGlobalPrefix: false });
+  }
 
   const port = Number(config.get('PORT') || 3000);
   await app.listen(port);
