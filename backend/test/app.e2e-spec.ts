@@ -1,45 +1,19 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { getConnectionToken } from '@nestjs/mongoose';
-import { Test, TestingModule } from '@nestjs/testing';
-import { Connection } from 'mongoose';
-import request from 'supertest';
-import { App } from 'supertest/types';
-
-process.env.MONGODB_URI =
-  process.env.E2E_MONGODB_URI || 'mongodb://127.0.0.1:27017/placemarket_e2e';
-process.env.NODE_ENV = 'test';
-
-// Imported after env is set so ConfigModule picks up the e2e database.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { AppModule } = require('../src/app.module');
+import { bootApp, TestCtx } from './helpers/app';
 
 describe('API (e2e)', () => {
-  let app: INestApplication<App>;
+  let ctx: TestCtx;
   const email = `e2e.${Date.now()}@example.com`;
   const password = 'Passw0rd!e2e';
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-    app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        transform: true,
-        transformOptions: { enableImplicitConversion: true },
-      }),
-    );
-    await app.init();
-  }, 60000);
-
-  afterAll(async () => {
-    await app.get<Connection>(getConnectionToken()).dropDatabase();
-    await app.close();
+    ctx = await bootApp('api');
   });
 
-  const http = () => request(app.getHttpServer());
+  afterAll(async () => {
+    await ctx.close();
+  });
+
+  const http = () => ctx.http();
 
   it('GET /health', () => http().get('/api/v1/health').expect(200));
 
