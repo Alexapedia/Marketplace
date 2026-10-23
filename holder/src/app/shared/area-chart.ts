@@ -73,10 +73,18 @@ let uid = 0;
     .days {
       display: flex;
       justify-content: space-between;
+      gap: 6px;
+      overflow: hidden;
+      white-space: nowrap;
       margin-top: 10px;
       color: var(--m-ink-muted);
       font-size: 11px;
       font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 599.98px) {
+      .days span:nth-child(even):not(:last-child) {
+        display: none;
+      }
     }
   `,
 })
