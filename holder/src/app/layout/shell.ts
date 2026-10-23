@@ -113,6 +113,11 @@ export class Shell {
       .toUpperCase();
   });
 
+  /** Re-position the active pill (e.g. when the mobile drawer opens). */
+  remeasure(): void {
+    requestAnimationFrame(() => this.measurePill());
+  }
+
   onScroll(event: Event): void {
     this.scrolled.set((event.target as HTMLElement).scrollTop > 8);
   }

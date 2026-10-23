@@ -3,6 +3,7 @@
     #nav
     [mode]="isMobile() ? 'over' : 'side'"
     [opened]="!isMobile()"
+    (openedStart)="remeasure()"
     class="sidenav"
   >
     <div class="side-inner">
