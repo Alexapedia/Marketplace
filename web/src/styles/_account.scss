@@ -238,13 +238,22 @@ app-map-picker > .muted {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.notif:not(.read) {
+  border-color: color-mix(in srgb, var(--m-accent) 45%, var(--m-line));
+}
 @media (max-width: 479px) {
-  .addr-card,
   .notif {
+    flex-wrap: nowrap;
+  }
+  .notif .row-actions {
+    flex-direction: column;
+    margin-inline-end: -8px;
+    margin-top: -8px;
+  }
+  .addr-card {
     flex-wrap: wrap;
   }
-  .addr-card .row-actions,
-  .notif .row-actions {
+  .addr-card .row-actions {
     width: 100%;
     justify-content: flex-end;
     border-top: 1px solid var(--m-line);
