@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -130,18 +131,24 @@ class ProductCard extends StatelessWidget {
                                       ? 'a11y_remove_favorite'.tr()
                                       : 'a11y_add_favorite'.tr(),
                                   excludeSemantics: true,
-                                  onTap: () => AppControllerCubit.get(
-                                    context,
-                                  ).toggleFavorite(context, product.id),
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    AppControllerCubit.get(
+                                      context,
+                                    ).toggleFavorite(context, product.id);
+                                  },
                                   child: IconButton.filledTonal(
                                     style: IconButton.styleFrom(
                                       backgroundColor: theme.colorScheme.surface
                                           .withValues(alpha: 0.92),
                                       minimumSize: const Size(36, 36),
                                     ),
-                                    onPressed: () => AppControllerCubit.get(
-                                      context,
-                                    ).toggleFavorite(context, product.id),
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      AppControllerCubit.get(
+                                        context,
+                                      ).toggleFavorite(context, product.id);
+                                    },
                                     icon: Icon(
                                       isFav
                                           ? Icons.favorite
@@ -272,9 +279,12 @@ class ProductCard extends StatelessWidget {
                           child: InkWell(
                             key: const ValueKey('add-to-cart-hit'),
                             borderRadius: BorderRadius.circular(14),
-                            onTap: () => AppControllerCubit.get(
-                              context,
-                            ).addToCart(context, productId: product.id),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              AppControllerCubit.get(
+                                context,
+                              ).addToCart(context, productId: product.id);
+                            },
                           ),
                         ),
                       ),

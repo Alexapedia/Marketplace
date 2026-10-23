@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../config/app_controller/app_controller_cubit.dart';
@@ -29,8 +30,11 @@ class ProductFavoriteButton extends StatelessWidget {
           size: 18,
           color: isFav ? Colors.redAccent : gold,
         );
-        void onTap() =>
-            AppControllerCubit.get(context).toggleFavorite(context, product.id);
+        void onTap() {
+          HapticFeedback.selectionClick();
+          AppControllerCubit.get(context).toggleFavorite(context, product.id);
+        }
+
         final label = isFav
             ? 'a11y_remove_favorite'.tr()
             : 'a11y_add_favorite'.tr();

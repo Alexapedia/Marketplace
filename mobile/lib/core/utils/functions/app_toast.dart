@@ -4,25 +4,32 @@ import 'package:flutter/material.dart';
 import '../../../placemarket_app.dart';
 
 class AppToast {
-  AppToast(String message, {bool isError = false}) {
+  AppToast(
+    String message, {
+    bool isError = false,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
     final context = PlaceMarketApp.navigatorKey.currentContext;
     if (context == null) return;
+    final scheme = Theme.of(context).colorScheme;
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(
       SnackBar(
         content: Text(
           message.tr(),
-          style: TextStyle(
-            color: isError
-                ? Theme.of(context).colorScheme.onError
-                : Theme.of(context).colorScheme.onInverseSurface,
-          ),
+          style: isError ? TextStyle(color: scheme.onError) : null,
         ),
-        backgroundColor: isError
-            ? Theme.of(context).colorScheme.error
-            : Theme.of(context).colorScheme.inverseSurface,
+        backgroundColor: isError ? scheme.error : null,
         behavior: SnackBarBehavior.floating,
+        action: actionLabel != null && onAction != null
+            ? SnackBarAction(
+                label: actionLabel,
+                textColor: isError ? scheme.onError : null,
+                onPressed: onAction,
+              )
+            : null,
       ),
     );
   }

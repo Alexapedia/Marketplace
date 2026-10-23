@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../config/theme/tokens.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/models/color_model.dart';
 import '../../../../../core/utils/constant/app_string.dart';
@@ -34,19 +35,33 @@ class CartSummary extends StatelessWidget {
               color: Theme.of(context).extension<AppColors>()!.roseSoftLight,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              '💵  ${'cod'.tr()}',
-              style: TextStyle(
-                color: gold,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.payments_outlined,
+                  size: 18,
+                  color: Theme.of(context).extension<AppColors>()!.goldText,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  'cod'.tr(),
+                  style: TextStyle(
+                    color: gold,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Text('total'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text(
+                'total'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
               const Spacer(),
               Text(
                 '${total.toStringAsFixed(0)} ${AppString.currency}',

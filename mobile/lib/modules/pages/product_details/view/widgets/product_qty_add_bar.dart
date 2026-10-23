@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../config/app_controller/app_controller_cubit.dart';
@@ -58,13 +59,16 @@ class ProductQtyAddBar extends StatelessWidget {
             Expanded(
               child: AppButton(
                 onTap: inStock
-                    ? () => AppControllerCubit.get(context).addToCart(
-                        context,
-                        productId: product.id,
-                        variant: state.selectedVariant,
-                        size: state.selectedSize,
-                        quantity: state.quantity,
-                      )
+                    ? () {
+                        HapticFeedback.selectionClick();
+                        AppControllerCubit.get(context).addToCart(
+                          context,
+                          productId: product.id,
+                          variant: state.selectedVariant,
+                          size: state.selectedSize,
+                          quantity: state.quantity,
+                        );
+                      }
                     : null,
                 title: inStock ? 'add_to_cart'.tr() : 'out_of_stock'.tr(),
               ),
