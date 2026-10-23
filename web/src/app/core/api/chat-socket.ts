@@ -22,9 +22,9 @@ export class ChatSocket {
       path: '/socket.io',
       transports: ['websocket'],
       upgrade: false,
-      auth: { token },
-      query: { token },
-      extraHeaders: { Authorization: `Bearer ${token}` },
+      // Evaluated on every (re)connect so a refreshed token is used, and kept
+      // out of the URL, where proxies would log it.
+      auth: (cb) => cb({ token: this.auth.token() ?? '' }),
       reconnection: true,
       withCredentials: true,
     });
