@@ -66,6 +66,7 @@ class ProductCard extends StatelessWidget {
                         product.cover,
                         fit: BoxFit.cover,
                         heroTag: imageTag,
+                        semanticLabel: product.name,
                       ),
                       Positioned(
                         left: 0,
@@ -121,21 +122,32 @@ class ProductCard extends StatelessWidget {
                                   ? s.isFavorite(product.id)
                                   : product.isFavorite,
                               builder: (context, isFav) {
-                                return IconButton.filledTonal(
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: theme.colorScheme.surface
-                                        .withValues(alpha: 0.92),
-                                    minimumSize: const Size(36, 36),
-                                  ),
-                                  onPressed: () => AppControllerCubit.get(
+                                return Semantics(
+                                  button: true,
+                                  selected: isFav,
+                                  label: isFav
+                                      ? 'a11y_remove_favorite'.tr()
+                                      : 'a11y_add_favorite'.tr(),
+                                  excludeSemantics: true,
+                                  onTap: () => AppControllerCubit.get(
                                     context,
                                   ).toggleFavorite(context, product.id),
-                                  icon: Icon(
-                                    isFav
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: isFav ? Colors.redAccent : gold,
-                                    size: 18,
+                                  child: IconButton.filledTonal(
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: theme.colorScheme.surface
+                                          .withValues(alpha: 0.92),
+                                      minimumSize: const Size(36, 36),
+                                    ),
+                                    onPressed: () => AppControllerCubit.get(
+                                      context,
+                                    ).toggleFavorite(context, product.id),
+                                    icon: Icon(
+                                      isFav
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: isFav ? Colors.redAccent : gold,
+                                      size: 18,
+                                    ),
                                   ),
                                 );
                               },
@@ -239,6 +251,7 @@ class ProductCard extends StatelessWidget {
                         height: 48,
                         child: Semantics(
                           button: true,
+                          label: 'a11y_add_to_cart'.tr(args: [product.name]),
                           child: InkWell(
                             key: const ValueKey('add-to-cart-hit'),
                             borderRadius: BorderRadius.circular(14),

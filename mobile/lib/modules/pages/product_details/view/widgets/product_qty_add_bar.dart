@@ -34,9 +34,10 @@ class ProductQtyAddBar extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => context
-                        .read<ProductDetailsCubit>()
-                        .setQty(state.quantity - 1),
+                    tooltip: 'a11y_decrease_qty'.tr(),
+                    onPressed: () => context.read<ProductDetailsCubit>().setQty(
+                      state.quantity - 1,
+                    ),
                     icon: const Icon(Icons.remove),
                   ),
                   Text(
@@ -44,9 +45,10 @@ class ProductQtyAddBar extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   IconButton(
-                    onPressed: () => context
-                        .read<ProductDetailsCubit>()
-                        .setQty(state.quantity + 1),
+                    tooltip: 'a11y_increase_qty'.tr(),
+                    onPressed: () => context.read<ProductDetailsCubit>().setQty(
+                      state.quantity + 1,
+                    ),
                     icon: const Icon(Icons.add),
                   ),
                 ],
@@ -57,16 +59,14 @@ class ProductQtyAddBar extends StatelessWidget {
               child: AppButton(
                 onTap: inStock
                     ? () => AppControllerCubit.get(context).addToCart(
-                          context,
-                          productId: product.id,
-                          variant: state.selectedVariant,
-                          size: state.selectedSize,
-                          quantity: state.quantity,
-                        )
+                        context,
+                        productId: product.id,
+                        variant: state.selectedVariant,
+                        size: state.selectedSize,
+                        quantity: state.quantity,
+                      )
                     : null,
-                title: inStock
-                    ? 'add_to_cart'.tr()
-                    : 'out_of_stock'.tr(),
+                title: inStock ? 'add_to_cart'.tr() : 'out_of_stock'.tr(),
               ),
             ),
           ],

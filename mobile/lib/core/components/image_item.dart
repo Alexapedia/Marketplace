@@ -13,6 +13,7 @@ class ImageItem extends StatelessWidget {
     this.fit,
     this.borderRadius,
     this.heroTag,
+    this.semanticLabel,
   });
 
   final String img;
@@ -21,6 +22,9 @@ class ImageItem extends StatelessWidget {
   final BoxFit? fit;
   final BorderRadius? borderRadius;
   final Object? heroTag;
+
+  /// Accessible description; when null the image is treated as decorative.
+  final String? semanticLabel;
 
   String get _src => EndPoints.media(img);
   bool get _isEmpty => _src.trim().isEmpty;
@@ -38,15 +42,32 @@ class ImageItem extends StatelessWidget {
     if (heroTag != null) {
       child = Hero(tag: heroTag!, child: child);
     }
-    return child;
+    final label = semanticLabel;
+    if (label == null) return ExcludeSemantics(child: child);
+    return Semantics(
+      label: label,
+      image: true,
+      child: ExcludeSemantics(child: child),
+    );
   }
 
   Widget _build(BuildContext context) {
     if (_isEmpty) return _fallback(context);
     if (_isAsset) {
       return _isSvg
-          ? SvgPicture.asset(_src, width: width, height: height, fit: fit ?? BoxFit.contain)
-          : Image.asset(_src, width: width, height: height, fit: fit, errorBuilder: (_, _, _) => _fallback(context));
+          ? SvgPicture.asset(
+              _src,
+              width: width,
+              height: height,
+              fit: fit ?? BoxFit.contain,
+            )
+          : Image.asset(
+              _src,
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: (_, _, _) => _fallback(context),
+            );
     }
     if (_isNetwork) {
       if (_isSvg) {

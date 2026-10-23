@@ -288,5 +288,14 @@
   "sort_price_asc": "Price: low to high",
   "sort_price_desc": "Price: high to low",
   "sort_rating": "Top rated",
-  "sort_recommended": "Recommended"
+  "sort_recommended": "Recommended",
+  "a11y_back": "Back",
+  "a11y_add_favorite": "Add to favorites",
+  "a11y_remove_favorite": "Remove from favorites",
+  "a11y_add_to_cart": "Add {} to cart",
+  "a11y_cart_items": "Cart, {} items",
+  "a11y_notifications": "Notifications",
+  "a11y_increase_qty": "Increase quantity",
+  "a11y_decrease_qty": "Decrease quantity",
+  "a11y_share": "Share"
 }

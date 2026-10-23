@@ -288,5 +288,14 @@
   "sort_price_asc": "السعر: من الأقل للأعلى",
   "sort_price_desc": "السعر: من الأعلى للأقل",
   "sort_rating": "الأعلى تقييماً",
-  "sort_recommended": "المقترح"
+  "sort_recommended": "المقترح",
+  "a11y_back": "رجوع",
+  "a11y_add_favorite": "إضافة إلى المفضلة",
+  "a11y_remove_favorite": "إزالة من المفضلة",
+  "a11y_add_to_cart": "أضف {} إلى السلة",
+  "a11y_cart_items": "السلة، {} عناصر",
+  "a11y_notifications": "الإشعارات",
+  "a11y_increase_qty": "زيادة الكمية",
+  "a11y_decrease_qty": "تقليل الكمية",
+  "a11y_share": "مشاركة"
 }
