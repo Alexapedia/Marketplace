@@ -101,7 +101,10 @@ export async function bootApp(
 
   return {
     app,
-    http: () => request(app.getHttpServer()),
+    // Each test request looks like a distinct client (via the trusted
+    // loopback proxy) so suites don't trip the per-IP rate limits; tests that
+    // exercise throttling set their own X-Forwarded-For.
+    http: () => withClientIp(request(app.getHttpServer())),
     tenantId,
     inTenant,
     model,
@@ -148,4 +151,14 @@ export async function createProduct(
       status: 'published',
     });
   });
+}
+
+function withClientIp(agent: ReturnType<typeof request>): ReturnType<typeof request> {
+  const ip = () =>
+    `198.51.100.${Math.floor(Math.random() * 250) + 1}`;
+  for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {
+    const original = agent[method].bind(agent);
+    (agent as any)[method] = (url: string) => original(url).set('X-Forwarded-For', ip());
+  }
+  return agent;
 }
