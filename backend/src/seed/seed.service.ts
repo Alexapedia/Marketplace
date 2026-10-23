@@ -18,6 +18,7 @@ import {
 } from '../schemas/platform-user.schema';
 import { TenantContext } from '../tenant/tenant.context';
 import { TenantService } from '../tenant/tenant.service';
+import { resolveSeedPassword } from './seed-credentials';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
@@ -77,6 +78,22 @@ export class SeedService implements OnApplicationBootstrap {
     });
   }
 
+  private seedPassword(key: string, fallback: string): string | null {
+    const password = resolveSeedPassword(
+      {
+        NODE_ENV: this.config.get<string>('NODE_ENV'),
+        value: this.config.get<string>(key),
+      },
+      fallback,
+    );
+    if (!password) {
+      this.logger.error(
+        `${key} is missing or uses the public default; account not seeded. Set a strong ${key} and restart.`,
+      );
+    }
+    return password;
+  }
+
   private async backfillTenantId(tenantId: string) {
     const skip = new Set(['tenants', 'platformusers', 'platformaudits', 'platformevents']);
     const collections = await this.connection.db!.listCollections().toArray();
@@ -114,10 +131,10 @@ export class SeedService implements OnApplicationBootstrap {
     const email = (
       this.config.get<string>('SEED_HOLDER_EMAIL') || 'holder@placemarket.com'
     ).toLowerCase();
-    const password =
-      this.config.get<string>('SEED_HOLDER_PASSWORD') || 'Holder@123456';
     const existing = await this.platformUsers.findOne({ email });
     if (existing) return;
+    const password = this.seedPassword('SEED_HOLDER_PASSWORD', 'Holder@123456');
+    if (!password) return;
     await this.platformUsers.create({
       name: 'Project Holder',
       email,
@@ -229,12 +246,12 @@ export class SeedService implements OnApplicationBootstrap {
     const email = (
       this.config.get<string>('SEED_ADMIN_EMAIL') || 'admin@placemarket.com'
     ).toLowerCase();
-    const password =
-      this.config.get<string>('SEED_ADMIN_PASSWORD') || 'Admin@123456';
     const existing = await this.userModel.findOne({ email });
     if (existing) {
       return;
     }
+    const password = this.seedPassword('SEED_ADMIN_PASSWORD', 'Admin@123456');
+    if (!password) return;
     await this.userModel.create({
       name: 'PlaceMarket Admin',
       email,
