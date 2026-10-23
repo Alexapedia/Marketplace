@@ -24,7 +24,7 @@ export interface TestCtx {
     name?: string;
   }): Promise<{ user: any; token: string }>;
   tokenFor(user: any): string;
-  close(): Promise<void>;
+  close(opts?: { keepDatabase?: boolean }): Promise<void>;
 }
 
 export async function bootApp(
@@ -110,8 +110,10 @@ export async function bootApp(
     model,
     createUser,
     tokenFor,
-    close: async () => {
-      await app.get<Connection>(getConnectionToken()).dropDatabase();
+    close: async (opts?: { keepDatabase?: boolean }) => {
+      if (!opts?.keepDatabase) {
+        await app.get<Connection>(getConnectionToken()).dropDatabase();
+      }
       await app.close();
       for (const key of Object.keys(process.env)) {
         if (!(key in envSnapshot)) delete process.env[key];

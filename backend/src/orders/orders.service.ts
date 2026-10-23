@@ -18,6 +18,7 @@ import { ORDER_STATUSES, OrderStatus } from '../common/constants';
 import { canTransition } from './order-status';
 import { paginationMeta } from '../common/dto/pagination.dto';
 import { generateOrderNumber, toObjectId, searchRegex } from '../common/utils/mongo';
+import { runMigrationOnce } from '../database/migrations';
 import { NotificationsService } from '../notifications/notifications.service';
 import { Order, OrderDocument, OrderItem } from '../schemas/order.schema';
 import { Product, ProductDocument } from '../schemas/product.schema';
@@ -47,15 +48,17 @@ export class OrdersService implements OnModuleInit {
 
   async onModuleInit() {
     await TenantContext.run({ kind: 'platform' }, async () => {
-      await this.orderModel.updateMany(
-        { $or: [{ idempotencyKey: null }, { idempotencyKey: '' }] },
-        { $unset: { idempotencyKey: 1 } },
-      );
-      try {
-        await this.orderModel.collection.dropIndex('userId_1_idempotencyKey_1');
-      } catch {
-        // Replaced by a partial unique index below.
-      }
+      await runMigrationOnce(this.orderModel.db, 'orders-idempotency-v1', async () => {
+        await this.orderModel.updateMany(
+          { $or: [{ idempotencyKey: null }, { idempotencyKey: '' }] },
+          { $unset: { idempotencyKey: 1 } },
+        );
+        try {
+          await this.orderModel.collection.dropIndex('userId_1_idempotencyKey_1');
+        } catch {
+          // Replaced by a partial unique index (syncIndexes below).
+        }
+      });
       await this.orderModel.syncIndexes();
     });
   }

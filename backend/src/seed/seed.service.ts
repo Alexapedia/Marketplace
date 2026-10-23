@@ -19,6 +19,7 @@ import {
 import { TenantContext } from '../tenant/tenant.context';
 import { TenantService } from '../tenant/tenant.service';
 import { resolveSeedPassword } from './seed-credentials';
+import { MIGRATIONS_COLLECTION, runMigrationOnce } from '../database/migrations';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
@@ -51,8 +52,10 @@ export class SeedService implements OnApplicationBootstrap {
     const tenant = await this.tenants.ensureDefault();
     const tenantId = String(tenant._id);
     await TenantContext.run({ kind: 'platform' }, async () => {
-      await this.dropLegacyIndexes();
-      await this.backfillTenantId(tenantId);
+      await runMigrationOnce(this.connection, 'boot-v1', async () => {
+        await this.dropLegacyIndexes();
+        await this.backfillTenantId(tenantId);
+      });
       await this.userModel.syncIndexes();
       await this.seedPlatformOwner();
     });
@@ -95,7 +98,13 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   private async backfillTenantId(tenantId: string) {
-    const skip = new Set(['tenants', 'platformusers', 'platformaudits', 'platformevents']);
+    const skip = new Set([
+      'tenants',
+      'platformusers',
+      'platformaudits',
+      'platformevents',
+      MIGRATIONS_COLLECTION,
+    ]);
     const collections = await this.connection.db!.listCollections().toArray();
     for (const col of collections) {
       if (skip.has(col.name) || col.name.startsWith('system.')) continue;
