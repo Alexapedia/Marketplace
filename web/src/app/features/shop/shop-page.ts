@@ -19,12 +19,17 @@ export const SORTS = [
   { value: '-ratingAvg', key: 'sortRating' },
 ];
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-shop-page',
-  imports: [FormsModule, PageBar, ProductCard, TranslatePipe, LocPipe, AsyncState],
+  imports: [FormsModule, PageBar, ProductCard, TranslatePipe, LocPipe, AsyncState, Icon, MAISON],
   templateUrl: './shop-page.html',
 })
 export class ShopPage implements OnInit {
+  /** Presentation only. */
+  readonly filtersOpen = signal(false);
   private readonly api = inject(ApiClient);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

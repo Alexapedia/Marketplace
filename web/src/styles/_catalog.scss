@@ -248,7 +248,7 @@ app-product-card {
     color: var(--m-ink-muted);
   }
   .field select,
-  .field input:not([type='checkbox']) {
+  .field input:not([type='checkbox']):not([type='radio']):not([type='file']) {
     min-height: 44px;
     padding-block: 8px;
   }
@@ -618,5 +618,38 @@ app-product-card {
   input:not([type='file']) {
     flex: 1;
     min-width: 180px;
+  }
+}
+
+.filters-toggle .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--m-accent);
+}
+.pd-state [aria-busy] {
+  display: none;
+}
+.gallery .sale {
+  top: 18px;
+  inset-inline-start: 18px;
+}
+.gallery-col {
+  min-width: 0;
+}
+.sk.gallery {
+  border: 0;
+}
+.review-login {
+  margin-bottom: 24px;
+}
+.empty.compact {
+  padding: 32px 0;
+  grid-auto-flow: column;
+  justify-content: start;
+  align-items: center;
+  .empty-mark {
+    width: 48px;
+    height: 48px;
   }
 }
