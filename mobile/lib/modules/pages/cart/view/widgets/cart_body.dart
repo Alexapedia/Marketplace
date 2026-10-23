@@ -87,24 +87,7 @@ class CartBody extends StatelessWidget {
                     ),
                   ],
                 )
-              : Column(
-                  children: [
-                    list,
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 12,
-                            offset: const Offset(0, -4),
-                          ),
-                        ],
-                      ),
-                      child: summary,
-                    ),
-                  ],
-                ),
+              : Column(children: [list, summary]),
         );
       },
     );

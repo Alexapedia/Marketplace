@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../config/theme/tokens.dart';
 import '../../../../../core/components/app_button.dart';
+import '../../../../../core/components/glass_surface.dart';
 import '../../../../../core/models/color_model.dart';
 import '../../../../../core/utils/constant/app_string.dart';
 
@@ -23,66 +24,76 @@ class CartSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<AppColors>()!.gold;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-      child: Column(
-        mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).extension<AppColors>()!.roseSoftLight,
-              borderRadius: BorderRadius.circular(12),
+    final content = SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+        child: Column(
+          mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).extension<AppColors>()!.roseSoftLight,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.payments_outlined,
+                    size: 18,
+                    color: Theme.of(context).extension<AppColors>()!.goldText,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'cod'.tr(),
+                    style: TextStyle(
+                      color: gold,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            const SizedBox(height: 12),
+            Row(
               children: [
-                Icon(
-                  Icons.payments_outlined,
-                  size: 18,
-                  color: Theme.of(context).extension<AppColors>()!.goldText,
-                ),
-                const SizedBox(width: AppSpacing.xs),
                 Text(
-                  'cod'.tr(),
+                  'total'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const Spacer(),
+                Text(
+                  '${total.toStringAsFixed(0)} ${AppString.currency}',
                   style: TextStyle(
                     color: gold,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                'total'.tr(),
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const Spacer(),
-              Text(
-                '${total.toStringAsFixed(0)} ${AppString.currency}',
-                style: TextStyle(
-                  color: gold,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (expand) const Spacer(),
-          AppButton(
-            onTap: canCheckout
-                ? () => context.pushNamed(AppRouterKeys.checkout)
-                : null,
-            title: 'checkout'.tr(),
-          ),
-        ],
+            const SizedBox(height: 12),
+            if (expand) const Spacer(),
+            AppButton(
+              onTap: canCheckout
+                  ? () => context.pushNamed(AppRouterKeys.checkout)
+                  : null,
+              title: 'checkout'.tr(),
+            ),
+          ],
+        ),
       ),
+    );
+    // Side panel (tablet/desktop) keeps its own surface; the bottom bar is glass.
+    if (expand) return content;
+    return GlassSurface(
+      elevated: true,
+      borderRadius: AppRadius.sheet,
+      child: content,
     );
   }
 }
