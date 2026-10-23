@@ -1,6 +1,6 @@
 .hint {
   margin: 0 0 14px;
-  color: var(--zz-muted);
+  color: var(--m-ink-muted);
 }
 
 .layout {
@@ -12,23 +12,24 @@
 
 .rail,
 .editor {
-  background: var(--zz-white);
-  border: 1px solid var(--zz-line);
-  border-radius: 16px;
+  background: var(--m-surface);
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-lg);
+  box-shadow: var(--m-shadow-1), var(--m-highlight);
 }
 
 .rail {
   padding: 12px;
   position: sticky;
-  top: 12px;
+  top: 88px;
 }
 
 .rail-h {
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--zz-muted);
+  color: var(--m-ink-muted);
   padding: 6px 10px 10px;
 }
 
@@ -41,23 +42,26 @@
   border: 0;
   background: transparent;
   color: inherit;
-  border-radius: 12px;
-  padding: 10px 12px;
+  border-radius: var(--m-r-pill);
+  min-height: 44px;
+  padding: 8px 14px;
+  font: inherit;
   cursor: pointer;
   text-align: start;
+  transition: background-color var(--m-dur-fast) var(--m-ease-out);
 }
 
 .role-btn:hover {
-  background: color-mix(in srgb, var(--zz-navy) 6%, transparent);
+  background: color-mix(in srgb, var(--m-ink) 5%, transparent);
 }
 
 .role-btn.on {
-  background: #071345;
-  color: #fff;
+  background: var(--m-accent);
+  color: var(--m-on-accent);
 }
 
 .role-name {
-  font-weight: 700;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
@@ -69,7 +73,7 @@
 }
 
 .editor {
-  padding: 16px 18px 20px;
+  padding: 24px;
 }
 
 .editor-h {
@@ -83,12 +87,15 @@
 
 .editor-h h3 {
   margin: 0;
+  font-family: var(--m-font-display);
+  font-size: 24px;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
 .editor-h p {
   margin: 4px 0 0;
-  color: var(--zz-muted);
+  color: var(--m-ink-muted);
   font-size: 13px;
 }
 
@@ -99,16 +106,13 @@
 }
 
 .banner {
-  background: color-mix(in srgb, #c9a45c 16%, transparent);
-  color: var(--zz-navy);
-  border-radius: 12px;
-  padding: 10px 12px;
+  background: var(--m-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--m-accent) 30%, transparent);
+  color: var(--m-ink);
+  border-radius: var(--m-r-sm);
+  padding: 12px 14px;
   margin-bottom: 14px;
   font-size: 13px;
-}
-
-body.dark-theme .banner {
-  color: #f4f6fb;
 }
 
 .search {
@@ -126,14 +130,15 @@ body.dark-theme .banner {
 }
 
 .group {
-  border: 1px solid var(--zz-line);
-  border-radius: 14px;
-  padding: 8px 10px 10px;
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-md);
+  padding: 12px 12px 14px;
 }
 
 .group-h {
-  padding: 2px 6px 8px;
-  font-weight: 800;
+  padding: 2px 6px 10px;
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 .perms {
@@ -147,13 +152,16 @@ body.dark-theme .banner {
   align-items: flex-start;
   margin: 0;
   padding: 4px 8px;
-  border-radius: 12px;
+  border-radius: var(--m-r-sm);
   border: 1px solid transparent;
+  transition:
+    background-color var(--m-dur-fast) var(--m-ease-out),
+    border-color var(--m-dur-fast) var(--m-ease-out);
 }
 
 .perm.on {
-  background: color-mix(in srgb, #c9a45c 14%, transparent);
-  border-color: color-mix(in srgb, #c9a45c 35%, transparent);
+  background: var(--m-accent-soft);
+  border-color: color-mix(in srgb, var(--m-accent) 35%, transparent);
 }
 
 .perm-copy {
@@ -165,11 +173,11 @@ body.dark-theme .banner {
 
 .perm-copy strong {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .perm-copy small {
-  color: var(--zz-muted);
+  color: var(--m-ink-muted);
   font-size: 11px;
 }
 
