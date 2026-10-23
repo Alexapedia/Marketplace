@@ -46,8 +46,8 @@ class StarRating extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             value.toStringAsFixed(1),
-            style: TextStyle(
-              fontSize: size * 0.78,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontSize: size * 0.78 < 12 ? 12 : size * 0.78,
               fontWeight: FontWeight.w800,
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -55,9 +55,9 @@ class StarRating extends StatelessWidget {
           if (count != null)
             Text(
               ' ($count)',
-              style: TextStyle(
-                fontSize: size * 0.7,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                fontSize: size * 0.7 < 12 ? 12 : size * 0.7,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
         ],

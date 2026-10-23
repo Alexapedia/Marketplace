@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/color_model.dart';
+import '../../config/theme/tokens.dart';
 
 class OrderStatusTimeline extends StatelessWidget {
   const OrderStatusTimeline({
@@ -111,14 +112,13 @@ class _Step extends StatelessWidget {
                   )
                 : null,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
               height: 1.2,
               fontWeight: current || done ? FontWeight.w800 : FontWeight.w600,
               color: Theme.of(context).colorScheme.onSurface,

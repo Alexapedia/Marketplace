@@ -23,9 +23,13 @@ class CartBtn extends StatelessWidget {
             excludeSemantics: true,
             child: badges.Badge(
               showBadge: state.cartItemsCount > 0,
+              badgeStyle: const badges.BadgeStyle(padding: EdgeInsets.all(5)),
               badgeContent: Text(
                 '${state.cartItemsCount}',
-                style: const TextStyle(fontSize: 10, color: Colors.white),
+                style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: Colors.white, height: 1),
               ),
               child: const Icon(Icons.shopping_bag_outlined),
             ),

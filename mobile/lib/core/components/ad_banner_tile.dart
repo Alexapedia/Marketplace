@@ -137,9 +137,8 @@ class AdBannerTile extends StatelessWidget {
                               ),
                               child: Text(
                                 'shop'.tr(),
-                                style: const TextStyle(
-                                  color: Color(0xFF071345),
-                                  fontSize: 11,
+                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: const Color(0xFF071345),
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),

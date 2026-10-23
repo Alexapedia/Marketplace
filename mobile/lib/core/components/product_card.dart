@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../config/app_controller/app_controller_cubit.dart';
 import '../../config/routing/app_router_keys.dart';
+import '../../config/theme/tokens.dart';
 import '../models/catalog_models.dart';
 import '../models/color_model.dart';
 import '../utils/constant/app_string.dart';
@@ -29,6 +30,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final gold = theme.extension<AppColors>()!.gold;
+    final goldText = theme.extension<AppColors>()!.goldText;
     final imageTag = '$heroScope-img-${product.id}';
     final nameTag = '$heroScope-name-${product.id}';
     return RepaintBoundary(
@@ -101,8 +103,7 @@ class ProductCard extends StatelessWidget {
                             ),
                             child: Text(
                               'sale'.tr(),
-                              style: const TextStyle(
-                                fontSize: 10,
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                               ),
@@ -161,7 +162,12 @@ class ProductCard extends StatelessWidget {
                   child: Stack(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.sm,
+                          AppSpacing.xs,
+                          AppSpacing.sm,
+                          10,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -169,7 +175,12 @@ class ProductCard extends StatelessWidget {
                               tag: nameTag,
                               child: Text(
                                 product.name.isEmpty ? ' ' : product.name,
-                                maxLines: 2,
+                                // Large text scales: one line so the price row still fits.
+                                maxLines:
+                                    MediaQuery.textScalerOf(context).scale(1) >
+                                        1.3
+                                    ? 1
+                                    : 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
@@ -179,7 +190,7 @@ class ProductCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xxs),
                             StarRating(
                               value: product.ratingAvg,
                               size: 12,
@@ -197,22 +208,28 @@ class ProductCard extends StatelessWidget {
                                         '${product.displayPrice.toStringAsFixed(0)} ${AppString.currency}',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: gold,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 14,
-                                        ),
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              color: goldText,
+                                              fontWeight: FontWeight.w800,
+                                            ),
                                       ),
-                                      if (product.isOnSale)
+                                      // Dropped at large text scales; the sale price remains.
+                                      if (product.isOnSale &&
+                                          MediaQuery.textScalerOf(
+                                                context,
+                                              ).scale(1) <=
+                                              1.3)
                                         Text(
                                           product.price.toStringAsFixed(0),
-                                          style: TextStyle(
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                            color: theme.colorScheme.onSurface
-                                                .withValues(alpha: 0.4),
-                                            fontSize: 11,
-                                          ),
+                                          style: theme.textTheme.labelMedium
+                                              ?.copyWith(
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                color: theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
                                         ),
                                     ],
                                   ),

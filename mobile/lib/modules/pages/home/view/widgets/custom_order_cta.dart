@@ -52,7 +52,10 @@ class CustomOrderCta extends StatelessWidget {
                 ),
                 child: Text(
                   'custom_order'.tr(),
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
             ],

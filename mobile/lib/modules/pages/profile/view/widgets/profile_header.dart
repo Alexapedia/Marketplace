@@ -68,20 +68,15 @@ class ProfileHeader extends StatelessWidget {
                   if (!guest && state.user != null)
                     Text(
                       state.user!.email,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.5),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   if (!guest)
                     Text(
                       'edit_profile'.tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).extension<AppColors>()!.gold,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).extension<AppColors>()!.goldText,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

@@ -62,9 +62,10 @@ class AddressCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             'default_address'.tr(),
-                            style: TextStyle(
-                              color: gold,
-                              fontSize: 11,
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .extension<AppColors>()!
+                                  .goldText,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -74,12 +75,8 @@ class AddressCard extends StatelessWidget {
                     Text(address.fullName),
                     Text(
                       address.display,
-                      style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.55),
-                        fontSize: 12,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

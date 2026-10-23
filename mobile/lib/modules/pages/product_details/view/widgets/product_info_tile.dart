@@ -22,8 +22,7 @@ class ProductInfoTile extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 10,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 height: 1.3,
                 fontWeight: FontWeight.w600,
               ),

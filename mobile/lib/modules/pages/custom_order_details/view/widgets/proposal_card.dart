@@ -37,17 +37,15 @@ class ProposalCard extends StatelessWidget {
         children: [
           Text(
             'quote_from_support'.tr(),
-            style: TextStyle(
-              fontSize: 11,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           Text(
             '${proposal.price.toStringAsFixed(0)} ${AppString.currency}',
-            style: TextStyle(
-              fontSize: 22,
+            style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
-              color: gold,
+              color: theme.extension<AppColors>()?.goldText ?? gold,
             ),
           ),
           if (proposal.notes.isNotEmpty) Text(proposal.notes),

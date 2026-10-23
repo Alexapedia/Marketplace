@@ -23,9 +23,13 @@ class NotifBtn extends StatelessWidget {
         builder: (context, state) {
           return badges.Badge(
             showBadge: state.countOfUnReadNot > 0,
+            badgeStyle: const badges.BadgeStyle(padding: EdgeInsets.all(5)),
             badgeContent: Text(
               '${state.countOfUnReadNot}',
-              style: const TextStyle(fontSize: 10, color: Colors.white),
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: Colors.white, height: 1),
             ),
             child: const Icon(Icons.notifications_none_rounded),
           );
