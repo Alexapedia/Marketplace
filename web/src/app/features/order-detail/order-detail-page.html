@@ -1,77 +1,110 @@
-<div class="w">
+<div class="w page">
   @if (order(); as o) {
     <app-page-bar [title]="('orderDetails' | t) + ' #' + (o.orderNumber || (o._id || '').slice(-8))" />
-    <div class="panel">
-      <div class="row-h">
-        <span class="status-pill">{{ statusLabel() }}</span>
-        <span class="muted">{{ o.createdAt | date: 'medium' : undefined : i18n.lang() }}</span>
-      </div>
-      <app-order-timeline [status]="status()" />
-      @if (o.rejectionReason) {
-        <div class="error">{{ o.rejectionReason }}</div>
-      }
-
-      @if (canCancel()) {
-        <button class="btn navy" type="button" [disabled]="busy()" (click)="cancel()">{{ 'cancelOrder' | t }}</button>
-      }
-
-      <h2 class="sec">{{ 'items' | t }}</h2>
-      @for (item of o.items || []; track $index) {
-        <div class="item-row">
-          @if (item.image) {
-            <img [src]="media(item.image)" alt="" />
-          } @else {
-            <div class="cart-ph"></div>
-          }
-          <div>
-            <a [routerLink]="['/product', itemPid(item)]"><strong>{{ item.nameSnapshot || '—' }}</strong></a>
-            <div class="muted">
-              {{ item.unitPrice ?? 0 }} × {{ item.quantity ?? 1 }}
-              @if (item.variant) { · {{ item.variant }} }
-              @if (item.size) { · {{ item.size }} }
-            </div>
+    <div class="od-grid">
+      <div class="od-main">
+        <section class="panel m-enter">
+          <div class="panel-head">
+            <span class="status-pill" [attr.data-s]="status()">{{ statusLabel() }}</span>
+            <span class="muted od-date">{{ o.createdAt | date: 'medium' : undefined : i18n.lang() }}</span>
           </div>
-        </div>
-      }
-
-      <app-price-summary
-        [subtotal]="subtotal(o)"
-        [discount]="o.discount ?? 0"
-        [deliveryFee]="o.deliveryFee ?? 0"
-        [total]="o.total ?? o.grandTotal ?? 0"
-      />
-      <div class="cod">💵 {{ 'cod' | t }}</div>
-
-      @if (o.address) {
-        <h2 class="sec">{{ 'shippingTo' | t }}</h2>
-        <div class="addr-box">
-          <strong>{{ o.address.fullName }}</strong> · {{ o.address.phone }}<br />
-          {{ o.address.city }} · {{ o.address.street }}
-          @if (o.address.notes) {
-            <br /><span class="muted">{{ o.address.notes }}</span>
+          <app-order-timeline [status]="status()" />
+          @if (o.rejectionReason) {
+            <div class="error">{{ o.rejectionReason }}</div>
           }
-        </div>
-      }
-      @if (o.notes) {
-        <p class="muted" style="margin-top: 12px">{{ 'notes' | t }}: {{ o.notes }}</p>
-      }
+          @if (canCancel()) {
+            <button class="btn text-danger" type="button" [disabled]="busy()" (click)="cancel()">
+              <m-icon name="close" />
+              {{ 'cancelOrder' | t }}
+            </button>
+          }
+        </section>
 
-      <div style="margin-top: 18px">
-        @if (o.rating) {
-          <app-stars [value]="o.rating" />
-        } @else if (canRate()) {
-          <p class="muted">{{ 'rateOrderHint' | t }}</p>
-          <form class="rate-mini" (submit)="submitRating($event)">
-            <select [(ngModel)]="rating" name="rating" [attr.aria-label]="'rateOrder' | t">
-              @for (n of [5, 4, 3, 2, 1]; track n) {
-                <option [value]="n">{{ n }}</option>
-              }
-            </select>
-            <input [(ngModel)]="comment" name="comment" [placeholder]="'comment' | t" />
-            <button class="btn" type="submit">{{ 'rateOrder' | t }}</button>
-          </form>
-        }
+        <section class="panel" [mReveal]="1">
+          <h2 class="panel-title">{{ 'items' | t }}</h2>
+          <span class="m-rule" aria-hidden="true"></span>
+          <div class="mini-items">
+            @for (item of o.items || []; track $index) {
+              <div class="item-row">
+                <span class="item-pic">
+                  @if (item.image) {
+                    <img [src]="media(item.image)" alt="" />
+                  } @else {
+                    <span class="cart-ph"></span>
+                  }
+                </span>
+                <div>
+                  <a [routerLink]="['/product', itemPid(item)]"><strong>{{ item.nameSnapshot || '—' }}</strong></a>
+                  <div class="muted">
+                    <span class="m-num">{{ item.unitPrice ?? 0 }} × {{ item.quantity ?? 1 }}</span>
+                    @if (item.variant) { · {{ item.variant }} }
+                    @if (item.size) { · {{ item.size }} }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="panel" [mReveal]="2">
+          @if (o.rating) {
+            <div class="rated">
+              <h2 class="panel-title">{{ 'rateOrder' | t }}</h2>
+              <app-stars [value]="o.rating" />
+            </div>
+          } @else if (canRate()) {
+            <h2 class="panel-title">{{ 'rateOrder' | t }}</h2>
+            <p class="muted">{{ 'rateOrderHint' | t }}</p>
+            <form class="rate-mini" (submit)="submitRating($event)">
+              <select [(ngModel)]="rating" name="rating" [attr.aria-label]="'rateOrder' | t">
+                @for (n of [5, 4, 3, 2, 1]; track n) {
+                  <option [value]="n">{{ n }}</option>
+                }
+              </select>
+              <input [(ngModel)]="comment" name="comment" [placeholder]="'comment' | t" [attr.aria-label]="'comment' | t" />
+              <button class="btn" type="submit">{{ 'rateOrder' | t }}</button>
+            </form>
+          } @else {
+            <p class="muted od-cod"><m-icon name="shield" />{{ 'trustCodSub' | t }}</p>
+          }
+        </section>
       </div>
+
+      <aside class="od-side">
+        <section class="panel summary-card" [mReveal]="1">
+          <h2 class="panel-title">{{ 'orderSummary' | t }}</h2>
+          <span class="m-rule" aria-hidden="true"></span>
+          <app-price-summary
+            [subtotal]="subtotal(o)"
+            [discount]="o.discount ?? 0"
+            [deliveryFee]="o.deliveryFee ?? 0"
+            [total]="o.total ?? o.grandTotal ?? 0"
+          />
+          <div class="cod"><m-icon name="cash" />{{ 'cod' | t }}</div>
+        </section>
+
+        @if (o.address || o.notes) {
+          <section class="panel" [mReveal]="2">
+            @if (o.address) {
+              <h2 class="panel-title">{{ 'shippingTo' | t }}</h2>
+              <span class="m-rule" aria-hidden="true"></span>
+              <div class="addr-box">
+                <span class="addr-ico"><m-icon name="pin" /></span>
+                <div>
+                  <strong>{{ o.address.fullName }}</strong> · <span class="m-num">{{ o.address.phone }}</span><br />
+                  {{ o.address.city }} · {{ o.address.street }}
+                  @if (o.address.notes) {
+                    <br /><span class="muted">{{ o.address.notes }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (o.notes) {
+              <p class="muted od-notes">{{ 'notes' | t }}: {{ o.notes }}</p>
+            }
+          </section>
+        }
+      </aside>
     </div>
   } @else {
     <app-page-bar [title]="('orderDetails' | t)" />

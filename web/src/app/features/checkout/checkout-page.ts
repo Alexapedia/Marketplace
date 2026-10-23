@@ -12,9 +12,12 @@ import { PriceSummary } from '../../shared/price-summary';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/toast/toast.service';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-checkout-page',
-  imports: [FormsModule, RouterLink, PageBar, TranslatePipe, PriceSummary, AsyncState],
+  imports: [FormsModule, RouterLink, PageBar, TranslatePipe, PriceSummary, AsyncState, Icon, MAISON],
   templateUrl: './checkout-page.html',
 })
 export class CheckoutPage implements OnInit {

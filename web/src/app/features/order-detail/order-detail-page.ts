@@ -14,9 +14,12 @@ import { DialogService } from '../../core/dialog/dialog.service';
 import { AsyncState } from '../../shared/async-state';
 import { PriceSummary } from '../../shared/price-summary';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-order-detail-page',
-  imports: [DatePipe, RouterLink, FormsModule, PageBar, OrderTimeline, Stars, TranslatePipe, AsyncState, PriceSummary],
+  imports: [DatePipe, RouterLink, FormsModule, PageBar, OrderTimeline, Stars, TranslatePipe, AsyncState, PriceSummary, Icon, MAISON],
   templateUrl: './order-detail-page.html',
 })
 export class OrderDetailPage implements OnInit {
