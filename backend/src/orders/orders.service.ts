@@ -31,6 +31,8 @@ import {
 
 @Injectable()
 export class OrdersService implements OnModuleInit {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @InjectModel(Product.name)
@@ -172,7 +174,14 @@ export class OrdersService implements OnModuleInit {
               return dup;
             }
           }
-          if (attempt === 5) {
+          // Retry only a clashing order number; anything else is a real error.
+          const keyPattern = (err as { keyPattern?: Record<string, unknown> })
+            .keyPattern;
+          if (
+            (err as { code?: number }).code !== 11000 ||
+            !keyPattern?.orderNumber ||
+            attempt === 5
+          ) {
             throw err;
           }
         }
@@ -282,7 +291,7 @@ export class OrdersService implements OnModuleInit {
         });
         if (existing) return existing;
       }
-      new Logger(OrdersService.name).error(
+      this.logger.error(
         'createFromProposal failed',
         err instanceof Error ? err.stack : String(err),
       );
