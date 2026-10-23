@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/responsive.dart';
@@ -46,16 +47,21 @@ class CategoriesBody extends StatelessWidget {
               crossAxisCount: context.catalogColumns.clamp(2, 4),
               mainAxisExtent: ResponsiveUtils.byDevice(
                 context: context,
-                mobileLandscape: 160,
-                mobile: 180,
-                tablet: 180,
-                desktop: 180,
+                mobileLandscape: 180,
+                mobile: 210,
+                tablet: 240,
+                desktop: 260,
               ),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
             ),
             itemCount: items.length,
-            itemBuilder: (context, i) => CategoryTile(category: items[i]),
+            itemBuilder: (context, i) => loading
+                ? CategoryTile(category: items[i])
+                : Reveal(
+                    index: i,
+                    child: CategoryTile(category: items[i]),
+                  ),
           ),
         );
       },
