@@ -153,7 +153,7 @@ export class DashboardPage implements OnInit {
   });
 
   label(value: string): string {
-    const key = `dashboard.st.${value}`;
+    const key = `orderStatus.${value}`;
     const translated = this.i18n.t(key);
     return translated === key ? value.replaceAll('_', ' ') : translated;
   }
