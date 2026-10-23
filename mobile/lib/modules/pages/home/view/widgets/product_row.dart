@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/components/product_card.dart';
 import '../../../../../core/models/catalog_models.dart';
-import '../../../../../config/theme/tokens.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/utils/functions/motion.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 
@@ -18,6 +17,7 @@ class ProductRow extends StatelessWidget {
     required this.query,
     required this.heroScope,
     this.columns,
+    this.eyebrow,
   });
 
   final String title;
@@ -26,25 +26,16 @@ class ProductRow extends StatelessWidget {
   final Map<String, dynamic> query;
   final String heroScope;
   final int? columns;
+  final String? eyebrow;
 
-  /// Staggered fade + slide for the first few cards. Keyed so a rebuild of the
-  /// same item keeps its controller and does not replay; skipped entirely
-  /// under reduce motion and while skeletons are showing.
+  /// Staggered Maison entrance for the first cards (60ms, max 8). Keyed so
+  /// a rebuild of the same item does not replay; skipped under reduced
+  /// motion and while skeletons are showing.
   Widget _entrance(BuildContext context, int i, Widget child) {
-    if (context.reduceMotion || loading || i >= 8) return child;
-    return Animate(
+    if (context.reduceMotion || loading) return child;
+    return KeyedSubtree(
       key: ValueKey('$heroScope-$i-${products[i].id}'),
-      delay: (40 * i).ms,
-      effects: [
-        FadeEffect(duration: 300.ms, curve: AppCurves.standard),
-        SlideEffect(
-          begin: const Offset(0, 0.06),
-          end: Offset.zero,
-          duration: 300.ms,
-          curve: AppCurves.standard,
-        ),
-      ],
-      child: child,
+      child: Reveal(index: i, child: child),
     );
   }
 
@@ -60,16 +51,17 @@ class ProductRow extends StatelessWidget {
     final cols = (columns ?? context.catalogColumns).clamp(2, 4);
     final shown = items.take(cols * 2).toList();
     final cardHeight = context.byDevice(
-      mobile: 240,
-      mobileLandscape: 220,
-      tablet: 250,
-      desktop: 260,
+      mobile: 292,
+      mobileLandscape: 260,
+      tablet: 320,
+      desktop: 340,
     );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SectionHeader(
           title: title,
+          eyebrow: eyebrow,
           onSeeAll: () => context.pushNamed(
             AppRouterKeys.products,
             extra: {'query': query, 'title': title},
@@ -79,7 +71,7 @@ class ProductRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              const spacing = 10.0;
+              const spacing = 12.0;
               final itemWidth =
                   (constraints.maxWidth - spacing * (cols - 1)) / cols;
               return Wrap(
@@ -89,7 +81,11 @@ class ProductRow extends StatelessWidget {
                   for (var i = 0; i < shown.length; i++)
                     SizedBox(
                       width: itemWidth,
-                      height: cardHeight * 1.0,
+                      // Wide cells: keep the card proportional so the
+                      // text area does not open up.
+                      height: context.isMobile
+                          ? cardHeight * 1.0
+                          : (itemWidth * 1.55).clamp(260.0, cardHeight * 1.0),
                       child: _entrance(
                         context,
                         i,

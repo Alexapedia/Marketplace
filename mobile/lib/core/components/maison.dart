@@ -154,7 +154,7 @@ class MaisonSectionHeader extends StatelessWidget {
     this.eyebrow,
     this.onSeeAll,
     this.trailing,
-    this.padding = const EdgeInsetsDirectional.fromSTEB(16, 28, 8, 14),
+    this.padding = const EdgeInsetsDirectional.fromSTEB(16, 24, 8, 14),
   });
 
   final String title;
@@ -283,7 +283,7 @@ class BumpBadge extends StatelessWidget {
     final m = context.maison;
     final label = count > 99 ? '99+' : '$count';
     Widget badge = Container(
-      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+      constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
       padding: const EdgeInsets.symmetric(horizontal: 5),
       alignment: Alignment.center,
       decoration: BoxDecoration(
@@ -295,7 +295,7 @@ class BumpBadge extends StatelessWidget {
         label,
         style: TextStyle(
           color: m.onAccent,
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w700,
           height: 1.1,
         ).tabular,

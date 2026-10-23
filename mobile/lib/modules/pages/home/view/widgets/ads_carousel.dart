@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/components/ad_banner_tile.dart';
 import '../../../../../core/models/app_models.dart';
+import '../../../../../config/theme/maison.dart';
 import '../../../../../config/theme/tokens.dart';
 import '../../../../../core/utils/functions/motion.dart';
 import '../../../../../core/utils/functions/responsive.dart';
@@ -24,10 +25,10 @@ class AdsCarousel extends StatelessWidget {
       });
     }
     final height = context.byDevice(
-      mobileLandscape: context.isLandscape ? 150.0 : 176.0,
-      mobile: context.isLandscape ? 150.0 : 176.0,
-      tablet: context.isLandscape ? 118.0 : 210.0,
-      desktop: 236.0,
+      mobileLandscape: context.isLandscape ? 200.0 : 300.0,
+      mobile: context.isLandscape ? 200.0 : 300.0,
+      tablet: context.isLandscape ? 300.0 : 360.0,
+      desktop: 380.0,
     );
     return Padding(
       padding: EdgeInsets.fromLTRB(16, context.isCompactHeight ? 8 : 16, 16, 8),
@@ -42,13 +43,16 @@ class AdsCarousel extends StatelessWidget {
                   onPageChanged: (page) =>
                       pager.onPageChanged(page, fromUser: true),
                   itemCount: ads.length,
-                  itemBuilder: (context, i) =>
-                      AdBannerTile(ad: ads[i], height: height),
+                  itemBuilder: (context, i) => AdBannerTile(
+                    ad: ads[i],
+                    height: height,
+                    kenBurns: ads.length == 1,
+                  ),
                 ),
                 if (ads.length > 1)
                   PositionedDirectional(
-                    top: 0,
-                    end: 0,
+                    top: 8,
+                    end: 16,
                     child: _PauseButton(pager: pager),
                   ),
               ],
@@ -79,17 +83,17 @@ class AdsCarousel extends StatelessWidget {
                           height: 48,
                           child: Center(
                             child: AnimatedContainer(
-                              duration: context.motion(
-                                const Duration(milliseconds: 280),
-                              ),
+                              duration: context.motion(AppDurations.base),
+                              curve: AppCurves.easeOut,
                               margin: const EdgeInsets.symmetric(horizontal: 3),
                               width: selected ? 18 : 6,
                               height: 6,
                               decoration: BoxDecoration(
                                 color: selected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).colorScheme.primary
-                                          .withValues(alpha: 0.25),
+                                    ? context.maison.accentInk
+                                    : context.maison.inkMuted.withValues(
+                                        alpha: 0.3,
+                                      ),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                             ),
@@ -139,16 +143,18 @@ class _PauseButtonState extends State<_PauseButton> {
       child: IconButton(
         key: const ValueKey('carousel-pause'),
         style: IconButton.styleFrom(
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.surface.withValues(alpha: 0.7),
+          backgroundColor: Colors.black.withValues(alpha: 0.28),
+          foregroundColor: Colors.white,
           minimumSize: const Size(48, 48),
         ),
         onPressed: () {
           widget.pager.setRunning(!running);
           setState(() {});
         },
-        icon: Icon(running ? Icons.pause : Icons.play_arrow, size: 20),
+        icon: Icon(
+          running ? Icons.pause_rounded : Icons.play_arrow_rounded,
+          size: 20,
+        ),
       ),
     );
   }

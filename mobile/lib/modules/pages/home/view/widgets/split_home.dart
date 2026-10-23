@@ -46,6 +46,7 @@ class SplitHome extends StatelessWidget {
                   loading: loading,
                   query: const {'featured': true},
                   heroScope: 'featured',
+                  eyebrow: 'eyebrow_featured'.tr(),
                   columns: 2,
                 ),
                 ProductRow(
@@ -54,6 +55,7 @@ class SplitHome extends StatelessWidget {
                   loading: loading,
                   query: const {'newArrival': true},
                   heroScope: 'new',
+                  eyebrow: 'eyebrow_new'.tr(),
                   columns: 2,
                 ),
                 ProductRow(
@@ -62,6 +64,7 @@ class SplitHome extends StatelessWidget {
                   loading: loading,
                   query: const {'bestSeller': true},
                   heroScope: 'best',
+                  eyebrow: 'eyebrow_loved'.tr(),
                   columns: 2,
                 ),
               ],

@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/components/app_logo.dart';
 import '../../../../../core/models/app_models.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/tokens.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/ads_pager_cubit.dart';
 import 'ads_carousel.dart';
@@ -26,10 +28,22 @@ class AdsPart extends StatelessWidget {
             desktop: 200.0,
           ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: Theme.of(context).extension<AppColors>()!.brandGradient,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            color: context.maison.band,
           ),
-          child: const Center(child: AppLogo(height: 72, onDarkSurface: true)),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppLogo(
+                  height: 64,
+                  onDarkSurface: context.maison.onBand != Maison.inkLight,
+                ),
+                const SizedBox(height: 16),
+                const GoldRule(width: 72),
+              ],
+            ),
+          ),
         ),
       );
     }

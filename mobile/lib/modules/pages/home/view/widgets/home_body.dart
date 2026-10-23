@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/components/adaptive_page.dart';
 import '../../../../../core/components/app_logo.dart';
 import '../../../../../core/components/failed_shape.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../core/components/glass_surface.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/home_cubit.dart';
@@ -21,12 +21,10 @@ class HomeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
     final wideHeader = context.useNavRail;
     return Scaffold(
       appBar: wideHeader ? const WideAppBar() : null,
       body: RefreshIndicator(
-        color: gold,
         onRefresh: () => context.read<HomeCubit>().load(),
         child: BlocBuilder<HomeCubit, HomeState>(
           builder: (context, state) {
@@ -45,9 +43,16 @@ class HomeBody extends StatelessWidget {
               slivers: [
                 if (!wideHeader)
                   const SliverAppBar(
-                    floating: true,
-                    title: AppLogo(height: 32),
-                    actions: [CartBtn(), NotifBtn()],
+                    pinned: true,
+                    backgroundColor: Colors.transparent,
+                    flexibleSpace: GlassSurface(
+                      edge: GlassEdge.bottom,
+                      child: SizedBox.expand(),
+                    ),
+                    leadingWidth: 64,
+                    leading: NotifBtn(),
+                    title: AppLogo(height: 30),
+                    actions: [CartBtn(), SizedBox(width: 8)],
                   ),
                 if (failed)
                   SliverFillRemaining(

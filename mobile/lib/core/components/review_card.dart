@@ -46,7 +46,7 @@ class ReviewCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               review.comment,
-              maxLines: compact ? 4 : 8,
+              maxLines: compact ? 3 : 8,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(
                 height: 1.6,
