@@ -1,64 +1,168 @@
-<header>
-  <div class="w">
-    <a class="logo" routerLink="/">
-      @if (store.logo()) {
-        <img [src]="store.logo()" [alt]="'brand' | t" />
+<header class="hdr" [class.is-glass]="scrolled() || !onHome()" [class.is-over]="onHome() && !scrolled()">
+  <div class="w hdr-row">
+    <a class="brand" routerLink="/" [attr.aria-label]="store.brandName() || ('brand' | t)">
+      @if (logoSrc(); as src) {
+        <img [src]="src" [alt]="store.brandName() || ('brand' | t)" />
       } @else if (store.brandName()) {
-        {{ store.brandName() }}
+        <span class="wordmark">{{ store.brandName() }}</span>
       } @else {
-        Zezo <b>Store</b>
+        <span class="wordmark">Zezo <em>Store</em></span>
       }
     </a>
-    <form class="hs" (submit)="onSearch($event)">
-      <input
-        name="q"
-        [(ngModel)]="searchQ"
-        (input)="liveSearch()"
-        [placeholder]="'search' | t"
-      />
-    </form>
-    <nav>
+
+    <nav class="hdr-nav" aria-label="primary">
       <a routerLink="/shop" routerLinkActive="active">{{ 'shop' | t }}</a>
       @if (auth.user()) {
         <a routerLink="/custom" routerLinkActive="active">{{ 'customOrders' | t }}</a>
+        <a routerLink="/orders" routerLinkActive="active">{{ 'orders' | t }}</a>
       }
-      <a routerLink="/cart">
-        {{ 'cart' | t }}
+    </nav>
+
+    <form class="search" role="search" (submit)="onSearch($event)">
+      <m-icon name="search" />
+      <input
+        name="q"
+        type="search"
+        [(ngModel)]="searchQ"
+        (input)="liveSearch()"
+        [placeholder]="'search' | t"
+        [attr.aria-label]="'search' | t"
+      />
+    </form>
+
+    <div class="hdr-actions">
+      @if (auth.user()) {
+        <a
+          class="hdr-icon"
+          routerLink="/notifications"
+          routerLinkActive="active"
+          [attr.aria-label]="'notifications' | t"
+          [title]="'notifications' | t"
+        >
+          <m-icon name="bell" />
+          @if (unread()) {
+            <span class="badge" [mBump]="unread()">{{ unread() }}</span>
+          }
+        </a>
+      }
+      <a
+        class="hdr-icon desk"
+        routerLink="/cart"
+        routerLinkActive="active"
+        [attr.aria-label]="'cart' | t"
+        [title]="'cart' | t"
+      >
+        <m-icon name="bag" />
         @if (cart.count()) {
-          <span class="badge">{{ cart.count() }}</span>
+          <span class="badge" [mBump]="cart.count()">{{ cart.count() }}</span>
         }
       </a>
       @if (auth.user()) {
-        <a routerLink="/orders" routerLinkActive="active">{{ 'orders' | t }}</a>
-        <a routerLink="/notifications" routerLinkActive="active">
-          {{ 'notifications' | t }}
-          @if (unread()) {
-            <span class="badge">{{ unread() }}</span>
-          }
-        </a>
         <a
+          class="hdr-icon desk"
           routerLink="/account"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: false }"
+          [attr.aria-label]="'account' | t"
+          [title]="'account' | t"
         >
-          {{ 'account' | t }}
+          <m-icon name="user" />
         </a>
       }
-    </nav>
-    <button class="lang" type="button" (click)="toggleLang()">
-      {{ i18n.lang() === 'ar' ? 'EN' : 'ع' }}
-    </button>
-    <button class="lang" type="button" (click)="toggleTheme()" aria-label="theme">◐</button>
-    @if (auth.user()) {
-      <button class="lang" type="button" (click)="logout()">{{ 'logout' | t }}</button>
-    } @else {
-      <a class="btn" routerLink="/login">{{ 'login' | t }}</a>
-    }
+      <button class="hdr-icon lang" type="button" (click)="toggleLang()" [title]="'mLanguage' | t">
+        <span aria-hidden="true">{{ i18n.lang() === 'ar' ? 'EN' : 'ع' }}</span>
+        <span class="sr-only">{{ 'mLanguage' | t }}</span>
+      </button>
+      <button
+        class="hdr-icon"
+        type="button"
+        (click)="toggleTheme()"
+        [attr.aria-label]="'mTheme' | t"
+        [title]="'mTheme' | t"
+      >
+        <m-icon [name]="theme.mode() === 'dark' ? 'sun' : 'moon'" />
+      </button>
+      @if (auth.user()) {
+        <button
+          class="hdr-icon"
+          type="button"
+          (click)="logout()"
+          [attr.aria-label]="'logout' | t"
+          [title]="'logout' | t"
+        >
+          <m-icon name="logout" class="m-flip" />
+        </button>
+      } @else {
+        <a class="btn sm hdr-login" routerLink="/login">{{ 'login' | t }}</a>
+      }
+    </div>
   </div>
 </header>
 
-<router-outlet />
+<main class="main">
+  <router-outlet />
+</main>
 
-<footer>
-  <div class="w">{{ 'brand' | t }} — {{ 'footerTag' | t }} © {{ year }}</div>
+<footer class="ftr">
+  <span class="ftr-rule" aria-hidden="true"></span>
+  <div class="w ftr-grid">
+    <div class="ftr-brand">
+      <span class="wordmark">{{ store.brandName() || ('brand' | t) }}</span>
+      <p>{{ 'footerTag' | t }}</p>
+    </div>
+    <nav class="ftr-links" aria-label="footer">
+      <a routerLink="/shop">{{ 'shop' | t }}</a>
+      <a routerLink="/shop" [queryParams]="{ newArrival: true }">{{ 'newArrivals' | t }}</a>
+      @if (auth.user()) {
+        <a routerLink="/custom">{{ 'customOrders' | t }}</a>
+        <a routerLink="/orders">{{ 'orders' | t }}</a>
+        <a routerLink="/favorites">{{ 'favorites' | t }}</a>
+      } @else {
+        <a routerLink="/login">{{ 'login' | t }}</a>
+        <a routerLink="/register">{{ 'register' | t }}</a>
+      }
+    </nav>
+    <ul class="ftr-trust">
+      <li><m-icon name="cash" />{{ 'trustCod' | t }}</li>
+      <li><m-icon name="truck" />{{ 'deliveryEta' | t }}</li>
+      <li><m-icon name="returns" />{{ 'returns14' | t }}</li>
+    </ul>
+  </div>
+  <div class="w ftr-base">© {{ year }} {{ store.brandName() || ('brand' | t) }}</div>
 </footer>
+
+<nav class="tabbar" aria-label="tabs">
+  @if (auth.user()) {
+    <a routerLink="/shop" routerLinkActive="on">
+      <m-icon name="grid" /><span>{{ 'shop' | t }}</span>
+    </a>
+    <a routerLink="/cart" routerLinkActive="on">
+      <span class="tab-ico">
+        <m-icon name="bag" />
+        @if (cart.count()) {
+          <span class="badge" [mBump]="cart.count()">{{ cart.count() }}</span>
+        }
+      </span>
+      <span>{{ 'cart' | t }}</span>
+    </a>
+    <a routerLink="/orders" routerLinkActive="on">
+      <m-icon name="box" /><span>{{ 'orders' | t }}</span>
+    </a>
+    <a routerLink="/account" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: false }">
+      <m-icon name="user" /><span>{{ 'account' | t }}</span>
+    </a>
+  } @else {
+    <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">
+      <m-icon name="home" /><span>{{ 'mHome' | t }}</span>
+    </a>
+    <a routerLink="/shop" routerLinkActive="on">
+      <m-icon name="grid" /><span>{{ 'shop' | t }}</span>
+    </a>
+    <a routerLink="/cart" routerLinkActive="on">
+      <m-icon name="bag" /><span>{{ 'cart' | t }}</span>
+    </a>
+    <a routerLink="/login" routerLinkActive="on">
+      <m-icon name="user" /><span>{{ 'login' | t }}</span>
+    </a>
+  }
+</nav>

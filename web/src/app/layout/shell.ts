@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
@@ -15,10 +15,12 @@ import {
   listenForPushSound,
   playNotificationSound,
 } from '../core/firebase/notification-sound';
+import { Icon } from '../shared/icon';
+import { BumpDirective } from '../shared/maison';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, TranslatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, TranslatePipe, Icon, BumpDirective],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
@@ -37,6 +39,20 @@ export class Shell implements OnDestroy {
 
   searchQ = '';
 
+  /** Presentation only: header turns to glass after 8px and sits over the hero on home. */
+  readonly scrolled = signal(false);
+  readonly onHome = signal(true);
+  readonly logoSrc = computed(() => {
+    const dark = this.theme.mode() === 'dark' || (this.onHome() && !this.scrolled());
+    return (dark && this.store.logoDark()) || this.store.logo();
+  });
+
+  @HostListener('window:scroll')
+  onScroll(): void {
+    const s = window.scrollY > 8;
+    if (s !== this.scrolled()) this.scrolled.set(s);
+  }
+
   constructor() {
     bindNotificationSoundUnlock();
     listenForPushSound();
@@ -48,6 +64,8 @@ export class Shell implements OnDestroy {
         takeUntilDestroyed(),
       )
       .subscribe(() => {
+        this.onHome.set(this.router.url.split(/[?#]/)[0] === '/');
+        this.onScroll();
         if (this.router.url.startsWith('/shop')) {
           const q = new URLSearchParams(this.router.url.split('?')[1] || '').get('q') || '';
           this.searchQ = q;
