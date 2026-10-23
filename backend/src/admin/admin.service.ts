@@ -19,6 +19,7 @@ import { Order, OrderDocument } from '../schemas/order.schema';
 import { Product, ProductDocument } from '../schemas/product.schema';
 import { Role, RoleDocument } from '../schemas/role.schema';
 import { User, UserDocument } from '../schemas/user.schema';
+import { TenantContext } from '../tenant/tenant.context';
 import { AnalyticsService } from '../analytics/analytics.service';
 
 @Injectable()
@@ -38,7 +39,21 @@ export class AdminService {
     private readonly analytics: AnalyticsService,
   ) {}
 
+  private readonly dashboardCache = new Map<
+    string,
+    { at: number; value: Awaited<ReturnType<AdminService['computeDashboard']>> }
+  >();
+
   async dashboard() {
+    const key = TenantContext.tenantId() ?? 'platform';
+    const hit = this.dashboardCache.get(key);
+    if (hit && Date.now() - hit.at < 30_000) return hit.value;
+    const value = await this.computeDashboard();
+    this.dashboardCache.set(key, { at: Date.now(), value });
+    return value;
+  }
+
+  private async computeDashboard() {
     const since = new Date();
     since.setDate(since.getDate() - 30);
     const dayStart = new Date();
