@@ -17,7 +17,7 @@ import { asList, errMessage } from '../../shared/ui.service';
   template: `
   <div class="body">
     <h2 class="page-h">{{ 'audit.title' | t }}</h2>
-    <mat-form-field appearance="outline" style="  margin-bottom: 20px;">
+    <mat-form-field appearance="outline" class="search">
       <mat-label>{{ 'common.search' | t }}</mat-label>
       <input matInput (keyup.enter)="onSearch($any($event.target).value)" />
     </mat-form-field>
@@ -53,9 +53,7 @@ import { asList, errMessage } from '../../shared/ui.service';
     }
     </div>
   `,
-  styles: `.full { width: 100%; } .body{
-  padding: 20px;
-  }`,
+  styles: `.full { width: 100%; } .search { display: block; margin-bottom: 16px; }`,
 })
 export class AuditLogsPage implements OnInit {
   private readonly api = inject(AuditLogsApi);

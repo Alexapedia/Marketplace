@@ -45,6 +45,10 @@ h2.page-h:not(.head h2.page-h) {
 
 // ---- Filters / toolbars -----------------------------------------------------
 
+.mat-mdc-form-field {
+  width: 100%;
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -55,21 +59,24 @@ h2.page-h:not(.head h2.page-h) {
 .filters .mat-mdc-form-field {
   width: min(240px, 100%);
 }
+.mat-mdc-form-field.search,
 .search {
   width: min(360px, 100%);
 }
+.mat-mdc-form-field.search {
+  margin-inline-end: 12px;
+}
 @media (max-width: 599px) {
   .filters .mat-mdc-form-field,
+  .mat-mdc-form-field.search,
   .search {
     width: 100%;
+    margin-inline-end: 0;
   }
 }
 
 // ---- Form fields: tonal fill + hairline ------------------------------------
 
-.mat-mdc-form-field {
-  width: 100%;
-}
 .mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-text-field-wrapper {
   background: var(--m-surface-2);
   border-radius: var(--m-r-sm);

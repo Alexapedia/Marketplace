@@ -94,29 +94,21 @@ import { ConfirmService } from '../../shared/confirm-dialog';
    </div>
   `,
   styles: `
-  .body {
-    padding: 20px;
-  }
     .full {
       width: 100%;
     }
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
+    .filters button {
+      border-radius: var(--m-r-pill);
     }
     .on {
-      background: #c9a45c;
-      color: #12141c;
+      background: var(--m-accent);
+      color: var(--m-on-accent);
+      --mat-button-outlined-label-text-color: var(--m-on-accent);
+      --mat-button-text-label-text-color: var(--m-on-accent);
+      border-color: transparent;
     }
     td {
       max-width: 280px;
-    }
-    .plink {
-      color: #071345;
-      font-weight: 700;
-      text-decoration: underline;
     }
   `,
 })

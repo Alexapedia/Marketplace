@@ -47,7 +47,7 @@ export interface ConfirmData {
   `,
   styles: `
     .full { width: 100%; }
-    .danger-btn { --mat-button-filled-container-color: #be123c; --mat-button-filled-label-text-color: #fff; }
+    .danger-btn { --mat-button-filled-container-color: var(--m-danger); --mat-button-filled-label-text-color: var(--mat-sys-on-error); }
   `,
 })
 export class ConfirmDialog {

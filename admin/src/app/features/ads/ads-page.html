@@ -7,7 +7,7 @@
   </button>
 </div>
 <p class="hint">{{ 'ads.hint' | t }}</p>
-<mat-form-field appearance="outline" style="margin-bottom: 20px;">
+<mat-form-field appearance="outline" class="search">
   <mat-label>{{ 'ads.placement' | t }}</mat-label>
   <mat-select [value]="placement()" (selectionChange)="placement.set($event.value); load(1)">
     <mat-option value="">{{ 'common.all' | t }}</mat-option>
