@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   OnModuleInit,
@@ -11,7 +12,8 @@ import { AppConfigService } from '../app-config/app-config.service';
 import { AuditService } from '../audit/audit.service';
 import { CartService } from '../cart/cart.service';
 import { ProductsService } from '../catalog/products.service';
-import { ORDER_STATUSES } from '../common/constants';
+import { ORDER_STATUSES, OrderStatus } from '../common/constants';
+import { canTransition } from './order-status';
 import { paginationMeta } from '../common/dto/pagination.dto';
 import { generateOrderNumber, toObjectId, searchRegex } from '../common/utils/mongo';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -305,25 +307,27 @@ export class OrdersService implements OnModuleInit {
       throw new BadRequestException('Order cannot be cancelled');
     }
     const old = order.orderStatus;
-    order.orderStatus = 'cancelled';
-    order.paymentStatus = 'cancelled';
-    order.statusHistory.push({
-      status: 'cancelled',
-      at: new Date(),
-      actorId: new Types.ObjectId(userId),
-      note: 'Cancelled by customer',
-    });
-    await order.save();
-    await this.restoreStockIfNeeded(order, old, 'cancelled');
+    const updated = await this.transition(
+      order._id,
+      old,
+      { orderStatus: 'cancelled', paymentStatus: 'cancelled' },
+      {
+        status: 'cancelled',
+        at: new Date(),
+        actorId: new Types.ObjectId(userId),
+        note: 'Cancelled by customer',
+      },
+    );
+    await this.restoreStockIfNeeded(updated, old, 'cancelled');
     await this.audit.log({
       actorId: userId,
       action: 'order.cancel',
       entity: 'Order',
-      entityId: String(order._id),
+      entityId: String(updated._id),
       oldValue: { orderStatus: old },
       newValue: { orderStatus: 'cancelled' },
     });
-    return order;
+    return updated;
   }
 
   async listAdmin(query: {
@@ -392,27 +396,30 @@ export class OrdersService implements OnModuleInit {
     if (dto.status === 'rejected' && !dto.rejectionReason) {
       throw new BadRequestException('rejectionReason is required');
     }
-    const order = await this.findAdmin(id);
-    const old = order.orderStatus;
-    order.orderStatus = dto.status;
+    const current = await this.findAdmin(id);
+    const old = current.orderStatus;
+    if (!canTransition(old as OrderStatus, dto.status as OrderStatus)) {
+      throw new BadRequestException(`Order cannot move from ${old} to ${dto.status}`);
+    }
+    const set: Record<string, unknown> = { orderStatus: dto.status };
     if (dto.status === 'rejected') {
-      order.rejectionReason = dto.rejectionReason;
+      set.rejectionReason = dto.rejectionReason;
     }
     if (dto.status === 'cancelled') {
-      order.paymentStatus = 'cancelled';
+      set.paymentStatus = 'cancelled';
     }
-    if (dto.status === 'completed' || dto.status === 'delivered') {
-      if (order.paymentMethod === 'COD') {
-        order.paymentStatus = 'paid';
-      }
+    if (
+      (dto.status === 'completed' || dto.status === 'delivered') &&
+      current.paymentMethod === 'COD'
+    ) {
+      set.paymentStatus = 'paid';
     }
-    order.statusHistory.push({
+    const order = await this.transition(current._id, old, set, {
       status: dto.status,
       at: new Date(),
       actorId: new Types.ObjectId(actorId),
       note: dto.rejectionReason,
     });
-    await order.save();
     await this.restoreStockIfNeeded(order, old, dto.status);
 
     await this.audit.log({
@@ -438,6 +445,29 @@ export class OrdersService implements OnModuleInit {
     });
 
     return order;
+  }
+
+  /**
+   * Compare-and-set status write: only succeeds if the order is still in
+   * `from`, so two concurrent changes cannot both act (e.g. both restore stock).
+   */
+  private async transition(
+    orderId: Types.ObjectId,
+    from: string,
+    set: Record<string, unknown>,
+    history: { status: string; at: Date; actorId: Types.ObjectId; note?: string },
+  ): Promise<OrderDocument> {
+    const updated = await this.orderModel
+      .findOneAndUpdate(
+        { _id: orderId, orderStatus: from },
+        { $set: set, $push: { statusHistory: history } },
+        { new: true },
+      )
+      .populate('userId', 'name email phone');
+    if (!updated) {
+      throw new ConflictException('Order status changed, refresh and retry');
+    }
+    return updated;
   }
 
   private restoreStockIfNeeded(
