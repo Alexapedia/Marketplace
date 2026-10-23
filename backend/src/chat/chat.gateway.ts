@@ -60,6 +60,7 @@ export class ChatGateway
       }
       const user = await this.auth.userFromToken(token);
       client.data.user = user;
+      this.expireWithToken(client, token);
       if (user.type === 'staff') {
         await client.join(`staff:${user.tenantId}`);
       }
@@ -71,8 +72,33 @@ export class ChatGateway
     }
   }
 
-  handleDisconnect() {
-    return;
+  handleDisconnect(client?: Socket) {
+    const timer = client?.data?.expiryTimer as NodeJS.Timeout | undefined;
+    if (timer) clearTimeout(timer);
+  }
+
+  /** Auth is checked once at connect, so drop the socket when its token expires. */
+  private expireWithToken(client: Socket, token: string) {
+    const exp = tokenExpiry(token);
+    if (!exp) return;
+    const timer = setTimeout(
+      () => {
+        client.emit('error', { message: 'Session expired' });
+        client.disconnect(true);
+      },
+      Math.max(0, exp * 1000 - Date.now()),
+    );
+    timer.unref?.();
+    client.data.expiryTimer = timer;
+  }
+
+  /** Staff need chat permissions; customers are limited to their own chats by the service. */
+  private allowed(user: AuthUser, permission: 'chats.read' | 'chats.write') {
+    return (
+      user.type !== 'staff' ||
+      user.role === 'super_admin' ||
+      (user.permissions ?? []).includes(permission)
+    );
   }
 
   @SubscribeMessage('join')
@@ -84,6 +110,10 @@ export class ChatGateway
     try {
       const user = this.userOf(client);
       if (!user) return { ok: false };
+      if (!this.allowed(user, 'chats.read')) {
+        client.emit('error', { message: 'Insufficient permissions' });
+        return { ok: false };
+      }
       return TenantContext.run({ kind: 'tenant', tenantId: user.tenantId }, async () => {
         const convo = await this.customOrders.resolveConversation(user, body);
         for (const room of client.rooms) {
@@ -109,6 +139,10 @@ export class ChatGateway
     try {
       const user = this.userOf(client);
       if (!user) return { ok: false };
+      if (!this.allowed(user, 'chats.write')) {
+        client.emit('error', { message: 'Insufficient permissions' });
+        return { ok: false, message: 'Insufficient permissions' };
+      }
       const text = (body.text || '').trim();
       if (!text) return { ok: false, message: 'text required' };
       return TenantContext.run({ kind: 'tenant', tenantId: user.tenantId }, async () => {
@@ -132,5 +166,17 @@ export class ChatGateway
 
   private userOf(client: Socket): AuthUser | undefined {
     return client.data.user as AuthUser | undefined;
+  }
+}
+
+/** Reads `exp` (seconds) from an already-verified JWT without re-verifying. */
+function tokenExpiry(token: string): number | undefined {
+  try {
+    const payload = JSON.parse(
+      Buffer.from(token.split('.')[1], 'base64url').toString('utf8'),
+    ) as { exp?: number };
+    return typeof payload.exp === 'number' ? payload.exp : undefined;
+  } catch {
+    return undefined;
   }
 }
