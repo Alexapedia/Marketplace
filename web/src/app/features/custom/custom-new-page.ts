@@ -15,9 +15,12 @@ import {
 import { PageBar } from '../../shared/page-bar';
 import { ToastService } from '../../core/toast/toast.service';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-custom-new-page',
-  imports: [FormsModule, PageBar, TranslatePipe, LocPipe],
+  imports: [FormsModule, PageBar, TranslatePipe, LocPipe, Icon, MAISON],
   templateUrl: './custom-new-page.html',
 })
 export class CustomNewPage implements OnInit {

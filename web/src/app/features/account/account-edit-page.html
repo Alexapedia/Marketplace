@@ -1,6 +1,6 @@
-<div class="w">
+<div class="w narrow page">
   <app-page-bar [title]="('editProfile' | t)" />
-  <form class="panel auth" (submit)="submit($event)">
+  <form class="panel form-panel m-enter" (submit)="submit($event)">
     @if (error()) {
       <div class="error">{{ error() }}</div>
     }
@@ -8,22 +8,22 @@
       @if (auth.user()?.avatar) {
         <img class="avatar" [src]="media(auth.user()!.avatar!)" alt="" />
       } @else {
-        <span class="avatar ph"></span>
+        <span class="avatar ph" aria-hidden="true"><m-icon name="user" /></span>
       }
       <input type="file" accept="image/*" (change)="onAvatar($event)" hidden #avatarInput />
-      <span (click)="avatarInput.click()">{{ 'changePhoto' | t }}</span>
+      <span class="avatar-link" (click)="avatarInput.click()"><m-icon name="edit" />{{ 'changePhoto' | t }}</span>
     </label>
     <div class="field">
-      <label>{{ 'email' | t }}</label>
-      <input [value]="auth.user()?.email" readonly />
+      <label for="pe-email">{{ 'email' | t }}</label>
+      <input id="pe-email" [value]="auth.user()?.email" readonly />
     </div>
     <div class="field">
-      <label>{{ 'name' | t }}</label>
-      <input [(ngModel)]="name" name="name" required />
+      <label for="pe-name">{{ 'name' | t }}</label>
+      <input id="pe-name" [(ngModel)]="name" name="name" required />
     </div>
     <div class="field">
-      <label>{{ 'phone' | t }}</label>
-      <input type="tel" [(ngModel)]="phone" name="phone" />
+      <label for="pe-phone">{{ 'phone' | t }}</label>
+      <input id="pe-phone" type="tel" [(ngModel)]="phone" name="phone" />
     </div>
     <button class="btn wide" type="submit">{{ 'editProfile' | t }}</button>
   </form>

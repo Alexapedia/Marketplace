@@ -1,28 +1,31 @@
-<div class="w">
+<div class="w narrow page">
   <app-page-bar [title]="('notifications' | t)" />
   @if (hasUnread()) {
-    <p class="row-actions">
-      <button class="btn ghost-btn" type="button" (click)="markAllRead()">{{ 'markAllRead' | t }}</button>
-    </p>
+    <div class="list-tools">
+      <button class="btn ghost-btn sm" type="button" (click)="markAllRead()"><m-icon name="check" />{{ 'markAllRead' | t }}</button>
+    </div>
   }
   @if (!list.loading()) {
-    @for (n of list.items(); track idOf(n)) {
-      <div class="order-card notif" [class.read]="!!n.readAt">
-        <div>
-          <strong>{{ title(n) }}</strong>
-          <div>{{ body(n) }}</div>
-          @if (n.createdAt) {
-            <small class="muted">{{ n.createdAt | date: 'medium' : undefined : i18n.lang() }}</small>
-          }
+    <div class="rows">
+      @for (n of list.items(); track idOf(n); let i = $index) {
+        <div class="order-card notif" [class.read]="!!n.readAt" [mReveal]="i % 8">
+          <span class="row-ico"><m-icon name="bell" />@if (!n.readAt) {<span class="unread-dot" aria-hidden="true"></span>}</span>
+          <div class="row-main">
+            <strong>{{ title(n) }}</strong>
+            <div class="notif-body">{{ body(n) }}</div>
+            @if (n.createdAt) {
+              <small class="muted">{{ n.createdAt | date: 'medium' : undefined : i18n.lang() }}</small>
+            }
+          </div>
+          <div class="row-actions">
+            @if (!n.readAt) {
+              <button class="icon-btn" type="button" (click)="markRead(n)" [attr.aria-label]="'markRead' | t" [title]="'markRead' | t"><m-icon name="check" /></button>
+            }
+            <button class="icon-btn danger" type="button" (click)="remove(n)" [attr.aria-label]="'delete' | t" [title]="'delete' | t"><m-icon name="close" /></button>
+          </div>
         </div>
-        <div class="row-actions">
-          @if (!n.readAt) {
-            <button class="btn" type="button" (click)="markRead(n)">{{ 'markRead' | t }}</button>
-          }
-          <button class="icon-btn" type="button" (click)="remove(n)" [attr.aria-label]="'delete' | t" [title]="'delete' | t">✕</button>
-        </div>
-      </div>
-    }
+      }
+    </div>
     <app-load-more [show]="list.hasMore()" [busy]="list.loadingMore()" (more)="list.more()" />
   }
   <app-async-state
@@ -30,6 +33,7 @@
     [error]="list.error()"
     [empty]="!list.items().length"
     emptyKey="emptyNotifications"
+    icon="bell"
     (retry)="list.reload()"
   />
 </div>

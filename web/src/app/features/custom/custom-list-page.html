@@ -1,21 +1,25 @@
-<div class="w">
+<div class="w narrow page">
   <app-page-bar [title]="('customOrders' | t)" />
-  <p style="margin-bottom: 16px">
-    <a class="btn" routerLink="/custom/new">{{ 'startCustom' | t }}</a>
-  </p>
+  <div class="list-tools">
+    <a class="btn" routerLink="/custom/new"><m-icon name="spark" />{{ 'startCustom' | t }}</a>
+  </div>
   @if (!list.loading()) {
-    @for (o of list.items(); track o._id) {
-      <a class="order-card" [routerLink]="['/custom', o._id]">
-        <div>
-          <strong>{{ title(o) }}</strong>
-          <div class="muted">
-            {{ o.description || '' }}
-            @if (o.createdAt) { · {{ o.createdAt | date: 'mediumDate' : undefined : i18n.lang() }} }
+    <div class="rows">
+      @for (o of list.items(); track o._id; let n = $index) {
+        <a class="order-card m-press" [mReveal]="n % 8" [routerLink]="['/custom', o._id]">
+          <span class="row-ico"><m-icon name="spark" /></span>
+          <div class="row-main">
+            <strong>{{ title(o) }}</strong>
+            <div class="muted clamp-1">
+              {{ o.description || '' }}
+              @if (o.createdAt) { · {{ o.createdAt | date: 'mediumDate' : undefined : i18n.lang() }} }
+            </div>
           </div>
-        </div>
-        <span class="status-pill">{{ ('cstatus_' + o.status) | t }}</span>
-      </a>
-    }
+          <span class="status-pill" [attr.data-s]="o.status">{{ ('cstatus_' + o.status) | t }}</span>
+          <m-icon name="chevron" class="row-chev m-flip" />
+        </a>
+      }
+    </div>
     <app-load-more [show]="list.hasMore()" [busy]="list.loadingMore()" (more)="list.more()" />
   }
   <app-async-state

@@ -8,9 +8,12 @@ import { AsyncState } from '../../shared/async-state';
 import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-addresses-page',
-  imports: [RouterLink, PageBar, TranslatePipe, AsyncState],
+  imports: [RouterLink, PageBar, TranslatePipe, AsyncState, Icon, MAISON],
   templateUrl: './addresses-page.html',
 })
 export class AddressesPage implements OnInit {

@@ -6,9 +6,11 @@ import { ProductCard } from '../../shared/product-card';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { AsyncState } from '../../shared/async-state';
 
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-favorites-page',
-  imports: [PageBar, ProductCard, TranslatePipe, AsyncState],
+  imports: [PageBar, ProductCard, TranslatePipe, AsyncState, MAISON],
   templateUrl: './favorites-page.html',
 })
 export class FavoritesPage implements OnInit {

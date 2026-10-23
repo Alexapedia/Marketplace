@@ -10,9 +10,12 @@ import { LoadMore } from '../../shared/load-more';
 import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-custom-list-page',
-  imports: [RouterLink, DatePipe, PageBar, TranslatePipe, AsyncState, LoadMore],
+  imports: [RouterLink, DatePipe, PageBar, TranslatePipe, AsyncState, LoadMore, Icon, MAISON],
   templateUrl: './custom-list-page.html',
 })
 export class CustomListPage implements OnInit {

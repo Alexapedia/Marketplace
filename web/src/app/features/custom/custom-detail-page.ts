@@ -18,9 +18,12 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/toast/toast.service';
 import { DialogService } from '../../core/dialog/dialog.service';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-custom-detail-page',
-  imports: [FormsModule, PageBar, TranslatePipe],
+  imports: [FormsModule, PageBar, TranslatePipe, Icon, MAISON],
   templateUrl: './custom-detail-page.html',
 })
 export class CustomDetailPage implements OnInit, OnDestroy {

@@ -10,6 +10,7 @@ import { PageBar } from '../../shared/page-bar';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/toast/toast.service';
 
+
 @Component({
   selector: 'app-address-form-page',
   imports: [FormsModule, MapPicker, PageBar, TranslatePipe],
