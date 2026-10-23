@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -263,11 +265,28 @@ export class OrdersService implements OnModuleInit {
       await this.notifyNewOrder(created);
       return created;
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Could not create order from proposal';
-      throw new BadRequestException(message);
+      if (err instanceof HttpException) throw err;
+      const e = err as {
+        code?: number;
+        keyPattern?: Record<string, unknown>;
+        keyValue?: Record<string, unknown>;
+      };
+      if (
+        e?.code === 11000 &&
+        (e.keyPattern?.idempotencyKey !== undefined ||
+          e.keyValue?.idempotencyKey !== undefined)
+      ) {
+        const existing = await this.orderModel.findOne({
+          userId: new Types.ObjectId(params.userId),
+          idempotencyKey: `custom-order:${params.customOrderId}`,
+        });
+        if (existing) return existing;
+      }
+      new Logger(OrdersService.name).error(
+        'createFromProposal failed',
+        err instanceof Error ? err.stack : String(err),
+      );
+      throw new BadRequestException('Could not create order from proposal');
     }
   }
 

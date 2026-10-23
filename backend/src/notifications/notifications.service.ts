@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { toObjectId } from '../common/utils/mongo';
 import { TenantContext } from '../tenant/tenant.context';
 import {
   Notification,
@@ -87,7 +88,7 @@ export class NotificationsService {
 
   async markRead(userId: string, id: string) {
     return this.notificationModel.findOneAndUpdate(
-      { _id: id, userId: new Types.ObjectId(userId) },
+      { _id: toObjectId(id), userId: new Types.ObjectId(userId) },
       { readAt: new Date() },
       { new: true },
     );
@@ -106,7 +107,7 @@ export class NotificationsService {
 
   async removeMine(userId: string, id: string) {
     const res = await this.notificationModel.deleteOne({
-      _id: id,
+      _id: toObjectId(id),
       userId: new Types.ObjectId(userId),
     });
     if (!res.deletedCount) {
