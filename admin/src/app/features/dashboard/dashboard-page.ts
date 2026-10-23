@@ -28,7 +28,7 @@ const STATUS_ORDER = [
   selector: 'app-dashboard-page',
   imports: [DatePipe, DecimalPipe, RouterLink, TranslatePipe, AsyncState, ...MAISON],
   templateUrl: './dashboard-page.html',
-  styleUrl: './dashboard-page.scss',
+  styleUrls: ['./dashboard-page.scss', './dashboard-panels.scss'],
 })
 export class DashboardPage implements OnInit {
   private readonly api = inject(DashboardApi);
