@@ -56,7 +56,7 @@ class DioConsumer implements ApiConsumer {
     '/telemetry/',
   ];
   static const _retriedKey = 'pm_retried_after_refresh';
-  Completer<String?>? _refreshing;
+  Completer<_RefreshOutcome>? _refreshing;
 
   int _inflight = 0;
   final List<Completer<void>> _waiters = [];
@@ -309,7 +309,8 @@ class DioConsumer implements ApiConsumer {
               options.extra[_retriedKey] != true &&
               !_noRefreshPaths.any(options.path.contains);
           if (canRefresh) {
-            final token = await _refreshAccessToken();
+            final outcome = await _refreshAccessToken();
+            final token = outcome.token;
             if (token != null) {
               try {
                 options.extra[_retriedKey] = true;
@@ -318,6 +319,10 @@ class DioConsumer implements ApiConsumer {
               } on DioException catch (retryError) {
                 return handler.next(retryError);
               }
+            }
+            // Network or server trouble during refresh is not a sign-out.
+            if (outcome.status == _RefreshStatus.unavailable) {
+              return handler.next(e);
             }
           }
           await _handleUnauthorized(options.path);
@@ -337,19 +342,24 @@ class DioConsumer implements ApiConsumer {
     );
   }
 
-  /// Exchanges the stored refresh token (single flight). Returns the new
-  /// access token, or null when the session cannot be renewed.
-  Future<String?> _refreshAccessToken() async {
+  /// Exchanges the stored refresh token (single flight). Only a refresh the
+  /// server actively rejects ends the session; network or server failures
+  /// report [_RefreshStatus.unavailable] so the user stays signed in.
+  Future<_RefreshOutcome> _refreshAccessToken() async {
     final pending = _refreshing;
     if (pending != null) return pending.future;
-    final completer = Completer<String?>();
+    final completer = Completer<_RefreshOutcome>();
     _refreshing = completer;
+    _RefreshOutcome finish(_RefreshOutcome outcome) {
+      if (!completer.isCompleted) completer.complete(outcome);
+      return outcome;
+    }
+
     try {
       final storage = sl<HandleMultiCallLocal>();
       final refresh = await storage.getLocalData(keyType: LocalEnumKey.refreshToken);
       if (refresh == null || refresh.isEmpty) {
-        completer.complete(null);
-        return null;
+        return finish(const (status: _RefreshStatus.rejected, token: null));
       }
       // Bare client: no interceptors, so a failing refresh cannot recurse.
       final bare = Dio(
@@ -365,18 +375,22 @@ class DioConsumer implements ApiConsumer {
       final access = data?['accessToken']?.toString();
       final nextRefresh = data?['refreshToken']?.toString();
       if (access == null || access.isEmpty) {
-        completer.complete(null);
-        return null;
+        return finish(const (status: _RefreshStatus.unavailable, token: null));
       }
       await storage.saveLocalData(data: access, keyType: LocalEnumKey.accessToken);
       if (nextRefresh != null && nextRefresh.isNotEmpty) {
         await storage.saveLocalData(data: nextRefresh, keyType: LocalEnumKey.refreshToken);
       }
-      completer.complete(access);
-      return access;
+      return finish((status: _RefreshStatus.renewed, token: access));
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final rejected = code == 400 || code == 401 || code == 403;
+      return finish((
+        status: rejected ? _RefreshStatus.rejected : _RefreshStatus.unavailable,
+        token: null,
+      ));
     } catch (_) {
-      if (!completer.isCompleted) completer.complete(null);
-      return null;
+      return finish(const (status: _RefreshStatus.unavailable, token: null));
     } finally {
       _refreshing = null;
     }
@@ -442,3 +456,7 @@ class DioConsumer implements ApiConsumer {
     }
   }
 }
+
+enum _RefreshStatus { renewed, rejected, unavailable }
+
+typedef _RefreshOutcome = ({_RefreshStatus status, String? token});

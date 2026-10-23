@@ -47,6 +47,27 @@ void main() {
     expect(await storage.read(key: StorageKey.refershToken), 'r2');
   });
 
+  for (final status in [500, 503]) {
+    test('refresh failing with $status keeps the session', () async {
+      await setUpTestLocator(
+          secure: {StorageKey.accessToken: 'old', StorageKey.refershToken: 'r1'});
+      server = await TestServer.start((req, body) {
+        if (req.uri.path.endsWith('/auth/refresh')) {
+          return (status: status, body: '{"success":false}');
+        }
+        return (status: 401, body: '{"success":false}');
+      });
+
+      final consumer = DioConsumer(client: Dio());
+      final result = await consumer.get('/orders');
+
+      expect(result.isLeft(), isTrue);
+      const storage = FlutterSecureStorage();
+      expect(await storage.read(key: StorageKey.accessToken), 'old');
+      expect(await storage.read(key: StorageKey.refershToken), 'r1');
+    });
+  }
+
   test('401 then refresh returns 401 clears the session', () async {
     await setUpTestLocator(
         secure: {StorageKey.accessToken: 'old', StorageKey.refershToken: 'r1'});
