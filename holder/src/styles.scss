@@ -20,6 +20,8 @@ html {
     ),
     density: -2,
   ));
+  // Filled fields hide their floating label below density 0; keep labels.
+  @include mat.form-field-density(0);
 }
 
 @mixin mat-roles-common {
@@ -205,6 +207,13 @@ h4 {
 .mat-mdc-form-field {
   width: 100%;
 }
+
+// Filled-tonal fields: fully rounded well, accent indicator only on focus.
+.mat-mdc-form-field .mdc-text-field--filled {
+  border-radius: var(--m-r-sm);
+  overflow: hidden;
+}
+
 
 .mat-mdc-dialog-surface {
   border: 1px solid var(--m-line);
