@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/components/product_card.dart';
 import '../../../../../core/models/catalog_models.dart';
+import '../../../../../config/theme/tokens.dart';
+import '../../../../../core/utils/functions/motion.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 
 class ProductRow extends StatelessWidget {
@@ -23,6 +26,27 @@ class ProductRow extends StatelessWidget {
   final Map<String, dynamic> query;
   final String heroScope;
   final int? columns;
+
+  /// Staggered fade + slide for the first few cards. Keyed so a rebuild of the
+  /// same item keeps its controller and does not replay; skipped entirely
+  /// under reduce motion and while skeletons are showing.
+  Widget _entrance(BuildContext context, int i, Widget child) {
+    if (context.reduceMotion || loading || i >= 8) return child;
+    return Animate(
+      key: ValueKey('$heroScope-$i-${products[i].id}'),
+      delay: (40 * i).ms,
+      effects: [
+        FadeEffect(duration: 300.ms, curve: AppCurves.standard),
+        SlideEffect(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+          duration: 300.ms,
+          curve: AppCurves.standard,
+        ),
+      ],
+      child: child,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,11 +89,15 @@ class ProductRow extends StatelessWidget {
                   for (var i = 0; i < shown.length; i++)
                     SizedBox(
                       width: itemWidth,
-                      height: cardHeight*1.0,
-                      child: ProductCard(
-                        product: shown[i],
-                        index: i,
-                        heroScope: '$heroScope-$i',
+                      height: cardHeight * 1.0,
+                      child: _entrance(
+                        context,
+                        i,
+                        ProductCard(
+                          product: shown[i],
+                          index: i,
+                          heroScope: '$heroScope-$i',
+                        ),
                       ),
                     ),
                 ],

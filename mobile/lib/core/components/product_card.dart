@@ -38,13 +38,12 @@ class ProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: gold.withValues(alpha: 0.14)),
+          borderRadius: AppRadius.card,
           boxShadow: [
             BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+              color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -56,7 +55,7 @@ class ProductCard extends StatelessWidget {
               AppRouterKeys.productDetails,
               extra: {'id': product.id, 'index': index},
             ),
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: AppRadius.card,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -99,8 +98,10 @@ class ProductCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: gold,
-                              borderRadius: BorderRadius.circular(999),
+                              color: goldText,
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
                             ),
                             child: Text(
                               'sale'.tr(),
@@ -215,10 +216,10 @@ class ProductCard extends StatelessWidget {
                                         '${product.displayPrice.toStringAsFixed(0)} ${AppString.currency}',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodyMedium
+                                        style: theme.textTheme.titleMedium
                                             ?.copyWith(
                                               color: goldText,
-                                              fontWeight: FontWeight.w800,
+                                              fontWeight: FontWeight.w700,
                                             ),
                                       ),
                                       // Dropped at large text scales; the sale price remains.
