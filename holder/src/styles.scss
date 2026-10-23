@@ -147,15 +147,6 @@ body {
   --mat-badge-text-color: #ffffff;
   --mat-paginator-container-background-color: transparent;
   --mat-paginator-container-text-color: var(--m-ink-muted);
-
-  // Legacy aliases kept only while feature styles migrate to --m-*.
-  --zz-muted: var(--m-ink-muted);
-  --zz-line: var(--m-line);
-  --zz-white: var(--m-surface);
-  --zz-bg: var(--m-canvas);
-  --zz-navy: var(--m-ink);
-  --zz-navy-soft: var(--m-surface-2);
-  --zz-shadow: var(--m-shadow-1);
 }
 
 html,
