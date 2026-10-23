@@ -12,17 +12,20 @@ import { errMessage, UiService } from './ui.service';
     <div class="up">
       <div class="grid">
         @for (url of images(); track url; let i = $index) {
-          <div class="tile">
+          <div class="tile m-enter">
             <img [src]="url" alt="" />
-            <button class="x" type="button" mat-icon-button (click)="remove(i)">
+            @if (i === 0 && multiple()) {
+              <span class="cover" aria-hidden="true">1</span>
+            }
+            <button class="x" type="button" mat-icon-button (click)="remove(i)" [attr.aria-label]="'common.delete' | t">
               <mat-icon>close</mat-icon>
             </button>
           </div>
         }
         @if (multiple() || images().length === 0) {
-          <label class="add">
+          <label class="add" [class.busy]="uploading()">
             <input type="file" accept="image/*" [multiple]="multiple()" (change)="pick($event)" />
-            <mat-icon>{{ uploading() ? 'hourglass_top' : 'add_photo_alternate' }}</mat-icon>
+            <span class="ic"><mat-icon>{{ uploading() ? 'hourglass_top' : 'add_photo_alternate' }}</mat-icon></span>
             <span>{{ (uploading() ? 'common.loading' : 'common.upload') | t }}</span>
           </label>
         }
@@ -32,45 +35,116 @@ import { errMessage, UiService } from './ui.service';
   styles: `
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 12px;
     }
     .tile,
     .add {
       position: relative;
       aspect-ratio: 1;
-      border-radius: 16px;
+      border-radius: var(--m-r-md);
       overflow: hidden;
-      background: #e8ebf6;
+      background: var(--m-surface-2);
+    }
+    .tile {
+      border: 1px solid var(--m-line);
+      box-shadow: var(--m-shadow-1);
     }
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform var(--m-dur-lavish) var(--m-ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .tile:hover img {
+        transform: scale(1.06);
+      }
+    }
+    .cover {
+      position: absolute;
+      top: 8px;
+      inset-inline-start: 8px;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      box-sizing: border-box;
+      border-radius: var(--m-r-pill);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--m-accent);
+      color: var(--m-on-accent);
     }
     .x {
       position: absolute;
-      top: 2px;
-      inset-inline-end: 2px;
-      background: rgba(7, 19, 69, 0.72);
-      color: #fff;
-      width: 30px;
-      height: 30px;
+      top: 4px;
+      inset-inline-end: 4px;
+      --mat-icon-button-state-layer-size: 32px;
+      --mat-icon-button-icon-size: 18px;
+      --mat-icon-button-icon-color: #ffffff;
+      width: 32px;
+      height: 32px;
+      padding: 4px;
+      background: color-mix(in srgb, #0c0b09 62%, transparent);
+      backdrop-filter: blur(8px);
+    }
+    .x mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
     }
     .add {
       display: grid;
-      place-items: center;
-      gap: 4px;
-      border: 1.5px dashed color-mix(in srgb, #071345 22%, transparent);
-      color: #071345;
+      place-content: center;
+      justify-items: center;
+      gap: 8px;
+      border: 1px dashed color-mix(in srgb, var(--m-accent) 70%, var(--m-line));
+      background: color-mix(in srgb, var(--m-accent) 6%, var(--m-surface));
+      color: var(--m-accent-ink);
       cursor: pointer;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       text-align: center;
       padding: 8px;
+      transition:
+        background-color var(--m-dur-fast) var(--m-ease-out),
+        border-color var(--m-dur-fast) var(--m-ease-out);
     }
-    .add input { display: none; }
+    .add:hover {
+      background: var(--m-accent-soft);
+      border-color: var(--m-accent);
+    }
+    .add:focus-within {
+      outline: 2px solid var(--m-accent);
+      outline-offset: 2px;
+    }
+    .add.busy .ic {
+      animation: m-bump var(--m-dur-lavish) var(--m-ease-in-out) infinite;
+    }
+    .ic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--m-surface);
+      box-shadow: var(--m-shadow-1);
+    }
+    .add input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      overflow: hidden;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .add.busy .ic {
+        animation: none;
+      }
+    }
   `,
 })
 export class ImageUploader {

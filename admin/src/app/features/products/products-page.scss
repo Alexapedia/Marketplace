@@ -1,49 +1,9 @@
-.body{
-  padding: 20px;
+.body {
+  display: block;
 }
-.head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.search {
-  width: min(360px, 100%);
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 .full {
   width: 100%;
 }
-
-.thumb {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 12px;
-  background: #e8ebf6;
-  display: block;
-}
-
 .thumb.empty {
-  display: inline-block;
-}
-
-.plink {
-  background: none;
-  border: 0;
-  padding: 0;
-  color: #071345;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  display: block;
 }
