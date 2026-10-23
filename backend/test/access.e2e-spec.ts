@@ -68,4 +68,19 @@ describe('Access control (characterization)', () => {
       .set('Authorization', `Bearer ${customer.token}`);
     expect(after.status).toBe(401);
   });
+
+  it('the customer status endpoint cannot block a staff account', async () => {
+    const admin = await ctx.createUser({ role: 'super_admin' });
+    const staff = await ctx.createUser({ role: 'admin' });
+
+    const res = await ctx
+      .http()
+      .patch(`/api/v1/admin/customers/${staff.user._id}`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ status: 'blocked' });
+
+    expect(res.status).toBe(404);
+    const after = await ctx.inTenant(async () => await ctx.model('User').findById(staff.user._id));
+    expect(after!.status).toBe('active');
+  });
 });

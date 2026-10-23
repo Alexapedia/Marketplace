@@ -9,7 +9,7 @@ import { Model } from 'mongoose';
 import { STAFF_ROLES } from '../common/constants';
 import { paginationMeta } from '../common/dto/pagination.dto';
 import { AuditLog, AuditLogDocument } from '../schemas/audit-log.schema';
-import { searchRegex } from '../common/utils/mongo';
+import { searchRegex, toObjectId } from '../common/utils/mongo';
 import {
   Conversation,
   ConversationDocument,
@@ -623,7 +623,13 @@ export class AdminService {
   }
 
   async patchCustomer(id: string, status: string) {
-    return this.userModel.findByIdAndUpdate(id, { status }, { new: true });
+    // Only customers: staff status is managed through /admin/staff, which
+    // protects the super admin.
+    return this.userModel.findOneAndUpdate(
+      { _id: toObjectId(id), role: 'customer' },
+      { status },
+      { new: true },
+    );
   }
 
   async findCustomer(id: string) {
