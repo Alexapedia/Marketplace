@@ -25,41 +25,48 @@ class NavbarBtn extends StatelessWidget {
     final dark = theme.brightness == Brightness.dark;
     final activeBg = dark ? gold : AppColors.blackColor;
     final activeFg = dark ? const Color(0xFF12141C) : Colors.white;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            width: 38,
-            height: 26,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: isSelected ? activeBg : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              isSelected ? item.activeIcon : item.icon,
-              color: isSelected
-                  ? activeFg
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.38),
-              size: 18,
+    final muted = theme.extension<AppColors>()!.navMuted;
+    final labelStyle = theme.textTheme.labelMedium;
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  width: 38,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? activeBg : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    isSelected ? item.activeIcon : item.icon,
+                    color: isSelected ? activeFg : muted,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.label.tr(),
+                  style: labelStyle?.copyWith(
+                    color: isSelected
+                        ? (dark ? gold : AppColors.blackColor)
+                        : muted,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ).animate(target: isSelected ? 1 : 0).fadeIn(duration: 180.ms),
+              ],
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            item.label.tr(),
-            style: TextStyle(
-              color: isSelected
-                  ? (dark ? gold : AppColors.blackColor)
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.38),
-              fontSize: 10,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            ),
-          ).animate(target: isSelected ? 1 : 0).fadeIn(duration: 180.ms),
-        ],
+        ),
       ),
     );
   }

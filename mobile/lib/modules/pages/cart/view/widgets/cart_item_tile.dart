@@ -79,7 +79,6 @@ class CartItemTile extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    visualDensity: VisualDensity.compact,
                     onPressed: () => context
                         .read<CartCubit>()
                         .updateQty(item.id, item.quantity - 1),
@@ -90,7 +89,6 @@ class CartItemTile extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   IconButton(
-                    visualDensity: VisualDensity.compact,
                     onPressed: () => context
                         .read<CartCubit>()
                         .updateQty(item.id, item.quantity + 1),

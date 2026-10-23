@@ -40,7 +40,7 @@ class CustomOrderCta extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.blackColor,
                   foregroundColor: Colors.white,
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(0, 48),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(9),

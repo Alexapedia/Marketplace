@@ -17,8 +17,7 @@ class CircleBackButton extends StatelessWidget {
             ? Colors.white.withValues(alpha: 0.92)
             : Colors.black.withValues(alpha: 0.92),
         foregroundColor: onSurface,
-        minimumSize: const Size(36, 36),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: const Size(40, 40),
       ),
       onPressed:
           onPressed ??

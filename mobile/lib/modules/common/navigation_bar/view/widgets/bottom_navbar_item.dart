@@ -37,11 +37,13 @@ class BottomNavbarItem extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(tabs.length, (index) {
-              return NavbarBtn(
-                item: tabs[index],
-                isSelected: index == selectedIndex,
-                primary: primary,
-                onTap: () => onTap(index),
+              return Expanded(
+                child: NavbarBtn(
+                  item: tabs[index],
+                  isSelected: index == selectedIndex,
+                  primary: primary,
+                  onTap: () => onTap(index),
+                ),
               );
             }),
           ),
