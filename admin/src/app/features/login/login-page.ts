@@ -13,6 +13,8 @@ import { STAFF_ROLES } from '../../core/models/models';
 import { ApiError } from '../../core/api/api-client';
 import { StoreConfigService } from '../../core/config/store-config.service';
 
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-login-page',
   imports: [
@@ -23,6 +25,7 @@ import { StoreConfigService } from '../../core/config/store-config.service';
     MatIconModule,
     MatProgressSpinnerModule,
     TranslatePipe,
+    ...MAISON,
   ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
