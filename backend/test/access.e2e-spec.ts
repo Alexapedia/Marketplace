@@ -42,8 +42,7 @@ describe('Access control (characterization)', () => {
     expect(url).toMatch(/\.png$/);
     const path = new URL(url).pathname;
     expect(path).toMatch(/^\/uploads\//);
-    const get = await ctx.http().get(path);
-    // Harness does not call useStaticAssets, so 404 is expected here.
+    await ctx.http().get(path).expect(200);
   });
 
   it('super_admin can block a customer, who then gets 401 on /auth/me', async () => {

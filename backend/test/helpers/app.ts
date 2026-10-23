@@ -1,10 +1,12 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
 import type { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import { Connection, Model } from 'mongoose';
 import request from 'supertest';
+import { configureApp } from '../../src/app.setup';
 import { AuthService } from '../../src/auth/auth.service';
 import { STAFF_ROLES } from '../../src/common/constants';
 import { TenantContext } from '../../src/tenant/tenant.context';
@@ -43,15 +45,8 @@ export async function bootApp(
   const moduleFixture = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();
-  const app = moduleFixture.createNestApplication();
-  app.setGlobalPrefix('api/v1');
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
+  const app = moduleFixture.createNestApplication<NestExpressApplication>();
+  configureApp(app);
   // Listen once so concurrent supertest requests share one server instead of
   // each opening (and racing on) its own ephemeral listener.
   await app.listen(0, '127.0.0.1');
