@@ -39,8 +39,33 @@ export class CartService {
     }
   }
 
+  /** Returns the cart priced at current product prices (what checkout charges). */
   async get(userId: string) {
-    return this.getOrCreate(userId);
+    const cart = await this.getOrCreate(userId);
+    if (!cart.items.length) {
+      return cart;
+    }
+    const products = await this.productModel.find({
+      _id: { $in: cart.items.map((i) => i.productId) },
+    });
+    const byId = new Map(products.map((p) => [String(p._id), p]));
+    let changed = false;
+    for (const item of cart.items) {
+      const product = byId.get(String(item.productId));
+      if (!product) {
+        continue;
+      }
+      const price = this.products.effectivePrice(product, item.variant);
+      if (item.unitPrice !== price) {
+        item.unitPrice = price;
+        changed = true;
+      }
+    }
+    if (changed) {
+      cart.markModified('items');
+      await cart.save();
+    }
+    return cart;
   }
 
   async addItem(userId: string, dto: AddCartItemDto) {
