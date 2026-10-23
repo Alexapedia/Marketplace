@@ -11,6 +11,7 @@ export class StoreConfigService {
   readonly deliveryFee = signal(0);
   readonly brandName = signal('');
   readonly logo = signal('');
+  readonly logoDark = signal('');
   readonly blocked = signal(false);
   readonly blockedKey = signal('maintenanceWebsite');
 
@@ -27,6 +28,7 @@ export class StoreConfigService {
         const name = tenant?.branding?.name || tenant?.name || '';
         this.brandName.set(name);
         this.logo.set(tenant?.branding?.logo || '');
+        this.logoDark.set(tenant?.branding?.logoDark || '');
         if (name) document.title = name;
         const primary = tenant?.branding?.primary || '#071345';
         const accent = tenant?.branding?.accent || '#c9a45c';

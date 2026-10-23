@@ -1,0 +1,429 @@
+// Controls: buttons, fields, chips, stepper, pills.
+
+.btn {
+  --btn-bg: var(--m-accent);
+  --btn-ink: var(--m-on-accent);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 1px solid transparent;
+  border-radius: var(--m-r-pill);
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform var(--m-dur-instant) var(--m-ease-out),
+    box-shadow var(--m-dur-base) var(--m-ease-out),
+    background-color var(--m-dur-fast) var(--m-ease-out),
+    border-color var(--m-dur-fast) var(--m-ease-out);
+  .m-icon {
+    width: 18px;
+    height: 18px;
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+// Every solid button gets the light sweep (same as .m-sheen).
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.32) 50%, transparent 70%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    box-shadow: 0 14px 28px -16px color-mix(in srgb, var(--btn-bg) 80%, black);
+  }
+  .btn:hover:not(:disabled)::after {
+    transform: translateX(120%);
+    transition: transform var(--m-dur-lavish) var(--m-ease-out);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn::after {
+    display: none;
+  }
+}
+.btn.navy,
+.btn.ink {
+  --btn-bg: var(--m-ink);
+  --btn-ink: var(--m-canvas);
+}
+.btn.ghost-btn {
+  --btn-bg: var(--m-surface-2);
+  --btn-ink: var(--m-ink);
+  &::after {
+    display: none;
+  }
+  &:hover:not(:disabled) {
+    box-shadow: none;
+    background: color-mix(in srgb, var(--m-ink) 8%, var(--m-surface-2));
+  }
+}
+.btn.o,
+.btn.outline {
+  --btn-bg: transparent;
+  --btn-ink: var(--m-ink);
+  border-color: var(--m-line);
+  &::after {
+    display: none;
+  }
+  &:hover:not(:disabled) {
+    border-color: var(--m-accent);
+    box-shadow: none;
+  }
+}
+.btn.danger {
+  --btn-bg: var(--m-danger);
+  --btn-ink: #fff;
+}
+:root[data-theme='dark'] .btn.danger {
+  --btn-ink: #16130f;
+}
+.btn.text-danger {
+  --btn-bg: transparent;
+  --btn-ink: var(--m-danger);
+  &::after {
+    display: none;
+  }
+  &:hover:not(:disabled) {
+    box-shadow: none;
+    background: color-mix(in srgb, var(--m-danger) 8%, transparent);
+  }
+}
+.btn.wide {
+  width: 100%;
+  min-height: 52px;
+  font-size: 15px;
+}
+.btn.sm {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--m-r-pill);
+  background: transparent;
+  color: var(--m-ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background-color var(--m-dur-fast) var(--m-ease-out),
+    color var(--m-dur-fast) var(--m-ease-out),
+    transform var(--m-dur-instant) var(--m-ease-out);
+  &:hover {
+    background: var(--m-surface-2);
+    color: var(--m-ink);
+  }
+  &:active {
+    transform: scale(0.94);
+  }
+  &.danger:hover {
+    color: var(--m-danger);
+  }
+}
+
+.text-link {
+  color: var(--m-accent-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--m-accent) 45%, transparent);
+  text-underline-offset: 4px;
+  &:hover {
+    text-decoration-color: var(--m-accent);
+  }
+}
+
+// ---- Fields -----------------------------------------------------------------
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  > label,
+  .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m-ink);
+  }
+}
+.field input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.field select,
+.field textarea,
+.input {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-sm);
+  background-color: var(--m-surface-2);
+  color: var(--m-ink);
+  outline: none;
+  transition:
+    border-color var(--m-dur-fast) var(--m-ease-out),
+    box-shadow var(--m-dur-fast) var(--m-ease-out),
+    background-color var(--m-dur-fast) var(--m-ease-out);
+  &::placeholder {
+    color: color-mix(in srgb, var(--m-ink-muted) 80%, transparent);
+  }
+  &:hover {
+    border-color: color-mix(in srgb, var(--m-ink) 22%, var(--m-line));
+  }
+  &:focus,
+  &:focus-visible {
+    background-color: var(--m-surface);
+    border-color: var(--m-accent);
+    box-shadow: var(--m-focus);
+    outline: none;
+  }
+  &[readonly] {
+    color: var(--m-ink-muted);
+    background-color: transparent;
+  }
+}
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
+  background-position:
+    calc(100% - 22px) 50%,
+    calc(100% - 17px) 50%;
+  padding-inline-end: 40px !important;
+}
+[dir='rtl'] select {
+  background-position:
+    17px 50%,
+    22px 50%;
+}
+.field input[type='file'],
+input[type='file'].file {
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, var(--m-accent) 55%, var(--m-line));
+  border-radius: var(--m-r-sm);
+  background: var(--m-accent-soft);
+  color: var(--m-ink-muted);
+  font-size: 13px;
+  &::file-selector-button {
+    margin-inline-end: 12px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: var(--m-r-pill);
+    background: var(--m-ink);
+    color: var(--m-canvas);
+    font-weight: 600;
+    cursor: pointer;
+  }
+}
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--m-accent);
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.chk {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  margin: 4px 0 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.form-grid {
+  display: grid;
+  gap: 0 16px;
+}
+@media (min-width: 640px) {
+  .form-grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// ---- Chips, pills, stepper -------------------------------------------------
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-pill);
+  background: var(--m-surface);
+  color: var(--m-ink);
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    border-color var(--m-dur-fast) var(--m-ease-out),
+    background-color var(--m-dur-fast) var(--m-ease-out),
+    transform var(--m-dur-instant) var(--m-ease-out);
+  small {
+    color: var(--m-ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  &:hover:not(:disabled) {
+    border-color: var(--m-accent);
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  &.on {
+    border-color: var(--m-accent);
+    background: var(--m-accent-soft);
+    box-shadow: inset 0 0 0 1px var(--m-accent);
+  }
+  &:disabled {
+    color: var(--m-ink-muted);
+    text-decoration: line-through;
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.status-pill {
+  --pill: var(--m-ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--m-r-pill);
+  background: color-mix(in srgb, var(--pill) 12%, var(--m-surface));
+  color: color-mix(in oklab, var(--pill) 80%, var(--m-ink));
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pill);
+  }
+  &[data-s='delivered'],
+  &[data-s='completed'],
+  &[data-s='confirmed'],
+  &[data-s='accepted'],
+  &[data-s='read'] {
+    --pill: var(--m-success);
+  }
+  &[data-s='cancelled'],
+  &[data-s='rejected'] {
+    --pill: var(--m-danger);
+  }
+  &[data-s='preparing'],
+  &[data-s='ready'],
+  &[data-s='out_for_delivery'],
+  &[data-s='quote_sent'],
+  &[data-s='waiting_confirmation'],
+  &[data-s='need_more_details'],
+  &[data-s='in_preparation'],
+  &[data-s='ready_shipped'] {
+    --pill: var(--m-accent);
+  }
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-pill);
+  background: var(--m-surface);
+  span {
+    min-width: 32px;
+    text-align: center;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  button {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--m-surface-2);
+    color: var(--m-ink);
+    transition:
+      background-color var(--m-dur-fast) var(--m-ease-out),
+      transform var(--m-dur-instant) var(--m-ease-out);
+    &:hover {
+      background: var(--m-accent-soft);
+    }
+    &:active {
+      transform: scale(0.9);
+    }
+    .m-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+  &.compact button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--m-accent);
+  font-size: 13px;
+  line-height: 1;
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+  .off {
+    color: var(--m-line);
+  }
+  b {
+    margin-inline-start: 6px;
+    color: var(--m-ink-muted);
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}

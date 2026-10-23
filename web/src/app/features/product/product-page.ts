@@ -22,9 +22,12 @@ import { Stars } from '../../shared/stars';
 import { AsyncState } from '../../shared/async-state';
 import { ToastService } from '../../core/toast/toast.service';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-product-page',
-  imports: [RouterLink, FormsModule, PageBar, Stars, TranslatePipe, AsyncState],
+  imports: [RouterLink, FormsModule, PageBar, Stars, TranslatePipe, AsyncState, Icon, MAISON],
   templateUrl: './product-page.html',
 })
 export class ProductPage implements OnInit {

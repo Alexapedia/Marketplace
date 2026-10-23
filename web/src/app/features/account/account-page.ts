@@ -9,9 +9,12 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/toast/toast.service';
 import { DialogService } from '../../core/dialog/dialog.service';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-account-page',
-  imports: [RouterLink, PageBar, TranslatePipe],
+  imports: [RouterLink, PageBar, TranslatePipe, Icon, MAISON],
   templateUrl: './account-page.html',
 })
 export class AccountPage implements OnInit {

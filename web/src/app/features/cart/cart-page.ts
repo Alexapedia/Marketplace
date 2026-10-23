@@ -9,9 +9,12 @@ import { ToastService } from '../../core/toast/toast.service';
 import { StoreConfigService } from '../../core/config/store-config.service';
 import { PriceSummary } from '../../shared/price-summary';
 
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
+
 @Component({
   selector: 'app-cart-page',
-  imports: [RouterLink, PageBar, TranslatePipe, PriceSummary],
+  imports: [RouterLink, PageBar, TranslatePipe, PriceSummary, Icon, MAISON],
   templateUrl: './cart-page.html',
 })
 export class CartPage implements OnInit {

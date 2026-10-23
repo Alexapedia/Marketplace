@@ -7,7 +7,7 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
   template: `
     @if (show()) {
       <div class="load-more">
-        <button class="btn navy" type="button" [disabled]="busy()" (click)="more.emit()">
+        <button class="btn outline" type="button" [disabled]="busy()" (click)="more.emit()">
           {{ (busy() ? 'loading' : 'loadMore') | t }}
         </button>
       </div>

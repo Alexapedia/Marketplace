@@ -8,7 +8,7 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
   imports: [FormsModule, TranslatePipe],
   template: `
     @if (dialog.current(); as d) {
-      <div class="dlg-backdrop" (click)="dialog.close(null)">
+      <div class="dlg-backdrop" animate.leave="dlg-leave" (click)="dialog.close(null)">
         <div
           class="dlg"
           role="dialog"
@@ -18,6 +18,7 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
           (keydown.escape)="dialog.close(null)"
         >
           <h3>{{ d.title | t }}</h3>
+          <span class="m-rule" aria-hidden="true"></span>
           @if (d.message) {
             <p class="muted">{{ d.message | t }}</p>
           }

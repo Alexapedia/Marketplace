@@ -8,10 +8,11 @@ import { StoreConfigService } from './core/config/store-config.service';
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { TelemetryService } from './core/telemetry/telemetry.service';
 import { DialogHost } from './shared/dialog-host';
+import { Icon } from './shared/icon';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TranslatePipe, DialogHost],
+  imports: [RouterOutlet, TranslatePipe, DialogHost, Icon],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

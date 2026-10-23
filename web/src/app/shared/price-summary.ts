@@ -8,7 +8,7 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
     <dl class="summary">
       <div><dt>{{ 'subtotal' | t }}</dt><dd>{{ subtotal() }} {{ 'currency' | t }}</dd></div>
       @if (discount()) {
-        <div><dt>{{ 'discount' | t }}</dt><dd>−{{ discount() }} {{ 'currency' | t }}</dd></div>
+        <div class="disc"><dt>{{ 'discount' | t }}</dt><dd>−{{ discount() }} {{ 'currency' | t }}</dd></div>
       }
       <div>
         <dt>{{ 'deliveryFee' | t }}</dt>

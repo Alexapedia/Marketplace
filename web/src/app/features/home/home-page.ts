@@ -20,16 +20,20 @@ import { ProductCard } from '../../shared/product-card';
 import { AsyncState } from '../../shared/async-state';
 import { Stars } from '../../shared/stars';
 import { ToastService } from '../../core/toast/toast.service';
+import { StoreConfigService } from '../../core/config/store-config.service';
+import { Icon } from '../../shared/icon';
+import { MAISON } from '../../shared/maison';
 
 @Component({
   selector: 'app-home-page',
-  imports: [RouterLink, FormsModule, TranslatePipe, LocPipe, ProductCard, Stars, AsyncState],
+  imports: [RouterLink, FormsModule, TranslatePipe, LocPipe, ProductCard, Stars, AsyncState, Icon, MAISON],
   templateUrl: './home-page.html',
 })
 export class HomePage implements OnInit {
   private readonly api = inject(ApiClient);
   readonly auth = inject(AuthService);
   readonly i18n = inject(I18nService);
+  readonly store = inject(StoreConfigService);
   private readonly toast = inject(ToastService);
 
   categories = signal<Category[]>([]);

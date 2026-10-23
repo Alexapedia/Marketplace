@@ -1,9 +1,9 @@
-<div class="w">
+<div class="w page">
   <app-page-bar [title]="('favorites' | t)" />
   @if (products().length && !loading()) {
     <div class="grid">
-      @for (p of products(); track p._id || p.id) {
-        <app-product-card [product]="p" [liked]="true" />
+      @for (p of products(); track p._id || p.id; let i = $index) {
+        <app-product-card [mReveal]="i % 8" [product]="p" [liked]="true" />
       }
     </div>
   }
@@ -13,6 +13,7 @@
     [empty]="!products().length"
     emptyKey="emptyFav"
     kind="grid"
+    icon="heart"
     (retry)="load()"
   />
 </div>

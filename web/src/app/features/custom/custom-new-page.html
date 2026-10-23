@@ -1,12 +1,19 @@
-<div class="w">
+<div class="w narrow page">
   <app-page-bar [title]="('startCustom' | t)" />
-  <form class="panel auth" (submit)="submit($event)">
+  <form class="panel form-panel m-enter" (submit)="submit($event)">
+    <div class="form-intro">
+      <span class="trust-ico"><m-icon name="spark" /></span>
+      <div>
+        <strong>{{ 'customCtaTitle' | t }}</strong>
+        <p class="muted">{{ 'customCtaBody' | t }}</p>
+      </div>
+    </div>
     @if (error()) {
       <div class="error">{{ error() }}</div>
     }
     <div class="field">
-      <label>{{ 'pickCategory' | t }}</label>
-      <select [(ngModel)]="categoryId" name="categoryId" required (ngModelChange)="onCategoryChange()">
+      <label for="cn-cat">{{ 'pickCategory' | t }}</label>
+      <select id="cn-cat" [(ngModel)]="categoryId" name="categoryId" required (ngModelChange)="onCategoryChange()">
         <option value="">{{ 'pickCategory' | t }}</option>
         @for (c of cats(); track trackCat(c)) {
           <option [value]="c._id || c.id">{{ c.names || c.name | loc }}</option>
@@ -15,14 +22,14 @@
     </div>
 
     @for (f of fields(); track f._id || f.id) {
-      <div class="field">
-        <label>{{ fieldLabel(f) }}{{ f.required ? ' *' : '' }}</label>
+      <div class="field m-enter">
+        <label [attr.for]="'f_' + f._id">{{ fieldLabel(f) }}{{ f.required ? ' *' : '' }}</label>
         @switch (f.fieldType) {
           @case ('textarea') {
-            <textarea [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id"></textarea>
+            <textarea [id]="'f_' + f._id" [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id"></textarea>
           }
           @case ('dropdown') {
-            <select [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id">
+            <select [id]="'f_' + f._id" [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id">
               <option value=""></option>
               @for (opt of f.options || []; track opt) {
                 <option [value]="opt">{{ opt }}</option>
@@ -36,23 +43,23 @@
             </label>
           }
           @case ('number') {
-            <input type="number" [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id" />
+            <input [id]="'f_' + f._id" type="number" [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id" />
           }
           @default {
-            <input [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id" />
+            <input [id]="'f_' + f._id" [(ngModel)]="fieldValues[f._id || f.id || '']" [name]="'f_' + f._id" />
           }
         }
       </div>
     }
 
     <div class="field">
-      <label>{{ 'description' | t }}</label>
-      <textarea [(ngModel)]="description" name="description" required [placeholder]="'notes' | t"></textarea>
+      <label for="cn-desc">{{ 'description' | t }}</label>
+      <textarea id="cn-desc" [(ngModel)]="description" name="description" required [placeholder]="'notes' | t"></textarea>
     </div>
 
     <div class="field">
-      <label>{{ 'attachments' | t }}</label>
-      <input type="file" multiple accept="image/*" (change)="onFiles($event)" />
+      <label for="cn-files">{{ 'attachments' | t }}</label>
+      <input id="cn-files" type="file" multiple accept="image/*" (change)="onFiles($event)" />
     </div>
 
     <button class="btn wide" type="submit">{{ 'submitCustom' | t }}</button>

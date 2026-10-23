@@ -1,7 +1,43 @@
-<div class="w">
+<div class="w page">
   <app-page-bar [title]="(titleKey() | t)" />
 
-  <form class="filters" (submit)="$event.preventDefault(); apply()">
+  <div class="shop-head">
+    <p class="muted result-count" aria-live="polite">
+      @if (meta() && !loading()) {
+        {{ meta()!.total }} {{ 'results' | t }}
+      }
+    </p>
+    <button
+      class="btn outline sm filters-toggle"
+      type="button"
+      (click)="filtersOpen.set(true)"
+      [attr.aria-expanded]="filtersOpen()"
+      aria-controls="shop-filters"
+    >
+      <m-icon name="filter" />
+      {{ 'mFilters' | t }}
+      @if (hasFilters()) {
+        <span class="dot" aria-hidden="true"></span>
+      }
+    </button>
+  </div>
+
+  @if (filtersOpen()) {
+    <div class="filters-scrim" (click)="filtersOpen.set(false)" aria-hidden="true"></div>
+  }
+  <form
+    id="shop-filters"
+    class="filters"
+    [class.open]="filtersOpen()"
+    (submit)="$event.preventDefault(); apply(); filtersOpen.set(false)"
+    (keydown.escape)="filtersOpen.set(false)"
+  >
+    <div class="filters-head">
+      <h2>{{ 'mFilters' | t }}</h2>
+      <button class="icon-btn" type="button" (click)="filtersOpen.set(false)" [attr.aria-label]="'cancel' | t">
+        <m-icon name="close" />
+      </button>
+    </div>
     <div class="field">
       <label for="f-cat">{{ 'categories' | t }}</label>
       <select id="f-cat" name="category" [(ngModel)]="category" (ngModelChange)="apply()">
@@ -23,7 +59,7 @@
       <label for="f-min">{{ 'priceRange' | t }}</label>
       <div class="price-inputs">
         <input id="f-min" type="number" min="0" name="minPrice" [(ngModel)]="minPrice" [placeholder]="'min' | t" />
-        <span>–</span>
+        <span aria-hidden="true">–</span>
         <input type="number" min="0" name="maxPrice" [(ngModel)]="maxPrice" [placeholder]="'max' | t" [attr.aria-label]="'max' | t" />
       </div>
     </div>
@@ -35,19 +71,15 @@
     </div>
   </form>
 
-  @if (meta() && !loading()) {
-    <p class="muted result-count">{{ meta()!.total }} {{ 'results' | t }}</p>
-  }
-
   @if (products().length && !loading()) {
     <div class="grid">
-      @for (p of products(); track p._id || p.id) {
-        <app-product-card [product]="p" />
+      @for (p of products(); track p._id || p.id; let i = $index) {
+        <app-product-card [mReveal]="i % 8" [product]="p" />
       }
     </div>
     @if (hasMore()) {
       <div class="load-more">
-        <button class="btn navy" type="button" [disabled]="loadingMore()" (click)="loadMore()">
+        <button class="btn outline" type="button" [disabled]="loadingMore()" (click)="loadMore()">
           {{ (loadingMore() ? 'loading' : 'loadMore') | t }}
         </button>
       </div>
@@ -59,6 +91,7 @@
     [empty]="!products().length"
     emptyKey="noProducts"
     kind="grid"
+    icon="search"
     (retry)="fetch(1)"
   />
 </div>
