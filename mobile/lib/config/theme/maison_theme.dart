@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../core/models/color_model.dart';
 import 'maison.dart';
@@ -27,7 +28,10 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     onTertiary: Maison.onColor(m.accentInk),
     error: m.danger,
     onError: Maison.onColor(m.danger),
-    errorContainer: Color.alphaBlend(m.danger.withValues(alpha: 0.12), m.surface),
+    errorContainer: Color.alphaBlend(
+      m.danger.withValues(alpha: 0.12),
+      m.surface,
+    ),
     onErrorContainer: m.ink,
     surface: m.surface,
     onSurface: m.ink,
@@ -66,7 +70,20 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     useMaterial3: true,
     brightness: m.brightness,
     fontFamily: kFontFamily,
-    extensions: {c, m},
+    extensions: {
+      c,
+      m,
+      // Warm shimmer skeletons (see MaisonSkeleton for reduced motion).
+      SkeletonizerConfigData(
+        effect: ShimmerEffect(
+          baseColor: m.surface2,
+          highlightColor: Color.lerp(m.surface2, m.surface, dark ? 0.5 : 0.85)!,
+          duration: const Duration(milliseconds: 1600),
+        ),
+        containersColor: m.surface2,
+        justifyMultiLineText: false,
+      ),
+    },
     colorScheme: scheme,
     scaffoldBackgroundColor: m.canvas,
     canvasColor: m.canvas,
@@ -91,8 +108,9 @@ ThemeData maisonTheme(AppColors c, Maison m) {
         statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
         statusBarBrightness: m.brightness,
         systemNavigationBarColor: m.canvas,
-        systemNavigationBarIconBrightness:
-            dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: dark
+            ? Brightness.light
+            : Brightness.dark,
       ),
       titleTextStyle: displayStyle(size: 20, color: m.ink),
       iconTheme: IconThemeData(color: m.ink),

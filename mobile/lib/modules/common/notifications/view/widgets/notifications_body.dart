@@ -1,13 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/components/infinite_scroll.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../controller/notifications_cubit.dart';
 import 'notification_tile.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class NotificationsBody extends StatelessWidget {
   const NotificationsBody({super.key});
@@ -38,7 +38,7 @@ class NotificationsBody extends StatelessWidget {
             ),
           );
         }
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: InfiniteScroll(
             onRefresh: () => cubit.load(silent: true),

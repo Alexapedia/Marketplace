@@ -66,7 +66,11 @@ abstract final class AppShadows {
 
   static List<BoxShadow> one(Brightness b) => b == Brightness.dark
       ? const [
-          BoxShadow(color: Color(0x66000000), blurRadius: 2, offset: Offset(0, 1)),
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
           BoxShadow(
             color: Color(0x99000000),
             blurRadius: 30,

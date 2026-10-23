@@ -191,9 +191,7 @@ extension MaisonContext on BuildContext {
 Color mixOklab(Color a, Color b, double t) {
   final x = _toOklab(a);
   final y = _toOklab(b);
-  final m = [
-    for (var i = 0; i < 3; i++) x[i] * t + y[i] * (1 - t),
-  ];
+  final m = [for (var i = 0; i < 3; i++) x[i] * t + y[i] * (1 - t)];
   return _fromOklab(m, a.a * t + b.a * (1 - t));
 }
 

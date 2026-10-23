@@ -22,7 +22,7 @@ class StarRating extends StatelessWidget {
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<AppColors>()?.gold ??
         const Color(0xFFC9A45C);
-    final muted = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.22);
+    final muted = Theme.of(context).colorScheme.outline.withValues(alpha: 0.7);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -30,7 +30,7 @@ class StarRating extends StatelessWidget {
           GestureDetector(
             onTap: onChanged == null ? null : () => onChanged!(i.toDouble()),
             child: Padding(
-              padding: EdgeInsets.only(right: size * 0.08),
+              padding: EdgeInsetsDirectional.only(end: size * 0.08),
               child: Icon(
                 i <= value.round()
                     ? Icons.star_rounded
@@ -48,7 +48,7 @@ class StarRating extends StatelessWidget {
             value.toStringAsFixed(1),
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
               fontSize: size * 0.78 < 12 ? 12 : size * 0.78,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),

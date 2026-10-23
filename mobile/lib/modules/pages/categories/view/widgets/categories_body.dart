@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/models/catalog_models.dart';
@@ -9,6 +8,7 @@ import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/categories_cubit.dart';
 import 'category_tile.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class CategoriesBody extends StatelessWidget {
   const CategoriesBody({super.key});
@@ -33,7 +33,7 @@ class CategoriesBody extends StatelessWidget {
             icon: Icons.category_outlined,
           );
         }
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: GridView.builder(
             padding: EdgeInsets.fromLTRB(

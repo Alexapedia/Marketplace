@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/components/app_button.dart';
@@ -12,6 +11,7 @@ import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/cart_cubit.dart';
 import 'cart_item_tile.dart';
 import 'cart_summary.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class CartBody extends StatelessWidget {
   const CartBody({super.key});
@@ -66,7 +66,7 @@ class CartBody extends StatelessWidget {
           canCheckout: items.isNotEmpty,
           expand: split,
         );
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: split
               ? Row(

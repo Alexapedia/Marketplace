@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../core/components/adaptive_page.dart';
 import '../../../../../core/components/app_logo.dart';
@@ -15,6 +14,7 @@ import 'notif_btn.dart';
 import 'portrait_home.dart';
 import 'split_home.dart';
 import 'wide_app_bar.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class HomeBody extends StatelessWidget {
   const HomeBody({super.key});
@@ -74,7 +74,7 @@ class HomeBody extends StatelessWidget {
                 else
                   SliverToBoxAdapter(
                     child: AdaptivePage(
-                      child: Skeletonizer(
+                      child: MaisonSkeleton(
                         enabled: loading,
                         child: context.isLandscape
                             ? SplitHome(state: state, loading: loading)

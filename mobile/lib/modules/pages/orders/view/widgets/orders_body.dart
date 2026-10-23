@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../../core/components/app_button.dart';
@@ -11,6 +10,7 @@ import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../controller/orders_cubit.dart';
 import 'order_tile.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class OrdersBody extends StatelessWidget {
   const OrdersBody({super.key});
@@ -58,7 +58,7 @@ class OrdersBody extends StatelessWidget {
             ),
           );
         }
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: InfiniteScroll(
             onRefresh: cubit.refresh,

@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-import '../models/color_model.dart';
+import '../../config/theme/maison.dart';
+import '../../config/theme/typography.dart';
 import '../models/review_models.dart';
+import 'app_button.dart';
 import 'star_rating.dart';
 
 class ReviewCard extends StatelessWidget {
@@ -13,62 +15,73 @@ class ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
+    final m = context.maison;
     final theme = Theme.of(context);
+    final name = review.userName.isEmpty ? 'customer'.tr() : review.userName;
     return Container(
-      width: compact ? 260 : double.infinity,
-      padding: const EdgeInsets.all(14),
+      width: compact ? 280 : double.infinity,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: gold.withValues(alpha: 0.16)),
+        color: m.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: m.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Row(
+            children: [
+              StarRating(value: review.rating, size: 14),
+              const Spacer(),
+              ExcludeSemantics(
+                child: Text(
+                  '“',
+                  style: displayStyle(size: 36, color: m.accent, height: 0.6),
+                ),
+              ),
+            ],
+          ),
+          if (review.comment.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              review.comment,
+              maxLines: compact ? 4 : 8,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.6,
+                color: m.ink,
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
           Row(
             children: [
               CircleAvatar(
                 radius: 14,
-                backgroundColor: theme.colorScheme.primary,
+                backgroundColor: m.accentSoft,
                 child: Text(
-                  review.userName.isNotEmpty
-                      ? review.userName[0].toUpperCase()
-                      : 'Z',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  name.characters.first.toUpperCase(),
+                  style: TextStyle(
+                    color: m.accentInk,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  review.userName.isEmpty ? 'customer'.tr() : review.userName,
+                  name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: m.inkMuted,
+                  ),
                 ),
               ),
-              StarRating(value: review.rating, size: 14),
             ],
           ),
-          if (review.comment.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Center(
-              child: Text(
-                review.comment,
-                maxLines: compact ? 4 : 8,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  height: 1.45,
-                  fontSize: 13,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -123,55 +136,39 @@ class _RateSheetState extends State<_RateSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
+    final m = context.maison;
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 20 + bottom),
+      padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            widget.title,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-          ),
-          const SizedBox(height: 12),
+          Text(widget.title, style: displayStyle(size: 22, color: m.ink)),
+          const SizedBox(height: 16),
           StarRating(
             value: _rating,
             size: 36,
             onChanged: (v) => setState(() => _rating = v),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
           TextField(
             controller: _comment,
             maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'rating_comment_hint'.tr(),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
+            decoration: InputDecoration(hintText: 'rating_comment_hint'.tr()),
           ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: gold,
-                foregroundColor: const Color(0xFF12141C),
-              ),
-              onPressed: _busy
-                  ? null
-                  : () async {
-                      setState(() => _busy = true);
-                      try {
-                        await widget.onSubmit(_rating, _comment.text.trim());
-                        if (context.mounted) Navigator.pop(context);
-                      } finally {
-                        if (mounted) setState(() => _busy = false);
-                      }
-                    },
-              child: Text(_busy ? 'loading'.tr() : 'submit_rating'.tr()),
-            ),
+          const SizedBox(height: 18),
+          AppButton(
+            isLoading: _busy,
+            title: 'submit_rating'.tr(),
+            onTap: () async {
+              setState(() => _busy = true);
+              try {
+                await widget.onSubmit(_rating, _comment.text.trim());
+                if (context.mounted) Navigator.pop(context);
+              } finally {
+                if (mounted) setState(() => _busy = false);
+              }
+            },
           ),
         ],
       ),

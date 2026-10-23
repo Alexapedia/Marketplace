@@ -72,7 +72,10 @@ class MaisonPageTransition extends StatelessWidget {
         child: AnimatedBuilder(
           animation: enter,
           builder: (context, child) => Transform.translate(
-            offset: Offset(0, MaisonPageTransitionsBuilder.rise * (1 - enter.value)),
+            offset: Offset(
+              0,
+              MaisonPageTransitionsBuilder.rise * (1 - enter.value),
+            ),
             child: child,
           ),
           child: child,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/routing/app_router_keys.dart';
+import 'maison.dart';
 
 class CircleBackButton extends StatelessWidget {
   const CircleBackButton({super.key, this.onPressed});
@@ -11,16 +12,11 @@ class CircleBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    return IconButton.filledTonal(
+    return GlassCircleButton(
       tooltip: 'a11y_back'.tr(),
-      style: IconButton.styleFrom(
-        backgroundColor: Theme.of(context).brightness == Brightness.light
-            ? Colors.white.withValues(alpha: 0.92)
-            : Colors.black.withValues(alpha: 0.92),
-        foregroundColor: onSurface,
-        minimumSize: const Size(40, 40),
-      ),
+      // Mirrors automatically in RTL (matchTextDirection).
+      icon: Icons.arrow_back_ios_new_rounded,
+      size: 16,
       onPressed:
           onPressed ??
           () {
@@ -30,13 +26,6 @@ class CircleBackButton extends StatelessWidget {
               context.goNamed(AppRouterKeys.navigatorBarScreen);
             }
           },
-      icon: Icon(
-        Icons.arrow_back_ios_new_rounded,
-        size: 16,
-        color: Theme.of(context).brightness == Brightness.light
-            ? Colors.black.withValues(alpha: 0.92)
-            : Colors.white.withValues(alpha: 0.92),
-      ),
     );
   }
 }

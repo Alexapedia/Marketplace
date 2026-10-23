@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../../core/components/app_button.dart';
@@ -12,6 +11,7 @@ import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/favorites_cubit.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class FavoritesBody extends StatelessWidget {
   const FavoritesBody({super.key});
@@ -53,7 +53,7 @@ class FavoritesBody extends StatelessWidget {
             icon: Icons.favorite_border,
           );
         }
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: RefreshIndicator(
             onRefresh: () => context.read<FavoritesCubit>().load(),
