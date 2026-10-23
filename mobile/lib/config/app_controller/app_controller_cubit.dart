@@ -257,7 +257,6 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
     requireAuth(context, () async {
       if (productId.isEmpty) return;
       final wasFav = state.favoriteIds.contains(productId);
-      final original = List<String>.from(state.favoriteIds);
       final next = List<String>.from(state.favoriteIds);
       if (wasFav) {
         next.remove(productId);
@@ -273,7 +272,12 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
             );
       response.fold(
         (failed) {
-          emit(state.copyWith(favoriteIds: original));
+          // Revert only this product against the current list so concurrent
+          // toggles of other products are preserved.
+          final reverted = List<String>.from(state.favoriteIds)
+            ..remove(productId);
+          if (wasFav) reverted.add(productId);
+          emit(state.copyWith(favoriteIds: reverted));
           AppToast(failed, isError: true);
         },
         (_) => AppToast(wasFav ? 'removed_from_favorites' : 'added_to_favorites'),
