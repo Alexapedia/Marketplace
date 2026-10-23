@@ -104,6 +104,7 @@ class DioConsumer implements ApiConsumer {
     dynamic body,
     Map<String, dynamic>? queryParameters,
     bool formDataIsEnabled = false,
+    Map<String, dynamic>? headers,
   }) async {
     try {
       final response = await _gated(
@@ -111,6 +112,7 @@ class DioConsumer implements ApiConsumer {
           path,
           queryParameters: queryParameters,
           data: body,
+          options: headers != null ? Options(headers: headers) : null,
         ),
       );
       return handleResponseStatus(response);

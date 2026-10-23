@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,6 +23,16 @@ class CheckOutCubit extends Cubit<CheckOutState> with SafeEmitMixin<CheckOutStat
   CheckOutCubit() : super(const CheckOutState());
 
   final notes = TextEditingController();
+
+  /// One key per checkout so a retry of the same order is deduplicated server-side.
+  final String _idempotencyKey = _newIdempotencyKey();
+
+  static String _newIdempotencyKey() {
+    final rnd = Random.secure();
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+    final suffix = List.generate(8, (_) => chars[rnd.nextInt(36)]).join();
+    return 'mobile-${DateTime.now().millisecondsSinceEpoch}-$suffix';
+  }
 
   Future<void> load() async {
     emit(state.copyWith(status: RequestStatus.loading));
@@ -50,6 +62,7 @@ class CheckOutCubit extends Cubit<CheckOutState> with SafeEmitMixin<CheckOutStat
   }
 
   Future<void> submit(BuildContext context) async {
+    if (state.status == RequestStatus.loading) return;
     if (state.selectedId.isEmpty) {
       AppToast('no_addresses_hint', isError: true);
       if (context.mounted) {
@@ -67,6 +80,7 @@ class CheckOutCubit extends Cubit<CheckOutState> with SafeEmitMixin<CheckOutStat
         'paymentMethod': 'COD',
         'channel': 'mobile',
       },
+      headers: {'Idempotency-Key': _idempotencyKey},
     );
     response.fold(
       (l) {

@@ -23,7 +23,12 @@ class FakeNetworkInfo implements NetworkInfo {
       const Stream.empty();
 }
 
-typedef RecordedCall = ({String method, String path, dynamic body});
+typedef RecordedCall = ({
+  String method,
+  String path,
+  dynamic body,
+  Map<String, dynamic>? headers,
+});
 
 /// ApiConsumer fake that records calls and answers with [postResult].
 class FakeApiConsumer implements ApiConsumer {
@@ -36,7 +41,7 @@ class FakeApiConsumer implements ApiConsumer {
   @override
   Future<Either<String, ApiModel>> get(String path,
       {Map<String, dynamic>? queryParameters}) async {
-    calls.add((method: 'GET', path: path, body: null));
+    calls.add((method: 'GET', path: path, body: null, headers: null));
     return getResult;
   }
 
@@ -44,8 +49,9 @@ class FakeApiConsumer implements ApiConsumer {
   Future<Either<String, ApiModel>> post(String path,
       {dynamic body,
       Map<String, dynamic>? queryParameters,
-      bool formDataIsEnabled = false}) async {
-    calls.add((method: 'POST', path: path, body: body));
+      bool formDataIsEnabled = false,
+      Map<String, dynamic>? headers}) async {
+    calls.add((method: 'POST', path: path, body: body, headers: headers));
     return postResult;
   }
 
