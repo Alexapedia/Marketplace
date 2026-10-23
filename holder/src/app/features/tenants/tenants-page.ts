@@ -50,23 +50,23 @@ import { MAISON, onColor } from '../../shared/maison';
             <a class="store m-lift m-press" [routerLink]="['/tenants', row.id]" [mReveal]="i">
               <span
                 class="band"
-                [style.background]="row.branding?.primary || '#071345'"
-                [style.color]="on(row.branding?.primary || '#071345')"
+                [style.background]="primary(row)"
+                [style.color]="on(primary(row))"
               >
                 <span class="logo">
-                  @if (row.branding?.logo) {
-                    <img [src]="row.branding.logo" [alt]="row.name" loading="lazy" />
+                  @if (logo(row); as src) {
+                    <img [src]="src" [alt]="row.name" loading="lazy" />
                   } @else {
-                    <span class="mono" [style.color]="row.branding?.accent || '#c9a45c'">{{
+                    <span class="mono" [style.color]="accent(row)">{{
                       initial(row.name)
                     }}</span>
                   }
                 </span>
                 <span class="swatches" aria-hidden="true">
-                  <i [style.background]="row.branding?.primary || '#071345'"></i>
-                  <i [style.background]="row.branding?.accent || '#c9a45c'"></i>
+                  <i [style.background]="primary(row)"></i>
+                  <i [style.background]="accent(row)"></i>
                 </span>
-                <span class="accent-rule" [style.background]="row.branding?.accent || '#c9a45c'"></span>
+                <span class="accent-rule" [style.background]="accent(row)"></span>
               </span>
               <span class="body">
                 <span class="top">
@@ -309,6 +309,19 @@ export class TenantsPage {
   readonly pageSize = 12;
   readonly skeleton = [0, 1, 2];
   readonly on = onColor;
+  primary(row: TenantRow): string {
+    return row.branding?.primary || '#071345';
+  }
+  accent(row: TenantRow): string {
+    return row.branding?.accent || '#c9a45c';
+  }
+  /** The band is the brand primary: a dark band shows the dark-surface logo when there is one. */
+  logo(row: TenantRow): string {
+    const b = row.branding;
+    if (!b) return '';
+    const darkBand = onColor(this.primary(row)) === '#ffffff';
+    return (darkBand ? b.logoDark || b.logo : b.logo || b.logoDark) || '';
+  }
   initial(name: string): string {
     return (name || '?').trim().charAt(0).toUpperCase();
   }
