@@ -10,10 +10,13 @@ import { PlatformJwtStrategy } from './platform-jwt.strategy';
 import { PlatformTelemetryController } from './platform-telemetry.controller';
 import { PlatformTenantsController } from './platform-tenants.controller';
 import { PlatformTenantsService } from './platform-tenants.service';
+import { PlatformUploadsController } from './platform-uploads.controller';
+import { UploadsModule } from '../uploads/uploads.module';
 import { platformJwtSecret } from '../common/utils/secrets';
 
 @Module({
   imports: [
+    UploadsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -28,6 +31,7 @@ import { platformJwtSecret } from '../common/utils/secrets';
     PlatformTenantsController,
     PlatformInsightsController,
     PlatformTelemetryController,
+    PlatformUploadsController,
   ],
   providers: [
     PlatformAuthService,
