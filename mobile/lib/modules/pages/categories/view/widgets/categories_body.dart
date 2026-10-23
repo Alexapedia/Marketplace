@@ -36,7 +36,12 @@ class CategoriesBody extends StatelessWidget {
         return Skeletonizer(
           enabled: loading,
           child: GridView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              16 + MediaQuery.paddingOf(context).bottom,
+            ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: context.catalogColumns.clamp(2, 4),
               mainAxisExtent: ResponsiveUtils.byDevice(

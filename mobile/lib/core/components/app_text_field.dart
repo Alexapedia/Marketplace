@@ -53,7 +53,9 @@ class _AppTextFieldState extends State<AppTextField> {
   void initState() {
     super.initState();
     _focusNode = widget.focusNode ?? FocusNode();
-    _focusNode.addListener(() => setState(() => _isFocused = _focusNode.hasFocus));
+    _focusNode.addListener(
+      () => setState(() => _isFocused = _focusNode.hasFocus),
+    );
   }
 
   @override
@@ -72,42 +74,49 @@ class _AppTextFieldState extends State<AppTextField> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.title.isNotEmpty) ...[
-            Text(
-              widget.title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: _isFocused
-                    ? primary
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ExcludeSemantics(
+              child: Text(
+                widget.title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _isFocused
+                      ? primary
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
             ),
             const SizedBox(height: 6),
           ],
-          TextFormField(
-            onChanged: widget.onChange,
-            inputFormatters: widget.inputFormatters,
-            textInputAction: widget.textInputAction,
-            maxLines: widget.maxlines,
-            keyboardType: widget.textInputType,
-            focusNode: _focusNode,
-            controller: widget.controller,
-            readOnly: widget.isReadOnly,
-            validator: widget.validator,
-            obscureText: widget.obscureText,
-            style: TextStyle(fontSize: context.font(14.5)),
-            decoration: InputDecoration(
-              hintText: widget.hintText,
-              suffixIcon: widget.suffixIconWidget ??
-                  (widget.suffixIcon == null
-                      ? null
-                      : GestureDetector(
-                          onTap: widget.onTap,
-                          child: Icon(widget.suffixIcon),
-                        )),
-              prefixIcon: widget.prefexIcon == null
-                  ? null
-                  : Icon(widget.prefexIcon, size: 22),
+          Semantics(
+            label: widget.title.isEmpty ? null : widget.title,
+            textField: true,
+            child: TextFormField(
+              onChanged: widget.onChange,
+              inputFormatters: widget.inputFormatters,
+              textInputAction: widget.textInputAction,
+              maxLines: widget.maxlines,
+              keyboardType: widget.textInputType,
+              focusNode: _focusNode,
+              controller: widget.controller,
+              readOnly: widget.isReadOnly,
+              validator: widget.validator,
+              obscureText: widget.obscureText,
+              style: TextStyle(fontSize: context.font(14.5)),
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                suffixIcon:
+                    widget.suffixIconWidget ??
+                    (widget.suffixIcon == null
+                        ? null
+                        : GestureDetector(
+                            onTap: widget.onTap,
+                            child: Icon(widget.suffixIcon),
+                          )),
+                prefixIcon: widget.prefexIcon == null
+                    ? null
+                    : Icon(widget.prefexIcon, size: 22),
+              ),
             ),
           ),
         ],

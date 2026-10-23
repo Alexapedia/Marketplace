@@ -22,6 +22,7 @@ class NavigationBarScreen extends StatelessWidget {
             if (!didPop) controller.getPageIndex(0);
           },
           child: Scaffold(
+            extendBody: !rail,
             body: Row(
               children: [
                 if (rail)

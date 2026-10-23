@@ -12,6 +12,7 @@ import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../controller/custom_orders_list_cubit.dart';
 import 'custom_order_tile.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class CustomOrdersListBody extends StatelessWidget {
   const CustomOrdersListBody({super.key});
@@ -40,7 +41,7 @@ class CustomOrdersListBody extends StatelessWidget {
           );
         }
         if (state.status != RequestStatus.loaded) {
-          return const Center(child: CircularProgressIndicator());
+          return const SkeletonList(itemHeight: 88);
         }
         if (state.items.isEmpty) {
           return EmptyState(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/functions/color_convert.dart';
+import '../utils/functions/contrast.dart';
 
 class AppColors extends ThemeExtension<AppColors> {
   static const Color blackColor = Color(0xff071345);
@@ -44,6 +45,9 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color roseSoftLight;
   final Color pinkAccent;
   final Color gold;
+  final Color goldText;
+  final Color inputBorder;
+  final Color navMuted;
 
   const AppColors({
     required this.primary,
@@ -85,6 +89,9 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.roseSoftLight,
     required this.pinkAccent,
     required this.gold,
+    required this.goldText,
+    required this.inputBorder,
+    required this.navMuted,
   });
 
   static final AppColors lightDefaults = AppColors.fromJson({});
@@ -94,6 +101,19 @@ class AppColors extends ThemeExtension<AppColors> {
   factory AppColors.fromJson(Map<String, dynamic> json, {bool dark = false}) {
     Color c(String k, String light, String darkHex) =>
         (json[k] ?? (dark ? darkHex : light)).toString().toColor();
+
+    final gold = c('gold', '#C9A45C', '#C9A45C');
+    final surfaceLight = c('surfaceLight', '#FFFFFF', '#FFFFFF');
+    final Color goldText;
+    if (json['goldText'] != null) {
+      goldText = json['goldText'].toString().toColor();
+    } else if (dark) {
+      goldText = ensureContrast(gold, c('surfaceDark', '#12141C', '#12141C'));
+    } else if (json['gold'] != null) {
+      goldText = ensureContrast(gold, surfaceLight);
+    } else {
+      goldText = '#85641F'.toColor();
+    }
 
     return AppColors(
       primary: c('primary', '#071345', '#FFFFFF'),
@@ -105,7 +125,7 @@ class AppColors extends ThemeExtension<AppColors> {
       tertiary: c('tertiary', '#3D4F8A', '#8B9AD4'),
       backgroundLight: c('backgroundLight', '#EEF0F6', '#EEF0F6'),
       backgroundDark: c('backgroundDark', '#0E1017', '#0E1017'),
-      surfaceLight: c('surfaceLight', '#FFFFFF', '#FFFFFF'),
+      surfaceLight: surfaceLight,
       surfaceDark: c('surfaceDark', '#12141C', '#12141C'),
       surfaceContainerLight: c('surfaceContainerLight', '#F3F4F9', '#F3F4F9'),
       surfaceContainerDark: c('surfaceContainerDark', '#1B1E29', '#1B1E29'),
@@ -114,13 +134,13 @@ class AppColors extends ThemeExtension<AppColors> {
       textPrimaryLight: c('textPrimaryLight', '#071345', '#071345'),
       textPrimaryDark: c('textPrimaryDark', '#ECEEF6', '#ECEEF6'),
       textSecondary: c('textSecondary', '#5B6385', '#9CA2B8'),
-      hint: c('hint', '#7A82A6', '#7A82A6'),
+      hint: c('hint', '#5F6788', '#7A82A6'),
       border: c('border', '#E3E6F0', '#E3E6F0'),
       divider: c('divider', '#E3E6F0', '#2A2E3D'),
       error: c('error', '#BA1A1A', '#BA1A1A'),
       onError: c('onError', '#FFFFFF', '#FFFFFF'),
       success: c('success', '#2E7D32', '#2E7D32'),
-      warning: c('warning', '#E65100', '#E65100'),
+      warning: c('warning', '#B54300', '#E65100'),
       gradientStart: c('gradientStart', '#071345', '#C9A45C'),
       gradientEnd: c('gradientEnd', '#1C3190', '#C9A45C'),
       onSecondaryContainerLight: c(
@@ -138,7 +158,10 @@ class AppColors extends ThemeExtension<AppColors> {
       snackBarBgDark: c('snackBarBgDark', '#1A1D2E', '#1A1D2E'),
       roseSoftLight: c('roseSoftLight', '#FBF6EA', '#2A2518'),
       pinkAccent: c('pinkAccent', '#C9A45C', '#C9A45C'),
-      gold: c('gold', '#C9A45C', '#C9A45C'),
+      gold: gold,
+      goldText: goldText,
+      inputBorder: c('inputBorder', '#767D96', '#6D7491'),
+      navMuted: c('navMuted', '#5B6385', '#A3A9BF'),
     );
   }
 
@@ -183,6 +206,9 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? roseSoftLight,
     Color? pinkAccent,
     Color? gold,
+    Color? goldText,
+    Color? inputBorder,
+    Color? navMuted,
   }) {
     return AppColors(
       primary: primary ?? this.primary,
@@ -227,6 +253,9 @@ class AppColors extends ThemeExtension<AppColors> {
       roseSoftLight: roseSoftLight ?? this.roseSoftLight,
       pinkAccent: pinkAccent ?? this.pinkAccent,
       gold: gold ?? this.gold,
+      goldText: goldText ?? this.goldText,
+      inputBorder: inputBorder ?? this.inputBorder,
+      navMuted: navMuted ?? this.navMuted,
     );
   }
 
@@ -283,6 +312,9 @@ class AppColors extends ThemeExtension<AppColors> {
       roseSoftLight: l(roseSoftLight, other.roseSoftLight),
       pinkAccent: l(pinkAccent, other.pinkAccent),
       gold: l(gold, other.gold),
+      goldText: l(goldText, other.goldText),
+      inputBorder: l(inputBorder, other.inputBorder),
+      navMuted: l(navMuted, other.navMuted),
     );
   }
 

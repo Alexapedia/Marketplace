@@ -23,7 +23,9 @@ class ProductShareButton extends StatelessWidget {
       '${product.displayPrice.toStringAsFixed(0)} ${AppString.currency}',
       subject: product.name,
       // Anchors the share popover on iPad.
-      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+      sharePositionOrigin: box == null
+          ? null
+          : box.localToGlobal(Offset.zero) & box.size,
     );
   }
 
@@ -32,10 +34,12 @@ class ProductShareButton extends StatelessWidget {
     if (filled) {
       return ProductCircleAction(
         icon: Icons.ios_share_rounded,
+        tooltip: 'a11y_share'.tr(),
         onTap: () => _share(context),
       );
     }
     return IconButton.filledTonal(
+      tooltip: 'a11y_share'.tr(),
       style: IconButton.styleFrom(
         backgroundColor: Theme.of(context).brightness == Brightness.light
             ? Colors.white.withValues(alpha: 0.92)

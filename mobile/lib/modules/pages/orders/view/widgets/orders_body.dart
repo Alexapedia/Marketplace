@@ -65,8 +65,15 @@ class OrdersBody extends StatelessWidget {
             onLoadMore: cubit.loadMore,
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: loading ? 4 : state.items.length + (state.loadingMore ? 1 : 0),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                16 + MediaQuery.paddingOf(context).bottom,
+              ),
+              itemCount: loading
+                  ? 4
+                  : state.items.length + (state.loadingMore ? 1 : 0),
               separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
                 if (loading) return ListTile(title: Text('order'.tr()));

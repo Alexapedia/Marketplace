@@ -27,7 +27,9 @@ class CartItemTile extends StatelessWidget {
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
+            color: Theme.of(
+              context,
+            ).colorScheme.outline.withValues(alpha: 0.12),
           ),
         ),
         child: Row(
@@ -36,6 +38,7 @@ class CartItemTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: ImageItem(
                 item.product?.cover ?? '',
+                semanticLabel: name,
                 width: 72,
                 height: 72,
                 fit: BoxFit.cover,
@@ -57,10 +60,9 @@ class CartItemTile extends StatelessWidget {
                       item.size!,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   Text(
@@ -79,10 +81,11 @@ class CartItemTile extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => context
-                        .read<CartCubit>()
-                        .updateQty(item.id, item.quantity - 1),
+                    tooltip: 'a11y_decrease_qty'.tr(),
+                    onPressed: () => context.read<CartCubit>().updateQty(
+                      item.id,
+                      item.quantity - 1,
+                    ),
                     icon: const Icon(Icons.remove, size: 18),
                   ),
                   Text(
@@ -90,10 +93,11 @@ class CartItemTile extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   IconButton(
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => context
-                        .read<CartCubit>()
-                        .updateQty(item.id, item.quantity + 1),
+                    tooltip: 'a11y_increase_qty'.tr(),
+                    onPressed: () => context.read<CartCubit>().updateQty(
+                      item.id,
+                      item.quantity + 1,
+                    ),
                     icon: const Icon(Icons.add, size: 18),
                   ),
                 ],

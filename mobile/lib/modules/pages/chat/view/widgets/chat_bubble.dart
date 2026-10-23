@@ -45,12 +45,8 @@ class ChatBubble extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               message.createdAt!.toLocal().toString().substring(11, 16),
-              style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.48),
-                fontSize: 10,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],

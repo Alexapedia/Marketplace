@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/components/circle_back_button.dart';
 import '../../../../core/components/failed_shape.dart';
-import '../../../../core/components/loading_item.dart';
+import '../../../../core/components/skeleton_placeholders.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../controller/order_details_cubit.dart';
 import 'widgets/order_details_body.dart';
@@ -27,7 +27,7 @@ class OrderDetailsScreen extends StatelessWidget {
           builder: (context, state) {
             if (state.status == RequestStatus.loading ||
                 state.status == RequestStatus.init) {
-              return const LoadingItem();
+              return const SkeletonDetail(heroHeight: 120);
             }
             if (state.current == null) {
               return FailedShape(
@@ -36,7 +36,10 @@ class OrderDetailsScreen extends StatelessWidget {
                     context.read<OrderDetailsCubit>().load(orderId),
               );
             }
-            return OrderDetailsBody(order: state.current!);
+            return RefreshIndicator(
+              onRefresh: () => context.read<OrderDetailsCubit>().load(orderId),
+              child: OrderDetailsBody(order: state.current!),
+            );
           },
         ),
       ),

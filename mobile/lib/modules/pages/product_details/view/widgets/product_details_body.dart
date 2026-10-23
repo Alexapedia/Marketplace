@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/components/failed_shape.dart';
-import '../../../../../core/components/loading_item.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/product_details_cubit.dart';
@@ -18,7 +18,10 @@ class ProductDetailsBody extends StatelessWidget {
       builder: (context, state) {
         if (state.status == RequestStatus.loading ||
             state.status == RequestStatus.init) {
-          return const Scaffold(body: LoadingItem());
+          return Scaffold(
+            appBar: AppBar(),
+            body: const SkeletonDetail(heroHeight: 320),
+          );
         }
         if (state.status == RequestStatus.failed || state.product == null) {
           return Scaffold(

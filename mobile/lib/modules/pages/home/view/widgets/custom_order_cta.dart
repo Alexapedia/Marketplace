@@ -40,7 +40,7 @@ class CustomOrderCta extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.blackColor,
                   foregroundColor: Colors.white,
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(0, 48),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(9),
@@ -52,7 +52,10 @@ class CustomOrderCta extends StatelessWidget {
                 ),
                 child: Text(
                   'custom_order'.tr(),
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
             ],

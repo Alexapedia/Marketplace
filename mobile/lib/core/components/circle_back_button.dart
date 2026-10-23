@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,13 +13,13 @@ class CircleBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
     return IconButton.filledTonal(
+      tooltip: 'a11y_back'.tr(),
       style: IconButton.styleFrom(
         backgroundColor: Theme.of(context).brightness == Brightness.light
             ? Colors.white.withValues(alpha: 0.92)
             : Colors.black.withValues(alpha: 0.92),
         foregroundColor: onSurface,
-        minimumSize: const Size(36, 36),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: const Size(40, 40),
       ),
       onPressed:
           onPressed ??

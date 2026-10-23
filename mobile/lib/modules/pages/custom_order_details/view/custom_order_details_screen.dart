@@ -7,7 +7,7 @@ import '../../../../config/routing/app_router_keys.dart';
 import '../../../../core/components/circle_back_button.dart';
 import '../../../../core/components/failed_shape.dart';
 import '../../../../core/components/gold_stepper.dart';
-import '../../../../core/components/loading_item.dart';
+import '../../../../core/components/skeleton_placeholders.dart';
 import '../../../../core/models/color_model.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/status_label.dart';
@@ -76,7 +76,8 @@ class CustomOrderDetailsScreen extends StatelessWidget {
   }
 
   Widget _content(BuildContext context, CustomOrderDetailsState state) {
-    if (state.status == RequestStatus.loading) return const LoadingItem();
+    if (state.status == RequestStatus.loading)
+      return const SkeletonDetail(heroHeight: 120);
     if (state.order == null) {
       return FailedShape(
         msg: state.error,

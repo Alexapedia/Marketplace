@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../config/theme/tokens.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/app_text_field.dart';
 import '../../../../../core/models/color_model.dart';
@@ -37,22 +38,30 @@ class ProposalCard extends StatelessWidget {
         children: [
           Text(
             'quote_from_support'.tr(),
-            style: TextStyle(
-              fontSize: 11,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           Text(
             '${proposal.price.toStringAsFixed(0)} ${AppString.currency}',
-            style: TextStyle(
-              fontSize: 22,
+            style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
-              color: gold,
+              color: theme.extension<AppColors>()?.goldText ?? gold,
             ),
           ),
           if (proposal.notes.isNotEmpty) Text(proposal.notes),
           const SizedBox(height: 4),
-          Text('💵 ${'cod'.tr()}'),
+          Row(
+            children: [
+              Icon(
+                Icons.payments_outlined,
+                size: 18,
+                color: theme.extension<AppColors>()?.goldText ?? gold,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text('cod'.tr()),
+            ],
+          ),
           const SizedBox(height: 10),
           if (proposal.canRespond)
             Row(
@@ -101,10 +110,7 @@ class ProposalCard extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('reject_proposal'.tr()),
-        content: AppTextField(
-          controller: ctrl,
-          title: 'reject_reason'.tr(),
-        ),
+        content: AppTextField(controller: ctrl, title: 'reject_reason'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),

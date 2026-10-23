@@ -42,16 +42,23 @@ class CartBody extends StatelessWidget {
         }
         final split = context.isTablet || context.isDesktop;
         final list = Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: loading ? 3 : items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, i) {
-              if (loading) {
-                return ListTile(title: Text('loading'.tr()), subtitle: const Text('0'));
-              }
-              return CartItemTile(item: items[i]);
-            },
+          child: RefreshIndicator(
+            onRefresh: () => context.read<CartCubit>().load(),
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: loading ? 3 : items.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              itemBuilder: (context, i) {
+                if (loading) {
+                  return ListTile(
+                    title: Text('loading'.tr()),
+                    subtitle: const Text('0'),
+                  );
+                }
+                return CartItemTile(item: items[i]);
+              },
+            ),
           ),
         );
         final summary = CartSummary(
@@ -67,32 +74,20 @@ class CartBody extends StatelessWidget {
                   children: [
                     list,
                     ColoredBox(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       child: SizedBox(
-                        width: (context.responsive.width * 0.38).clamp(280, 420),
+                        width: (context.responsive.width * 0.38).clamp(
+                          280,
+                          420,
+                        ),
                         child: summary,
                       ),
                     ),
                   ],
                 )
-              : Column(
-                  children: [
-                    list,
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 12,
-                            offset: const Offset(0, -4),
-                          ),
-                        ],
-                      ),
-                      child: summary,
-                    ),
-                  ],
-                ),
+              : Column(children: [list, summary]),
         );
       },
     );
