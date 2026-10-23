@@ -407,8 +407,10 @@ export class AuthService {
 
     await this.sendResetEmail(user, token);
 
-    const isDev = this.config.get<string>('NODE_ENV') !== 'production';
-    return isDev ? { ...generic, resetToken: token } : generic;
+    // Only automated tests opt in to receiving the token; every real
+    // environment (staging included) must deliver it by email only.
+    const expose = this.config.get<string>('EXPOSE_RESET_TOKEN') === 'true';
+    return expose ? { ...generic, resetToken: token } : generic;
   }
 
   async resetPassword(dto: ResetPasswordDto) {
