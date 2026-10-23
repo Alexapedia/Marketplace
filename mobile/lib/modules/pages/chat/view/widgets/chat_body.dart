@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/components/failed_shape.dart';
-import '../../../../../core/components/loading_item.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../controller/chat_cubit.dart';
 import 'chat_bubble.dart';
@@ -39,7 +39,7 @@ class ChatBody extends StatelessWidget {
             child: BlocBuilder<ChatCubit, ChatState>(
               builder: (context, state) {
                 if (state.status == RequestStatus.loading) {
-                  return const LoadingItem();
+                  return const SkeletonList(itemCount: 5, itemHeight: 64);
                 }
                 if (state.status == RequestStatus.failed) {
                   return FailedShape(

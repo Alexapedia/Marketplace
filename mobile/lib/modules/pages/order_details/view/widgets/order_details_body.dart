@@ -31,9 +31,11 @@ class OrderDetailsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shortId =
-        order.id.length > 8 ? order.id.substring(order.id.length - 8) : order.id;
+    final shortId = order.id.length > 8
+        ? order.id.substring(order.id.length - 8)
+        : order.id;
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
         20,
         20,
@@ -104,7 +106,9 @@ class OrderDetailsBody extends StatelessWidget {
             'rate_order_products_hint'.tr(),
             style: TextStyle(
               fontSize: 13,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.65),
             ),
           ),
           const SizedBox(height: 8),

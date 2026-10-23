@@ -10,6 +10,7 @@ import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../controller/addresses_cubit.dart';
 import 'address_card.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class AddressesBody extends StatelessWidget {
   const AddressesBody({super.key});
@@ -40,7 +41,7 @@ class AddressesBody extends StatelessWidget {
               );
             }
             if (state.status != RequestStatus.loaded) {
-              return const Center(child: CircularProgressIndicator());
+              return const SkeletonList(itemHeight: 110);
             }
             if (state.items.isEmpty) {
               return EmptyState(
@@ -55,12 +56,16 @@ class AddressesBody extends StatelessWidget {
               );
             }
             final cubit = context.read<AddressesCubit>();
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
-              itemCount: state.items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) =>
-                  AddressCard(address: state.items[i], cubit: cubit),
+            return RefreshIndicator(
+              onRefresh: () => cubit.load(),
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
+                itemCount: state.items.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (context, i) =>
+                    AddressCard(address: state.items[i], cubit: cubit),
+              ),
             );
           },
         ),
