@@ -57,6 +57,8 @@ export const en: Dict = {
     confirm: 'Confirm',
     saved: 'Saved',
     menu: 'Menu',
+    lightMode: 'Switch to light mode',
+    darkMode: 'Switch to dark mode',
     delete: 'Delete',
   },
   overview: {
@@ -210,6 +212,8 @@ export const ar: Dict = {
     confirm: 'تأكيد',
     saved: 'تم الحفظ',
     menu: 'القائمة',
+    lightMode: 'التبديل إلى الوضع الفاتح',
+    darkMode: 'التبديل إلى الوضع الداكن',
     delete: 'حذف',
   },
   overview: {
