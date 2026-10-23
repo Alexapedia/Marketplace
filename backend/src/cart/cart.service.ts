@@ -21,16 +21,22 @@ export class CartService {
   ) {}
 
   async getOrCreate(userId: string) {
-    let cart = await this.cartModel.findOne({
-      userId: new Types.ObjectId(userId),
-    });
-    if (!cart) {
-      cart = await this.cartModel.create({
-        userId: new Types.ObjectId(userId),
-        items: [],
-      });
+    const filter = { userId: new Types.ObjectId(userId) };
+    // Atomic upsert: concurrent first loads (e.g. app start fetching the cart
+    // badge and the cart screen together) all get the same cart instead of
+    // racing on the unique tenantId+userId index.
+    try {
+      return await this.cartModel.findOneAndUpdate(
+        filter,
+        { $setOnInsert: { items: [] } },
+        { upsert: true, new: true },
+      );
+    } catch (err) {
+      if ((err as { code?: number }).code !== 11000) throw err;
+      const cart = await this.cartModel.findOne(filter);
+      if (!cart) throw err;
+      return cart;
     }
-    return cart;
   }
 
   async get(userId: string) {

@@ -177,14 +177,23 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const user = await this.userModel.create({
-      name: dto.name,
-      email: dto.email.toLowerCase(),
-      passwordHash,
-      phone: dto.phone,
-      role: 'customer',
-      status: 'active',
-    });
+    let user: UserDocument;
+    try {
+      user = await this.userModel.create({
+        name: dto.name,
+        email: dto.email.toLowerCase(),
+        passwordHash,
+        phone: dto.phone,
+        role: 'customer',
+        status: 'active',
+      });
+    } catch (err) {
+      // A concurrent registration won the unique tenantId+email index.
+      if ((err as { code?: number }).code === 11000) {
+        throw new ConflictException('Email already registered');
+      }
+      throw err;
+    }
     return this.session(user);
   }
 
