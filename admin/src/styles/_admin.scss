@@ -1,0 +1,468 @@
+// Admin page primitives shared by every feature page (Maison).
+
+// ---- Page head ------------------------------------------------------------
+
+.page-h,
+.head h2,
+.wrap > h2 {
+  margin: 0;
+  font-family: var(--m-font-display);
+  font-size: clamp(28px, 2.4vw + 14px, 36px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--m-ink);
+}
+.page-h::after,
+.head h2::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 1px;
+  margin-top: 14px;
+  background: var(--m-rule);
+}
+[dir='rtl'] .page-h::after,
+[dir='rtl'] .head h2::after {
+  background: linear-gradient(270deg, var(--m-accent), transparent);
+}
+:lang(ar) .page-h,
+:lang(ar) .head h2 {
+  letter-spacing: 0;
+}
+h2.page-h:not(.head h2.page-h) {
+  margin-bottom: 24px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+// ---- Filters / toolbars -----------------------------------------------------
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.filters .mat-mdc-form-field {
+  width: min(240px, 100%);
+}
+.mat-mdc-form-field.search,
+.search {
+  width: min(360px, 100%);
+}
+.mat-mdc-form-field.search {
+  margin-inline-end: 12px;
+}
+@media (max-width: 599px) {
+  .filters .mat-mdc-form-field,
+  .mat-mdc-form-field.search,
+  .search {
+    width: 100%;
+    margin-inline-end: 0;
+  }
+}
+
+// ---- Form fields: tonal fill + hairline ------------------------------------
+
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-text-field-wrapper {
+  background: var(--m-surface-2);
+  border-radius: var(--m-r-sm);
+  transition: background-color var(--m-dur-fast) var(--m-ease-out);
+}
+.mat-mdc-form-field.mat-form-field-appearance-outline.mat-focused .mat-mdc-text-field-wrapper {
+  background: var(--m-surface);
+}
+// Keep the floating label's notch readable against the tonal fill.
+.mat-mdc-form-field.mat-form-field-appearance-outline .mdc-notched-outline__notch {
+  border-inline-start-width: 0;
+}
+.mat-mdc-form-field-error {
+  font-size: 12px;
+}
+
+// ---- Cards -----------------------------------------------------------------
+
+.mat-mdc-card {
+  box-shadow: var(--m-shadow-1), var(--m-highlight);
+}
+.mat-mdc-card.mat-mdc-card-outlined {
+  box-shadow: var(--m-shadow-1), var(--m-highlight);
+}
+.mat-mdc-card-title {
+  font-family: var(--m-font-display);
+}
+
+// Grouped form section: a surface card with an eyebrow-ish title.
+.m-section {
+  padding: 24px;
+  border-radius: var(--m-r-lg);
+  background: var(--m-surface);
+  border: 1px solid var(--m-line);
+  box-shadow: var(--m-shadow-1), var(--m-highlight);
+}
+.m-section > h3,
+.m-section-title {
+  margin: 0 0 16px;
+  font-family: var(--m-font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+// ---- Buttons ---------------------------------------------------------------
+
+.mat-mdc-unelevated-button:not(:disabled) {
+  box-shadow: 0 10px 22px -14px color-mix(in srgb, var(--m-accent) 80%, transparent);
+}
+.mat-mdc-button-base {
+  transition: transform var(--m-dur-instant) var(--m-ease-out);
+}
+.mat-mdc-button-base:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.mat-mdc-unelevated-button .mat-icon,
+.mat-mdc-outlined-button .mat-icon {
+  margin-inline: -2px 6px;
+}
+
+// ---- Data tables -------------------------------------------------------------
+
+.table-wrap {
+  position: relative;
+  overflow: auto;
+  background: var(--m-surface);
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-lg);
+  box-shadow: var(--m-shadow-1), var(--m-highlight);
+  overscroll-behavior-x: contain;
+}
+@media (min-width: 1024px) {
+  .table-wrap {
+    max-height: calc(100dvh - 156px);
+  }
+}
+
+table.mat-mdc-table {
+  width: 100%;
+  background: transparent;
+}
+.mat-mdc-table:not(.table-wrap .mat-mdc-table) {
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-lg);
+  overflow: hidden;
+  background: var(--m-surface);
+  box-shadow: var(--m-shadow-1);
+}
+
+.mat-mdc-header-row {
+  background: transparent;
+}
+.table-wrap .mat-mdc-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--m-glass);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+.mat-mdc-header-cell {
+  color: var(--m-ink-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom-color: var(--m-line);
+}
+:lang(ar) .mat-mdc-header-cell {
+  letter-spacing: 0;
+}
+
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  padding: 12px 16px;
+  text-align: start;
+  vertical-align: middle;
+}
+.mat-mdc-cell {
+  border-bottom-color: var(--m-line);
+  font-variant-numeric: tabular-nums;
+}
+.mat-mdc-cell .actions,
+.mat-mdc-cell .row-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+.mat-mdc-row {
+  transition: background-color var(--m-dur-fast) var(--m-ease-out);
+}
+.mat-mdc-row:hover {
+  background: color-mix(in srgb, var(--m-accent) 7%, transparent);
+}
+.mat-mdc-row:last-child .mat-mdc-cell {
+  border-bottom: 0;
+}
+
+// First 12 rows stagger in (30ms apart).
+@keyframes m-row-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+tbody .mat-mdc-row,
+.mat-mdc-table > .mat-mdc-row {
+  animation: m-row-in var(--m-dur-slow) var(--m-ease-out) both;
+}
+@for $i from 1 through 12 {
+  tbody .mat-mdc-row:nth-child(#{$i}) {
+    animation-delay: #{($i - 1) * 30}ms;
+  }
+}
+tbody .mat-mdc-row:nth-child(n + 13) {
+  animation-delay: 360ms;
+}
+
+.mat-mdc-paginator {
+  border-top: 1px solid var(--m-line);
+  font-variant-numeric: tabular-nums;
+}
+.table-wrap .mat-mdc-paginator {
+  position: sticky;
+  inset-inline-start: 0;
+}
+
+.thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--m-r-sm);
+  background: var(--m-surface-2);
+  display: block;
+  border: 1px solid var(--m-line);
+}
+
+// Inline text link styled as Maison (used by name cells, order item links).
+.plink {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--m-ink);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--m-accent) 60%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--m-dur-fast) var(--m-ease-out);
+}
+.plink:hover {
+  text-decoration-color: var(--m-accent);
+}
+
+// ---- Status chips (semantic) ---------------------------------------------
+
+.mat-mdc-standard-chip {
+  text-transform: capitalize;
+}
+.mat-mdc-chip.mat-mdc-standard-chip[class*='st-'],
+.st-chip {
+  --mat-chip-elevated-container-color: var(--st-bg);
+  --mat-chip-label-text-color: var(--st-fg);
+  --mat-chip-outline-color: transparent;
+  --st-bg: var(--m-surface-2);
+  --st-fg: var(--m-ink);
+}
+.mat-mdc-chip[class*='st-'] .mdc-evolution-chip__text-label::before,
+.st-chip::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+  transform: translateY(-1px);
+}
+.st-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: var(--m-r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: var(--st-bg);
+  color: var(--st-fg);
+  white-space: nowrap;
+}
+.st-chip::before {
+  margin-inline-end: 6px;
+  transform: none;
+}
+
+.st-published,
+.st-active,
+.st-delivered,
+.st-completed,
+.st-accepted,
+.st-ready,
+.st-approved,
+.st-sent,
+.st-paid,
+.st-success {
+  --st-bg: color-mix(in srgb, var(--m-success) 14%, var(--m-surface));
+  --st-fg: var(--m-success);
+}
+.st-pending,
+.st-unpublished,
+.st-preparing,
+.st-submitted,
+.st-under_review,
+.st-quoted,
+.st-draft,
+.st-scheduled,
+.st-out_for_delivery,
+.st-confirmed,
+.st-in_progress,
+.st-processing {
+  --st-bg: var(--m-accent-soft);
+  --st-fg: var(--m-accent-ink);
+}
+.st-rejected,
+.st-blocked,
+.st-cancelled,
+.st-archived,
+.st-failed,
+.st-hidden,
+.st-suspended {
+  --st-bg: color-mix(in srgb, var(--m-danger) 12%, var(--m-surface));
+  --st-fg: var(--m-danger);
+}
+
+// ---- Dialogs, overlays, snackbars ----------------------------------------------
+
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop {
+  background: color-mix(in srgb, #0c0b09 46%, transparent);
+  backdrop-filter: blur(6px);
+}
+.mat-mdc-dialog-surface {
+  border: 1px solid var(--m-line);
+  box-shadow: var(--m-shadow-2), var(--m-highlight) !important;
+}
+.mat-mdc-dialog-container .mat-mdc-dialog-title {
+  padding: 24px 28px 8px;
+}
+.mat-mdc-dialog-container .mat-mdc-dialog-title::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  margin-top: 12px;
+  background: var(--m-rule);
+}
+.mat-mdc-dialog-container .mat-mdc-dialog-content {
+  padding: 12px 28px 16px;
+  max-height: min(74vh, 780px);
+  color: var(--m-ink);
+}
+.mat-mdc-dialog-container .mat-mdc-dialog-actions {
+  padding: 14px 24px 20px;
+  gap: 8px;
+  border-top: 1px solid var(--m-line);
+  margin: 0;
+}
+
+@keyframes m-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  animation: m-dialog-in var(--m-dur-base) var(--m-ease-out) both;
+}
+
+.mat-mdc-select-panel,
+.mat-mdc-menu-panel,
+.mat-mdc-autocomplete-panel {
+  border: 1px solid var(--m-line);
+}
+
+.snack-ok {
+  --mat-snack-bar-container-color: var(--m-ink);
+  --mat-snack-bar-supporting-text-color: var(--m-canvas);
+}
+.snack-ok .mat-mdc-snackbar-surface {
+  border-inline-start: 3px solid var(--m-accent);
+}
+.snack-err {
+  --mat-snack-bar-container-color: var(--m-danger);
+  --mat-snack-bar-supporting-text-color: #ffffff;
+}
+body.dark-theme .snack-err {
+  --mat-snack-bar-supporting-text-color: #16130f;
+}
+.mat-mdc-snack-bar-container .mat-mdc-snackbar-surface {
+  box-shadow: var(--m-shadow-2);
+}
+
+// Shell inbox menu (overlay panel)
+.inbox-menu {
+  min-width: 300px;
+}
+.inbox-menu .mat-mdc-menu-item span {
+  display: grid;
+  gap: 2px;
+  white-space: normal;
+  max-width: 300px;
+  padding-block: 6px;
+}
+.inbox-menu .mat-mdc-menu-item.unread strong::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 8px;
+  border-radius: 50%;
+  background: var(--m-accent);
+  vertical-align: middle;
+}
+.inbox-menu small {
+  color: var(--m-ink-muted);
+  font-size: 12px;
+}
+// ---- Shared bits ------------------------------------------------------------
+
+.muted {
+  color: var(--m-ink-muted);
+}
+.mat-icon {
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  tbody .mat-mdc-row,
+  .mat-mdc-table > .mat-mdc-row,
+  .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+    animation: none;
+  }
+  .mat-mdc-button-base:active:not(:disabled) {
+    transform: none;
+  }
+}

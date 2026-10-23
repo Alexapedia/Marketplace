@@ -129,11 +129,8 @@ export class StaffDialog {
     }
   `,
   styles: `
-    .head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:8px; }
-    .hint { margin:0; color:#5c678c; }
-    .filters { display:flex; flex-wrap:wrap; gap:12px; }
-    .filters mat-form-field { width: min(240px, 100%); }
-    .full { width:100%; }
+    .hint { margin: 8px 0 0; color: var(--m-ink-muted); }
+    .full { width: 100%; }
     .mini { width: 170px; }
   `,
 })

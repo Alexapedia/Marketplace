@@ -35,17 +35,17 @@ import { ConfirmService } from '../../shared/confirm-dialog';
     ImageUploader,
   ],
   template: `
-    <div style="padding: 20px 24px">
+    <div class="dlg-wrap">
       <h2 mat-dialog-title>{{ (data.category ? 'common.edit' : 'categories.create') | t }}</h2>
       <mat-dialog-content [formGroup]="form" class="dlg">
         <mat-form-field appearance="outline"
           ><mat-label>{{ 'common.nameEn' | t }}</mat-label
           ><input matInput formControlName="nameEn"
-        /></mat-form-field>
+        /><mat-error>{{ 'common.required' | t }}</mat-error></mat-form-field>
         <mat-form-field appearance="outline"
           ><mat-label>{{ 'common.nameAr' | t }}</mat-label
           ><input matInput formControlName="nameAr"
-        /></mat-form-field>
+        /><mat-error>{{ 'common.required' | t }}</mat-error></mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>{{ 'categories.parent' | t }}</mat-label>
           <mat-select formControlName="parentId">
@@ -93,18 +93,28 @@ import { ConfirmService } from '../../shared/confirm-dialog';
     .dlg {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px 14px;
-      min-width: min(560px, 92vw);
-      padding-top: 8px;
+      gap: 12px 14px;
+      min-width: min(560px, 86vw);
+      padding-top: 12px;
     }
     .wide {
       grid-column: 1/-1;
     }
     .lbl {
       font-size: 12px;
-      font-weight: 700;
-      color: #5c678c;
-      margin-bottom: 8px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--m-accent-ink);
+      margin: 4px 0 10px;
+    }
+    :host-context([dir='rtl']) .lbl {
+      letter-spacing: 0;
+    }
+    @media (max-width: 599px) {
+      .dlg {
+        grid-template-columns: 1fr;
+      }
     }
   `,
 })
@@ -239,34 +249,13 @@ export class CategoryDialog {
     }
   `,
   styles: `
-    .head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      gap: 12px;
-    }
-    h2 {
-      margin: 0;
-    }
     .full {
       width: 100%;
     }
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-    .filters mat-form-field {
-      width: min(220px, 100%);
-    }
-    .thumb {
+    td .thumb {
       width: 44px;
       height: 44px;
-      object-fit: cover;
-      border-radius: 10px;
-      background: #eef1f8;
+      margin: 0;
     }
   `,
 })

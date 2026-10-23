@@ -1,4 +1,15 @@
-import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  OnDestroy,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Location } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -17,6 +28,7 @@ import { NotificationsApi } from '../core/api/notifications.api';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { ThemeService } from '../core/theme/theme.service';
+import { StoreConfigService } from '../core/config/store-config.service';
 import { AppNotification, loc, StaffRole } from '../core/models/models';
 import { asList } from '../shared/ui.service';
 import {
@@ -61,13 +73,22 @@ export class Shell implements OnDestroy {
   readonly auth = inject(AuthService);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
+  readonly store = inject(StoreConfigService);
+  private readonly injector = inject(Injector);
+
+  // ---- Purely visual state (brand, sliding nav pill, glass top bar) ----
+  readonly brandName = computed(() => this.store.brandName() || this.i18n.t('brand'));
+  readonly brandLogo = computed(() => this.store.logoDark() || this.store.logo());
+  readonly scrolled = signal(false);
+  readonly pill = signal({ y: 0, h: 0 });
+  private readonly navRef = viewChild('nav', { read: ElementRef });
   readonly inbox = signal<AppNotification[]>([]);
   readonly unread = signal(0);
   private inboxTimer?: ReturnType<typeof setInterval>;
   private inboxReady = false;
 
   readonly isTablet = toSignal(
-    this.bp.observe('(max-width: 1024px)').pipe(map((r) => r.matches)),
+    this.bp.observe('(max-width: 1023.98px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
@@ -194,8 +215,16 @@ export class Shell implements OnDestroy {
   constructor() {
     bindNotificationSoundUnlock();
     listenForPushSound();
-    this.bp.observe('(max-width: 1024px)').subscribe((r) => {
+    this.bp.observe('(max-width: 1023.98px)').subscribe((r) => {
       this.sidenavOpened.set(!r.matches);
+    });
+    // Re-measure the active nav pill after navigation, nav changes or language flips.
+    effect(() => {
+      this.pageTitle();
+      this.visibleNav();
+      this.i18n.lang();
+      this.sidenavOpened();
+      afterNextRender(() => this.queuePillMeasure(), { injector: this.injector });
     });
     this.refreshInbox();
     this.inboxTimer = setInterval(() => this.refreshInbox(), 20000);
@@ -242,6 +271,26 @@ export class Shell implements OnDestroy {
 
   inboxBody(item: AppNotification): string {
     return loc(item.body, this.i18n.lang());
+  }
+
+  onScroll(event: Event): void {
+    const top = (event.target as HTMLElement).scrollTop;
+    if (top > 8 !== this.scrolled()) this.scrolled.set(top > 8);
+  }
+
+  queuePillMeasure(): void {
+    if (typeof requestAnimationFrame !== 'function') return;
+    requestAnimationFrame(() => this.measurePill());
+  }
+
+  private measurePill(): void {
+    const host: HTMLElement | undefined = this.navRef()?.nativeElement;
+    const active = host?.querySelector<HTMLElement>('a.active');
+    if (!host || !active) {
+      this.pill.set({ y: 0, h: 0 });
+      return;
+    }
+    this.pill.set({ y: active.offsetTop, h: active.offsetHeight });
   }
 
   sidenavMode(): 'over' | 'side' {

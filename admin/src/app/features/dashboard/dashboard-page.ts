@@ -4,9 +4,13 @@ import { RouterLink } from '@angular/router';
 import { DashboardApi } from '../../core/api/dashboard.api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { DashboardStats, num } from '../../core/models/models';
+import { DashboardStats, num, Order } from '../../core/models/models';
+import { OrdersApi } from '../../core/api/orders.api';
+import { AuthService } from '../../core/auth/auth.service';
+import { StoreConfigService } from '../../core/config/store-config.service';
+import { MAISON } from '../../shared/maison';
+import { asList, errMessage } from '../../shared/ui.service';
 import { AsyncState } from '../../shared/async-state';
-import { errMessage } from '../../shared/ui.service';
 
 const STATUS_ORDER = [
   'pending',
@@ -22,9 +26,9 @@ const STATUS_ORDER = [
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [DatePipe, DecimalPipe, RouterLink, TranslatePipe, AsyncState],
+  imports: [DatePipe, DecimalPipe, RouterLink, TranslatePipe, AsyncState, ...MAISON],
   templateUrl: './dashboard-page.html',
-  styleUrl: './dashboard-page.scss',
+  styleUrls: ['./dashboard-page.scss', './dashboard-panels.scss'],
 })
 export class DashboardPage implements OnInit {
   private readonly api = inject(DashboardApi);
@@ -35,11 +39,22 @@ export class DashboardPage implements OnInit {
   readonly stats = signal<DashboardStats | null>(null);
   readonly now = new Date();
 
+  // Recent orders strip (read-only, only for staff who can open orders).
+  private readonly ordersApi = inject(OrdersApi);
+  private readonly auth = inject(AuthService);
+  readonly store = inject(StoreConfigService);
+  readonly recent = signal<Order[]>([]);
+  readonly canSeeOrders = computed(() =>
+    this.auth.canAccess(['super_admin', 'admin', 'order_manager', 'support_agent'], ['orders.read', 'orders.write']),
+  );
+  readonly fmt = (n: number): string => Math.round(n).toLocaleString('en-US');
+
   ngOnInit(): void {
     this.load();
   }
 
   load(): void {
+    this.loadRecent();
     this.loading.set(true);
     this.error.set(null);
     this.api.get().subscribe({
@@ -52,6 +67,24 @@ export class DashboardPage implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  private loadRecent(): void {
+    if (!this.canSeeOrders()) return;
+    this.ordersApi.list({ page: 1, limit: 6 }).subscribe({
+      next: (res) => this.recent.set(asList(res.data).slice(0, 6)),
+      error: () => this.recent.set([]),
+    });
+  }
+
+  customerName(order: Order): string {
+    const u = order.userId;
+    if (u && typeof u === 'object') return u.name || u.email;
+    return order.address?.fullName || '—';
+  }
+
+  orderStatus(order: Order): string {
+    return order.orderStatus ?? order.status ?? '';
   }
 
   n(keys: string[]): number {

@@ -52,132 +52,151 @@ import { ConfirmService } from '../../shared/confirm-dialog';
   template: `
     <h2 mat-dialog-title>{{ (data.product ? 'common.edit' : 'products.create') | t }}</h2>
     <mat-dialog-content [formGroup]="form" class="dlg">
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.nameEn' | t }}</mat-label>
-        <input matInput formControlName="nameEn" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.nameAr' | t }}</mat-label>
-        <input matInput formControlName="nameAr" />
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="wide">
-        <mat-label>{{ 'common.description' | t }} (EN)</mat-label>
-        <textarea matInput rows="2" formControlName="descEn"></textarea>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="wide">
-        <mat-label>{{ 'common.description' | t }} (AR)</mat-label>
-        <textarea matInput rows="2" formControlName="descAr"></textarea>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.price' | t }}</mat-label>
-        <input matInput type="number" formControlName="price" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'products.salePrice' | t }}</mat-label>
-        <input matInput type="number" formControlName="salePrice" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.stock' | t }}</mat-label>
-        <input matInput type="number" formControlName="stock" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.category' | t }}</mat-label>
-        <mat-select formControlName="categoryId">
-          @for (c of data.categories; track entityId(c)) {
-            <mat-option [value]="entityId(c)">{{ locName(c) }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <div class="wide">
-        <div class="lbl">{{ 'common.images' | t }}</div>
-        <app-image-uploader [images]="pics()" (imagesChange)="pics.set($event)" />
-      </div>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'products.gender' | t }}</mat-label>
-        <mat-select formControlName="gender">
-          <mat-option value="">—</mat-option>
-          <mat-option value="unisex">Unisex</mat-option>
-          <mat-option value="male">Male</mat-option>
-          <mat-option value="female">Female</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.status' | t }}</mat-label>
-        <mat-select formControlName="status">
-          <mat-option value="published">{{ 'products.published' | t }}</mat-option>
-          <mat-option value="unpublished">{{ 'products.unpublished' | t }}</mat-option>
-          <mat-option value="archived">{{ 'products.archived' | t }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="wide">
-        <mat-label>{{ 'products.sizes' | t }}</mat-label>
-        <input matInput formControlName="sizes" placeholder="S, M, L" />
-        <mat-hint>{{ 'products.sizesHint' | t }}</mat-hint>
-      </mat-form-field>
-      <div class="wide variants">
-        <div class="v-head">
-          <div class="lbl">{{ 'products.variants' | t }}</div>
-          <button mat-stroked-button type="button" (click)="addVariant()">
-            <mat-icon>add</mat-icon>{{ 'products.addVariant' | t }}
-          </button>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.details' | t }}</h3>
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.nameEn' | t }}</mat-label>
+            <input matInput formControlName="nameEn" /><mat-error>{{ 'common.required' | t }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.nameAr' | t }}</mat-label>
+            <input matInput formControlName="nameAr" /><mat-error>{{ 'common.required' | t }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>{{ 'common.description' | t }} (EN)</mat-label>
+            <textarea matInput rows="2" formControlName="descEn"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>{{ 'common.description' | t }} (AR)</mat-label>
+            <textarea matInput rows="2" formControlName="descAr"></textarea>
+          </mat-form-field>
         </div>
-        @if (!variants().length) {
-          <p class="hint">{{ 'products.variantsHint' | t }}</p>
-        }
-        @for (v of variants(); track $index; let i = $index) {
-          <div class="v-row">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'common.name' | t }}</mat-label>
-              <input
-                matInput
-                [value]="v.name || ''"
-                (input)="patchVariant(i, 'name', $any($event.target).value)"
-              />
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>SKU</mat-label>
-              <input
-                matInput
-                [value]="v.sku || ''"
-                (input)="patchVariant(i, 'sku', $any($event.target).value)"
-              />
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'common.price' | t }}</mat-label>
-              <input
-                matInput
-                type="number"
-                min="0"
-                [value]="v.price ?? ''"
-                (input)="patchVariant(i, 'price', $any($event.target).value)"
-              />
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'common.stock' | t }}</mat-label>
-              <input
-                matInput
-                type="number"
-                min="0"
-                [value]="v.stock ?? 0"
-                (input)="patchVariant(i, 'stock', $any($event.target).value)"
-              />
-            </mat-form-field>
-            <button
-              mat-icon-button
-              type="button"
-              (click)="removeVariant(i)"
-              [attr.aria-label]="'common.delete' | t"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
+      </section>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.price' | t }} · {{ 'common.stock' | t }}</h3>
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.price' | t }}</mat-label>
+            <input matInput type="number" formControlName="price" /><mat-error>{{ 'common.required' | t }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'products.salePrice' | t }}</mat-label>
+            <input matInput type="number" formControlName="salePrice" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.stock' | t }}</mat-label>
+            <input matInput type="number" formControlName="stock" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.category' | t }}</mat-label>
+            <mat-select formControlName="categoryId">
+              @for (c of data.categories; track entityId(c)) {
+                <mat-option [value]="entityId(c)">{{ locName(c) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </section>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.images' | t }}</h3>
+          <div class="wide">
+                    <app-image-uploader [images]="pics()" (imagesChange)="pics.set($event)" />
           </div>
-        }
-      </div>
-      <div class="flags">
-        <mat-checkbox formControlName="featured">{{ 'products.featured' | t }}</mat-checkbox>
-        <mat-checkbox formControlName="newArrival">{{ 'products.newArrival' | t }}</mat-checkbox>
-        <mat-checkbox formControlName="bestSeller">{{ 'products.bestSeller' | t }}</mat-checkbox>
-      </div>
+      </section>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.status' | t }}</h3>
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'products.gender' | t }}</mat-label>
+            <mat-select formControlName="gender">
+              <mat-option value="">—</mat-option>
+              <mat-option value="unisex">Unisex</mat-option>
+              <mat-option value="male">Male</mat-option>
+              <mat-option value="female">Female</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.status' | t }}</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="published">{{ 'products.published' | t }}</mat-option>
+              <mat-option value="unpublished">{{ 'products.unpublished' | t }}</mat-option>
+              <mat-option value="archived">{{ 'products.archived' | t }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>{{ 'products.sizes' | t }}</mat-label>
+            <input matInput formControlName="sizes" placeholder="S, M, L" />
+            <mat-hint>{{ 'products.sizesHint' | t }}</mat-hint>
+          </mat-form-field>
+          <div class="flags">
+            <mat-checkbox formControlName="featured">{{ 'products.featured' | t }}</mat-checkbox>
+            <mat-checkbox formControlName="newArrival">{{ 'products.newArrival' | t }}</mat-checkbox>
+            <mat-checkbox formControlName="bestSeller">{{ 'products.bestSeller' | t }}</mat-checkbox>
+          </div>
+        </div>
+      </section>
+      <section class="sec">
+          <div class="wide variants">
+            <div class="v-head">
+              <h3 class="sec-t">{{ 'products.variants' | t }}</h3>
+              <button mat-stroked-button type="button" (click)="addVariant()">
+                <mat-icon>add</mat-icon>{{ 'products.addVariant' | t }}
+              </button>
+            </div>
+            @if (!variants().length) {
+              <p class="hint">{{ 'products.variantsHint' | t }}</p>
+            }
+            @for (v of variants(); track $index; let i = $index) {
+              <div class="v-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'common.name' | t }}</mat-label>
+                  <input
+                    matInput
+                    [value]="v.name || ''"
+                    (input)="patchVariant(i, 'name', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>SKU</mat-label>
+                  <input
+                    matInput
+                    [value]="v.sku || ''"
+                    (input)="patchVariant(i, 'sku', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'common.price' | t }}</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    [value]="v.price ?? ''"
+                    (input)="patchVariant(i, 'price', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'common.stock' | t }}</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    [value]="v.stock ?? 0"
+                    (input)="patchVariant(i, 'stock', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeVariant(i)"
+                  [attr.aria-label]="'common.delete' | t"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+      </section>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>{{ 'common.cancel' | t }}</button>
@@ -187,48 +206,74 @@ import { ConfirmService } from '../../shared/confirm-dialog';
   styles: `
     .dlg {
       display: grid;
+      gap: 16px;
+      min-width: min(720px, 92vw);
+      padding-top: 12px;
+    }
+    .sec {
+      padding: 20px 20px 8px;
+      border-radius: var(--m-r-md);
+      border: 1px solid var(--m-line);
+      background: color-mix(in srgb, var(--m-surface-2) 35%, var(--m-surface));
+    }
+    .sec-t {
+      margin: 0 0 14px;
+      font-family: var(--m-font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--m-accent-ink);
+    }
+    :host-context([dir='rtl']) .sec-t {
+      letter-spacing: 0;
+    }
+    .grid {
+      display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px 14px;
-      min-width: min(680px, 92vw);
-      padding-top: 8px;
+      gap: 12px 14px;
+      padding-bottom: 12px;
     }
     .wide {
       grid-column: 1 / -1;
     }
-    .lbl {
-      font-size: 12px;
-      font-weight: 700;
-      color: #5c678c;
-      margin-bottom: 8px;
+    .sec > .wide {
+      padding-bottom: 12px;
     }
     .flags {
       grid-column: 1 / -1;
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      padding: 4px 0 8px;
+      gap: 8px 16px;
     }
     .v-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 12px;
+    }
+    .v-head .sec-t {
+      margin: 0;
     }
     .v-row {
       display: grid;
       grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr auto;
       gap: 8px;
       align-items: start;
+      margin-bottom: 8px;
     }
     .hint {
-      font-size: 12px;
-      opacity: 0.7;
-      margin: 0 0 6px;
+      font-size: 13px;
+      color: var(--m-ink-muted);
+      margin: 0 0 12px;
     }
     @media (max-width: 640px) {
-      .dlg {
+      .grid {
         grid-template-columns: 1fr;
+      }
+      .sec {
+        padding: 16px 14px 4px;
       }
       .v-row {
         grid-template-columns: 1fr 1fr;

@@ -1,0 +1,280 @@
+// Angular Material (M3) mapped onto Maison tokens.
+// System tokens (--mat-sys-*) are re-declared on <body> as well as <html>
+// because body.dark-theme redefines the --m-* values they point at.
+
+@use '@angular/material' as mat;
+
+@mixin sys-colors {
+  --mat-sys-primary: var(--m-accent-ink);
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: var(--m-accent-soft);
+  --mat-sys-on-primary-container: var(--m-ink);
+  --mat-sys-primary-fixed: var(--m-accent-soft);
+  --mat-sys-primary-fixed-dim: var(--m-accent);
+  --mat-sys-on-primary-fixed: var(--m-ink);
+  --mat-sys-on-primary-fixed-variant: var(--m-accent-ink);
+  --mat-sys-inverse-primary: var(--m-accent);
+  --mat-sys-surface-tint: var(--m-accent);
+
+  --mat-sys-secondary: var(--m-ink);
+  --mat-sys-on-secondary: var(--m-canvas);
+  --mat-sys-secondary-container: color-mix(in srgb, var(--m-accent) 18%, var(--m-surface-2));
+  --mat-sys-on-secondary-container: var(--m-ink);
+  --mat-sys-secondary-fixed: var(--m-surface-2);
+  --mat-sys-secondary-fixed-dim: var(--m-line);
+  --mat-sys-on-secondary-fixed: var(--m-ink);
+  --mat-sys-on-secondary-fixed-variant: var(--m-ink-muted);
+
+  --mat-sys-tertiary: var(--m-accent-ink);
+  --mat-sys-on-tertiary: #ffffff;
+  --mat-sys-tertiary-container: var(--m-primary-soft);
+  --mat-sys-on-tertiary-container: var(--m-ink);
+  --mat-sys-tertiary-fixed: var(--m-primary-soft);
+  --mat-sys-tertiary-fixed-dim: var(--m-line);
+  --mat-sys-on-tertiary-fixed: var(--m-ink);
+  --mat-sys-on-tertiary-fixed-variant: var(--m-ink-muted);
+
+  --mat-sys-error: var(--m-danger);
+  --mat-sys-on-error: #ffffff;
+  --mat-sys-error-container: color-mix(in srgb, var(--m-danger) 14%, var(--m-surface));
+  --mat-sys-on-error-container: var(--m-ink);
+
+  --mat-sys-background: var(--m-canvas);
+  --mat-sys-on-background: var(--m-ink);
+  --mat-sys-surface: var(--m-surface);
+  --mat-sys-on-surface: var(--m-ink);
+  --mat-sys-surface-variant: var(--m-surface-2);
+  --mat-sys-on-surface-variant: var(--m-ink-muted);
+  --mat-sys-surface-bright: var(--m-surface);
+  --mat-sys-surface-dim: var(--m-surface-2);
+  --mat-sys-surface-container-lowest: var(--m-surface);
+  --mat-sys-surface-container-low: color-mix(in srgb, var(--m-surface-2) 35%, var(--m-surface));
+  --mat-sys-surface-container: color-mix(in srgb, var(--m-surface-2) 60%, var(--m-surface));
+  --mat-sys-surface-container-high: var(--m-surface-2);
+  --mat-sys-surface-container-highest: color-mix(in srgb, var(--m-ink) 5%, var(--m-surface-2));
+  --mat-sys-inverse-surface: var(--m-ink);
+  --mat-sys-inverse-on-surface: var(--m-canvas);
+  --mat-sys-outline: color-mix(in srgb, var(--m-ink) 45%, var(--m-surface));
+  --mat-sys-outline-variant: var(--m-line);
+  --mat-sys-shadow: #000000;
+  --mat-sys-scrim: #000000;
+  --mat-sys-neutral10: var(--m-ink);
+  --mat-sys-neutral-variant20: var(--m-line);
+}
+
+@mixin sys-colors-dark {
+  --mat-sys-on-primary: var(--m-on-accent);
+  --mat-sys-on-tertiary: var(--m-on-accent);
+  --mat-sys-on-error: #16130f;
+}
+
+// Component tokens: Maison shape, fills and type on every Material control.
+@mixin components {
+  // Buttons — accent is "the light": filled = accent with computed text.
+  --mat-button-filled-container-color: var(--m-accent);
+  --mat-button-filled-label-text-color: var(--m-on-accent);
+  --mat-button-filled-container-shape: var(--m-r-pill);
+  --mat-button-filled-container-height: 44px;
+  --mat-button-filled-horizontal-padding: 22px;
+  --mat-button-filled-label-text-weight: 600;
+  --mat-button-filled-state-layer-color: var(--m-on-accent);
+  --mat-button-filled-ripple-color: color-mix(in srgb, var(--m-on-accent) 16%, transparent);
+  --mat-button-outlined-container-shape: var(--m-r-pill);
+  --mat-button-outlined-container-height: 44px;
+  --mat-button-outlined-outline-color: var(--m-line);
+  --mat-button-outlined-label-text-color: var(--m-ink);
+  --mat-button-outlined-label-text-weight: 600;
+  --mat-button-outlined-horizontal-padding: 20px;
+  --mat-button-text-container-shape: var(--m-r-pill);
+  --mat-button-text-container-height: 40px;
+  --mat-button-text-label-text-color: var(--m-accent-ink);
+  --mat-button-text-label-text-weight: 600;
+  --mat-button-tonal-container-shape: var(--m-r-pill);
+  --mat-button-protected-container-shape: var(--m-r-pill);
+  --mat-icon-button-icon-color: var(--m-ink-muted);
+  --mat-icon-button-state-layer-color: var(--m-ink);
+
+  // Form fields — tonal fill + hairline, accent on focus (outline appearance).
+  --mat-form-field-outlined-container-shape: var(--m-r-sm);
+  --mat-form-field-outlined-outline-color: var(--m-line);
+  --mat-form-field-outlined-hover-outline-color: color-mix(in srgb, var(--m-ink) 40%, var(--m-line));
+  --mat-form-field-outlined-focus-outline-color: var(--m-accent);
+  --mat-form-field-outlined-focus-outline-width: 1.5px;
+  --mat-form-field-outlined-label-text-color: var(--m-ink-muted);
+  --mat-form-field-outlined-focus-label-text-color: var(--m-accent-ink);
+  --mat-form-field-outlined-input-text-color: var(--m-ink);
+  --mat-form-field-outlined-caret-color: var(--m-accent-ink);
+  --mat-form-field-container-text-font: var(--m-font-body);
+  --mat-form-field-error-text-color: var(--m-danger);
+
+  --mat-select-panel-background-color: var(--m-surface);
+  --mat-select-enabled-arrow-color: var(--m-ink-muted);
+  --mat-select-focused-arrow-color: var(--m-accent-ink);
+  --mat-select-container-elevation-shadow: var(--m-shadow-2);
+  --mat-autocomplete-background-color: var(--m-surface);
+  --mat-option-selected-state-layer-color: var(--m-accent-soft);
+  --mat-option-selected-state-label-text-color: var(--m-ink);
+  --mat-option-label-text-color: var(--m-ink);
+
+  // Cards
+  --mat-card-outlined-container-color: var(--m-surface);
+  --mat-card-outlined-outline-color: var(--m-line);
+  --mat-card-outlined-container-shape: var(--m-r-lg);
+  --mat-card-elevated-container-color: var(--m-surface);
+  --mat-card-elevated-container-shape: var(--m-r-lg);
+  --mat-card-elevated-container-elevation: var(--m-shadow-1);
+  --mat-card-filled-container-color: var(--m-surface-2);
+  --mat-card-filled-container-shape: var(--m-r-lg);
+  --mat-card-title-text-font: var(--m-font-display);
+  --mat-card-title-text-size: 20px;
+  --mat-card-title-text-weight: 600;
+  --mat-card-subtitle-text-color: var(--m-ink-muted);
+
+  // Dialogs
+  --mat-dialog-container-color: var(--m-surface);
+  --mat-dialog-container-shape: var(--m-r-lg);
+  --mat-dialog-container-elevation-shadow: var(--m-shadow-2);
+  --mat-dialog-subhead-font: var(--m-font-display);
+  --mat-dialog-subhead-size: 24px;
+  --mat-dialog-subhead-weight: 600;
+  --mat-dialog-subhead-color: var(--m-ink);
+  --mat-dialog-supporting-text-color: var(--m-ink-muted);
+  --mat-dialog-supporting-text-font: var(--m-font-body);
+
+  // Menus
+  --mat-menu-container-color: var(--m-surface);
+  --mat-menu-container-shape: var(--m-r-md);
+  --mat-menu-container-elevation-shadow: var(--m-shadow-2);
+  --mat-menu-item-label-text-color: var(--m-ink);
+  --mat-menu-item-icon-color: var(--m-ink-muted);
+  --mat-menu-item-hover-state-layer-color: color-mix(in srgb, var(--m-accent) 16%, transparent);
+  --mat-menu-divider-color: var(--m-line);
+
+  // Tables
+  --mat-table-background-color: var(--m-surface);
+  --mat-table-header-headline-color: var(--m-ink-muted);
+  --mat-table-header-headline-size: 12px;
+  --mat-table-header-headline-weight: 600;
+  --mat-table-header-container-height: 48px;
+  --mat-table-row-item-label-text-color: var(--m-ink);
+  --mat-table-row-item-label-text-size: 14px;
+  --mat-table-row-item-outline-color: var(--m-line);
+  --mat-table-row-item-container-height: 56px;
+
+  // Paginator
+  --mat-paginator-container-background-color: transparent;
+  --mat-paginator-container-text-color: var(--m-ink-muted);
+  --mat-paginator-enabled-icon-color: var(--m-ink);
+  --mat-paginator-disabled-icon-color: color-mix(in srgb, var(--m-ink) 30%, transparent);
+
+  // Chips
+  --mat-chip-container-shape-radius: var(--m-r-pill);
+  --mat-chip-outline-color: var(--m-line);
+  --mat-chip-label-text-color: var(--m-ink);
+  --mat-chip-elevated-container-color: var(--m-surface-2);
+  --mat-chip-elevated-selected-container-color: var(--m-accent-soft);
+  --mat-chip-selected-label-text-color: var(--m-ink);
+  --mat-chip-label-text-size: 12px;
+  --mat-chip-label-text-weight: 600;
+
+  // Snackbars, tooltips
+  --mat-snack-bar-container-color: var(--m-ink);
+  --mat-snack-bar-supporting-text-color: var(--m-canvas);
+  --mat-snack-bar-button-color: var(--m-accent);
+  --mat-snack-bar-container-shape: var(--m-r-md);
+  --mat-tooltip-container-color: var(--m-ink);
+  --mat-tooltip-supporting-text-color: var(--m-canvas);
+  --mat-tooltip-container-shape: var(--m-r-xs);
+
+  // Slide toggles, checkboxes, radios (selected = accent)
+  --mat-slide-toggle-selected-track-color: var(--m-accent);
+  --mat-slide-toggle-selected-hover-track-color: var(--m-accent);
+  --mat-slide-toggle-selected-focus-track-color: var(--m-accent);
+  --mat-slide-toggle-selected-pressed-track-color: var(--m-accent);
+  --mat-slide-toggle-selected-handle-color: var(--m-on-accent);
+  --mat-slide-toggle-selected-hover-handle-color: var(--m-on-accent);
+  --mat-slide-toggle-selected-focus-handle-color: var(--m-on-accent);
+  --mat-slide-toggle-selected-pressed-handle-color: var(--m-on-accent);
+  --mat-slide-toggle-selected-icon-color: var(--m-accent-ink);
+  --mat-slide-toggle-unselected-track-color: var(--m-surface-2);
+  --mat-slide-toggle-unselected-track-outline-color: color-mix(in srgb, var(--m-ink) 40%, var(--m-surface));
+  --mat-slide-toggle-unselected-handle-color: color-mix(in srgb, var(--m-ink) 55%, var(--m-surface));
+  --mat-checkbox-selected-icon-color: var(--m-accent-ink);
+  --mat-checkbox-selected-hover-icon-color: var(--m-accent-ink);
+  --mat-checkbox-selected-focus-icon-color: var(--m-accent-ink);
+  --mat-checkbox-selected-pressed-icon-color: var(--m-accent-ink);
+  --mat-checkbox-selected-checkmark-color: var(--mat-sys-on-primary);
+  --mat-checkbox-label-text-color: var(--m-ink);
+
+  // Tabs
+  --mat-tab-active-indicator-color: var(--m-accent);
+  --mat-tab-active-label-text-color: var(--m-ink);
+  --mat-tab-active-focus-label-text-color: var(--m-ink);
+  --mat-tab-active-hover-label-text-color: var(--m-ink);
+  --mat-tab-inactive-label-text-color: var(--m-ink-muted);
+  --mat-tab-active-indicator-height: 2px;
+  --mat-tab-divider-color: var(--m-line);
+  --mat-tab-label-text-weight: 600;
+
+  // Datepicker
+  --mat-datepicker-calendar-container-background-color: var(--m-surface);
+  --mat-datepicker-calendar-container-shape: var(--m-r-lg);
+  --mat-datepicker-calendar-container-elevation-shadow: var(--m-shadow-2);
+  --mat-datepicker-calendar-date-selected-state-background-color: var(--m-accent);
+  --mat-datepicker-calendar-date-selected-state-text-color: var(--m-on-accent);
+  --mat-datepicker-calendar-date-today-outline-color: var(--m-accent);
+  --mat-datepicker-calendar-date-in-range-state-background-color: var(--m-accent-soft);
+  --mat-datepicker-calendar-header-text-color: var(--m-ink-muted);
+  --mat-datepicker-calendar-body-label-text-color: var(--m-ink-muted);
+
+  // Lists, sidenav, badges, progress
+  --mat-list-list-item-container-shape: var(--m-r-sm);
+  --mat-list-list-item-label-text-color: var(--m-ink);
+  --mat-list-list-item-supporting-text-color: var(--m-ink-muted);
+  --mat-sidenav-container-background-color: var(--m-surface);
+  --mat-sidenav-content-background-color: var(--m-canvas);
+  --mat-sidenav-container-text-color: var(--m-ink);
+  --mat-sidenav-content-text-color: var(--m-ink);
+  --mat-sidenav-container-shape: 0;
+  --mat-sidenav-scrim-color: color-mix(in srgb, #0c0b09 46%, transparent);
+  --mat-badge-background-color: var(--m-accent);
+  --mat-badge-text-color: var(--m-on-accent);
+  --mat-progress-spinner-active-indicator-color: var(--m-accent);
+  --mat-progress-bar-active-indicator-color: var(--m-accent);
+  --mat-progress-bar-track-color: var(--m-surface-2);
+  --mat-divider-color: var(--m-line);
+  --mat-expansion-container-background-color: var(--m-surface);
+  --mat-expansion-container-shape: var(--m-r-md);
+  --mat-button-toggle-selected-state-background-color: var(--m-accent-soft);
+  --mat-button-toggle-shape: var(--m-r-pill);
+  --mat-button-toggle-divider-color: var(--m-line);
+}
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$orange-palette,
+        theme-type: light,
+      ),
+      typography: (
+        plain-family: var(--m-font-body),
+        brand-family: var(--m-font-display),
+        bold-weight: 600,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
+      density: -2,
+    )
+  );
+}
+
+html,
+body {
+  @include sys-colors;
+  @include components;
+}
+
+body.dark-theme {
+  @include sys-colors-dark;
+}

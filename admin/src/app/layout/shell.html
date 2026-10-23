@@ -1,19 +1,31 @@
-<mat-sidenav-container class="shell" [class.analytics]="isDashboard()">
+<mat-sidenav-container class="shell" [class.analytics]="isDashboard()" [class.is-overlay]="isTablet()">
   <mat-sidenav
     [mode]="sidenavMode()"
     [opened]="sidenavOpened()"
     (openedChange)="sidenavOpened.set($event)"
     class="sidenav"
   >
-    <div class="brand">
-      <div class="mark">Z</div>
-      <div>
-        <div class="brand-name">{{ 'brand' | t }}</div>
+    <div class="brand" [class.has-logo]="!!brandLogo()">
+      @if (brandLogo(); as logo) {
+        <img class="brand-logo" [src]="logo" [alt]="brandName()" />
+      } @else {
+        <div class="mark" aria-hidden="true">{{ store.mark() }}</div>
+      }
+      <div class="brand-copy">
+        <div class="brand-name">{{ brandName() }}</div>
         <div class="brand-sub">{{ 'brandSub' | t }}</div>
       </div>
     </div>
+    <span class="brand-rule" aria-hidden="true"></span>
 
-    <mat-nav-list class="nav">
+    <mat-nav-list class="nav" #nav>
+      <span
+        class="nav-pill"
+        aria-hidden="true"
+        [class.ready]="pill().h > 0"
+        [style.transform]="'translate3d(0,' + pill().y + 'px,0)'"
+        [style.height.px]="pill().h"
+      ></span>
       @for (item of visibleNav(); track item.path) {
         <a
           mat-list-item
@@ -21,6 +33,7 @@
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
           (click)="closeIfOverlay()"
+          (isActiveChange)="$event && queuePillMeasure()"
         >
           <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
           <span matListItemTitle>{{ item.labelKey | t }}</span>
@@ -37,56 +50,63 @@
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content>
-    <mat-toolbar class="topbar">
-      <button mat-icon-button (click)="toggleNav()" aria-label="Menu">
-        <mat-icon>menu</mat-icon>
+  <mat-sidenav-content class="main" (scroll)="onScroll($event)">
+    <mat-toolbar class="topbar" [class.scrolled]="scrolled()">
+      <button mat-icon-button class="menu-btn" (click)="toggleNav()" aria-label="Menu">
+        <mat-icon>{{ sidenavOpened() && !isTablet() ? 'menu_open' : 'menu' }}</mat-icon>
       </button>
       @if (canGoBack()) {
-        <button mat-icon-button (click)="goBack()" [attr.aria-label]="'common.back' | t" [matTooltip]="'common.back' | t">
+        <button mat-icon-button class="back-btn" (click)="goBack()" [attr.aria-label]="'common.back' | t" [matTooltip]="'common.back' | t">
           <mat-icon>arrow_back</mat-icon>
         </button>
       }
       <div class="title-block">
+        <span class="crumb">{{ brandName() }}</span>
         <span class="page-title">{{ pageTitle() | t }}</span>
       </div>
       <span class="spacer"></span>
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="inboxMenu"
-        [matTooltip]="'nav.inbox' | t"
-        (menuOpened)="refreshInbox()"
-      >
-        <mat-icon [matBadge]="unread() || null" matBadgeColor="warn" matBadgeSize="small">notifications</mat-icon>
-      </button>
-      <mat-menu #inboxMenu="matMenu" class="inbox-menu">
-        @if (inbox().length === 0) {
-          <div class="user-meta muted">{{ 'common.empty' | t }}</div>
-        }
-        @for (item of inbox(); track item._id || item.id || $index) {
-          <button mat-menu-item (click)="openInboxItem(item)">
-            <span>
-              <strong>{{ inboxTitle(item) }}</strong>
-              <small>{{ inboxBody(item) }}</small>
-            </span>
-          </button>
-        }
-      </mat-menu>
-      <button mat-stroked-button class="lang-btn" (click)="i18n.toggle()">
-        {{ i18n.lang() === 'en' ? 'العربية' : 'English' }}
-      </button>
-      <button
-        mat-icon-button
-        (click)="theme.toggle()"
-        [matTooltip]="'common.theme' | t"
-      >
-        <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
-      </button>
-      <button mat-icon-button class="user-btn" [matMenuTriggerFor]="userMenu">
-        <span class="avatar sm">{{ initials() }}</span>
-      </button>
-      <mat-menu #userMenu="matMenu">
-        <div class="user-meta">{{ auth.user()?.name }}</div>
+      <div class="actions">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="inboxMenu"
+          [matTooltip]="'nav.inbox' | t"
+          [attr.aria-label]="'nav.inbox' | t"
+          (menuOpened)="refreshInbox()"
+        >
+          <mat-icon [matBadge]="unread() || null" matBadgeSize="small">notifications</mat-icon>
+        </button>
+        <mat-menu #inboxMenu="matMenu" class="inbox-menu" xPosition="before">
+          <div class="menu-head">{{ 'nav.inbox' | t }}</div>
+          @if (inbox().length === 0) {
+            <div class="user-meta muted">{{ 'common.empty' | t }}</div>
+          }
+          @for (item of inbox(); track item._id || item.id || $index) {
+            <button mat-menu-item (click)="openInboxItem(item)" [class.unread]="!item.readAt">
+              <span>
+                <strong>{{ inboxTitle(item) }}</strong>
+                <small>{{ inboxBody(item) }}</small>
+              </span>
+            </button>
+          }
+        </mat-menu>
+        <button mat-stroked-button class="lang-btn" (click)="i18n.toggle()" [attr.lang]="i18n.lang() === 'en' ? 'ar' : 'en'">
+          <mat-icon>translate</mat-icon>
+          <span class="lang-label">{{ i18n.lang() === 'en' ? 'العربية' : 'English' }}</span>
+        </button>
+        <button
+          mat-icon-button
+          (click)="theme.toggle()"
+          [matTooltip]="'common.theme' | t"
+          [attr.aria-label]="'common.theme' | t"
+        >
+          <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+        <button mat-icon-button class="user-btn" [matMenuTriggerFor]="userMenu" [attr.aria-label]="auth.user()?.name">
+          <span class="avatar sm">{{ initials() }}</span>
+        </button>
+      </div>
+      <mat-menu #userMenu="matMenu" xPosition="before">
+        <div class="user-meta strong">{{ auth.user()?.name }}</div>
         <div class="user-meta muted">{{ auth.user()?.email }}</div>
         <button mat-menu-item (click)="logout()">
           <mat-icon>logout</mat-icon>

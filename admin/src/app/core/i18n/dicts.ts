@@ -127,6 +127,9 @@ export const en: Dict = {
     delivered: 'Delivered / completed',
     pending: 'In progress',
     currency: 'SAR',
+    recentOrders: 'Recent orders',
+    viewAll: 'View all',
+    revenueTrend: 'Revenue, last 14 days',
   },
   products: {
     title: 'Products',
@@ -541,6 +544,9 @@ export const ar: Dict = {
     delivered: 'تم التسليم / مكتمل',
     pending: 'قيد التنفيذ',
     currency: 'ر.س',
+    recentOrders: 'أحدث الطلبات',
+    viewAll: 'عرض الكل',
+    revenueTrend: 'الإيرادات، آخر 14 يومًا',
   },
   products: {
     title: 'المنتجات',

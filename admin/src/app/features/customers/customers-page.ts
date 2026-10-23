@@ -56,33 +56,49 @@ import { ConfirmService } from '../../shared/confirm-dialog';
     .avatar {
       width: 52px;
       height: 52px;
-      border-radius: 16px;
+      border-radius: 50%;
       display: grid;
       place-items: center;
-      background: #071345;
-      color: #fff;
-      font-weight: 800;
-      margin-bottom: 8px;
+      background: var(--m-accent);
+      color: var(--m-on-accent);
+      font-family: var(--m-font-display);
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      box-shadow: 0 0 0 6px var(--m-accent-soft);
     }
     strong {
-      font-size: 18px;
+      font-family: var(--m-font-display);
+      font-size: 22px;
+      font-weight: 600;
     }
     p {
-      margin: 0 0 12px;
-      color: #5c678c;
+      margin: 0 0 16px;
+      color: var(--m-ink-muted);
     }
     dl {
       width: 100%;
       margin: 0;
       display: grid;
-      gap: 10px;
+      gap: 0;
+      border-top: 1px solid var(--m-line);
+    }
+    dt {
+      padding-top: 12px;
+    }
+    dd {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--m-line);
     }
     dt {
       font-size: 11px;
-      font-weight: 700;
-      color: #5c678c;
+      font-weight: 600;
+      color: var(--m-accent-ink);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.16em;
+    }
+    :host-context([dir='rtl']) dt {
+      letter-spacing: 0;
     }
     dd {
       margin: 2px 0 0;

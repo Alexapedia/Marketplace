@@ -1,16 +1,54 @@
-.shell {
+// Maison admin shell: deep brand sidebar (onyx in dark), glass top bar.
+
+:host {
+  display: block;
   height: 100%;
-  background: var(--zz-bg, #eef1f8);
+  --side-bg: var(--m-primary);
+  --side-ink: var(--m-on-primary);
+  --side-muted: color-mix(in srgb, var(--m-on-primary) 72%, transparent);
+  --side-line: color-mix(in srgb, var(--m-on-primary) 14%, transparent);
+  --side-hover: color-mix(in srgb, var(--m-on-primary) 8%, transparent);
 }
 
+:host-context(body.dark-theme) {
+  --side-bg: var(--m-canvas);
+  --side-ink: var(--m-ink);
+  --side-muted: var(--m-ink-muted);
+  --side-line: var(--m-line);
+  --side-hover: color-mix(in srgb, var(--m-ink) 6%, transparent);
+}
+
+.shell {
+  height: 100%;
+  background: var(--m-canvas);
+}
+
+// ---- Sidebar -------------------------------------------------------------
+
 .sidenav {
-  width: 272px;
-  background: #071345;
-  border: none;
-  color: #fff;
+  width: 280px;
+  background: var(--side-bg);
+  color: var(--side-ink);
+  border: 0;
+  border-inline-end: 1px solid var(--side-line);
+  overflow: hidden;
+}
+.sidenav::before {
+  // Soft accent glow at the top of the band — "the light" of the mall.
+  content: '';
+  position: absolute;
+  inset: -120px -80px auto;
+  height: 320px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--m-accent) 22%, transparent), transparent);
+  pointer-events: none;
+}
+.is-overlay .sidenav {
+  box-shadow: var(--m-shadow-2);
+  border-inline-end: 0;
 }
 
 :host ::ng-deep .sidenav .mat-drawer-inner-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -19,196 +57,337 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 22px 18px 18px;
-  color: #fff;
+  gap: 14px;
+  padding: 28px 24px 20px;
+  min-height: 48px;
+}
+.brand.has-logo {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.brand-logo {
+  max-height: 44px;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+.mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-family: var(--m-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--m-accent);
+  border: 1px solid color-mix(in srgb, var(--m-accent) 70%, transparent);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--m-accent) 10%, transparent);
+}
+.brand-copy {
+  min-width: 0;
+}
+.brand-name {
+  font-family: var(--m-font-display);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--side-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.brand-sub {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--m-accent);
+}
+:host-context([dir='rtl']) .brand-sub {
+  letter-spacing: 0;
+}
+.brand-rule {
+  display: block;
+  height: 1px;
+  margin: 0 24px 12px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--m-accent) 70%, transparent), transparent);
+}
+:host-context([dir='rtl']) .brand-rule {
+  background: linear-gradient(270deg, color-mix(in srgb, var(--m-accent) 70%, transparent), transparent);
 }
 
-.mark,
+// ---- Nav with sliding accent pill ------------------------------------------------
+
+.nav {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+  padding: 4px 0 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--side-line) transparent;
+}
+
+.nav-pill {
+  position: absolute;
+  top: 0;
+  inset-inline: 14px;
+  z-index: 0;
+  border-radius: var(--m-r-pill);
+  background: var(--m-accent);
+  box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--m-accent) 90%, transparent);
+  opacity: 0;
+  transition:
+    transform var(--m-dur-base) var(--m-ease-out),
+    opacity var(--m-dur-fast) var(--m-ease-out);
+  pointer-events: none;
+}
+.nav-pill.ready {
+  opacity: 1;
+}
+
+.sidenav a {
+  position: relative;
+  z-index: 1;
+  margin: 2px 14px;
+  width: calc(100% - 28px) !important;
+  border-radius: var(--m-r-pill);
+  transition: color var(--m-dur-fast) var(--m-ease-out);
+}
+
+:host ::ng-deep .sidenav .mat-mdc-list-item {
+  --mat-list-list-item-container-shape: 999px;
+  --mat-list-list-item-hover-state-layer-color: var(--side-ink);
+  --mat-list-list-item-hover-state-layer-opacity: 0.06;
+  --mat-list-list-item-focus-state-layer-color: var(--side-ink);
+  height: 46px;
+}
+:host ::ng-deep .sidenav .mat-mdc-list-item .mat-icon {
+  color: var(--side-muted);
+  font-size: 21px;
+  width: 21px;
+  height: 21px;
+  margin-inline-end: 14px;
+  transition: color var(--m-dur-fast) var(--m-ease-out);
+}
+:host ::ng-deep .sidenav .mat-mdc-list-item .mdc-list-item__primary-text {
+  color: var(--side-muted);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color var(--m-dur-fast) var(--m-ease-out);
+}
+:host ::ng-deep .sidenav .mat-mdc-list-item:hover .mdc-list-item__primary-text,
+:host ::ng-deep .sidenav .mat-mdc-list-item:hover .mat-icon {
+  color: var(--side-ink);
+}
+:host ::ng-deep .sidenav .mat-mdc-list-item.active .mdc-list-item__primary-text,
+:host ::ng-deep .sidenav .mat-mdc-list-item.active .mat-icon {
+  color: var(--m-on-accent);
+  font-weight: 600;
+}
+:host ::ng-deep .sidenav .mat-mdc-list-item.active {
+  --mat-list-list-item-hover-state-layer-opacity: 0;
+}
+:host ::ng-deep .sidenav .mat-mdc-list-item:focus-visible {
+  outline: 2px solid var(--m-accent);
+  outline-offset: -2px;
+}
+
+// ---- User card --------------------------------------------------------------
+
+.sidenav-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 14px 18px;
+  padding: 12px;
+  border-radius: var(--m-r-md);
+  background: var(--side-hover);
+  border: 1px solid var(--side-line);
+}
 .avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-weight: 800;
-  color: #c9a45c;
-  background: transparent;
-  border: 2px solid #c9a45c;
   flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--m-on-accent);
+  background: var(--m-accent);
 }
-
 .avatar.sm {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
   font-size: 12px;
 }
-
-.brand-name {
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.brand-sub {
-  font-size: 12px;
-  opacity: 0.64;
-}
-
-.nav {
-  flex: 1;
-  overflow: auto;
-  padding: 4px 0 16px;
-}
-
-.sidenav a {
-  color: rgba(255, 255, 255, 0.82) !important;
-  border-radius: 12px;
-  margin: 3px 12px;
-  width: calc(100% - 24px) !important;
-}
-
-.sidenav a.active {
-  background: rgba(201, 164, 92, 0.16);
-  color: #fff !important;
-}
-
-:host ::ng-deep .sidenav .mat-mdc-list-item {
-  --mdc-list-list-item-container-shape: 12px;
-  height: 44px;
-}
-
-:host ::ng-deep .sidenav .mat-icon,
-:host ::ng-deep .sidenav .mdc-list-item__primary-text,
-:host ::ng-deep .sidenav .mat-mdc-list-item-title {
-  color: #fff !important;
-}
-
-.sidenav-user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 8px 12px 16px;
-  padding: 10px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
 .user-copy {
   min-width: 0;
   display: grid;
+  line-height: 1.35;
 }
-
 .user-copy strong,
 .user-copy span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
+.user-copy strong {
+  font-weight: 600;
+  color: var(--side-ink);
+}
 .user-copy span {
-  font-size: 11px;
-  opacity: 0.7;
+  font-size: 12px;
+  color: var(--side-muted);
+}
+
+// ---- Glass top bar ------------------------------------------------------------
+
+.main {
+  background: var(--m-canvas);
 }
 
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 2;
-  height: 68px;
-  background: color-mix(in srgb, #ffffff 90%, transparent);
-  backdrop-filter: blur(16px);
-  color: #071345;
-  border-bottom: 1px solid color-mix(in srgb, #071345 8%, transparent);
+  z-index: 5;
+  height: 72px;
+  gap: 4px;
+  padding-inline: clamp(8px, 2vw, 28px);
+  background: color-mix(in srgb, var(--m-canvas) 70%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  color: var(--m-ink);
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color var(--m-dur-base) var(--m-ease-out),
+    border-color var(--m-dur-base) var(--m-ease-out);
+}
+.topbar.scrolled {
+  background: var(--m-glass);
+  border-bottom-color: var(--m-line);
 }
 
 .title-block {
   display: grid;
+  min-width: 0;
+  margin-inline-start: 6px;
+  line-height: 1.2;
 }
-
+.crumb {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--m-accent-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:host-context([dir='rtl']) .crumb {
+  letter-spacing: 0;
+}
 .page-title {
-  font-weight: 800;
-  font-size: 18px;
+  font-family: var(--m-font-display);
+  font-size: 20px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .spacer {
   flex: 1;
 }
-
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .lang-btn {
-  border-radius: 999px;
+  margin-inline: 4px;
+  --mat-button-outlined-container-height: 40px;
+  --mat-button-outlined-horizontal-padding: 14px;
 }
-
-:host ::ng-deep .inbox-menu .mat-mdc-menu-item span {
-  display: grid;
-  gap: 2px;
-  white-space: normal;
-  max-width: 280px;
+.lang-btn .mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
-
-:host ::ng-deep .inbox-menu small {
-  opacity: 0.7;
-  font-size: 12px;
-}
-
 .user-btn {
-  overflow: hidden;
+  --mat-icon-button-state-layer-size: 44px;
 }
+:host-context([dir='rtl']) .back-btn .mat-icon {
+  transform: scaleX(-1);
+}
+
+// ---- Content ---------------------------------------------------------------
 
 .content {
-  
-  min-height: calc(100% - 68px);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: clamp(20px, 3vw, 40px) clamp(16px, 3.2vw, 48px) 64px;
+  min-height: calc(100% - 72px);
 }
 
-.shell.analytics .content {
-  padding: 16px 18px 28px;
+// ---- Menus (overlay, so ::ng-deep) ---------------------------------------------
+
+.menu-head {
+  padding: 10px 16px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--m-accent-ink);
 }
-
-:host-context(body.dark-theme) {
-  .shell {
-    background: #050b28;
-  }
-
-  .shell.analytics {
-    background: #0b1024;
-  }
-
-  .shell.analytics .content {
-    background:
-      radial-gradient(1200px 500px at 10% -10%, rgba(244, 162, 97, 0.12), transparent 55%),
-      radial-gradient(900px 420px at 100% 0%, rgba(123, 108, 255, 0.16), transparent 50%),
-      #0b1024;
-  }
-
-  .shell.analytics .topbar {
-    background: color-mix(in srgb, #0b1024 86%, transparent);
-    color: #eef1ff;
-    border-bottom-color: rgba(255, 255, 255, 0.06);
-  }
-
-  .topbar {
-    background: color-mix(in srgb, #071345 88%, transparent);
-    color: #fff;
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-  }
-}
-
 .user-meta {
   padding: 4px 16px;
   font-size: 13px;
 }
-
+.user-meta.strong {
+  padding-top: 10px;
+  font-weight: 600;
+}
 .muted {
-  opacity: 0.65;
+  color: var(--m-ink-muted);
   margin-bottom: 8px;
 }
 
-@media (max-width: 720px) {
-  .content {
-    padding: 16px 12px 32px;
-  }
+// ---- Responsive -----------------------------------------------------------------
 
-  .sidenav-user span {
+@media (max-width: 599px) {
+  .topbar {
+    height: 64px;
+    padding-inline: 4px 8px;
+  }
+  .crumb,
+  .lang-label {
     display: none;
+  }
+  .lang-btn {
+    min-width: 44px;
+    --mat-button-outlined-horizontal-padding: 10px;
+  }
+  .lang-btn .mat-icon {
+    margin: 0;
+  }
+  .page-title {
+    font-size: 18px;
+  }
+  .actions {
+    gap: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-pill {
+    transition: opacity var(--m-dur-fast) linear;
   }
 }

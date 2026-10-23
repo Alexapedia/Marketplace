@@ -207,30 +207,23 @@ export class FieldDialog {
     }
   `,
   styles: `
-    .head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
     .hint-line {
       margin: 0;
-      font-weight: 800;
+      font-weight: 600;
     }
     .note {
       display: flex;
       gap: 12px;
       align-items: flex-start;
-      background: color-mix(in srgb, #c9a45c 14%, transparent);
-      border: 1px solid color-mix(in srgb, #c9a45c 28%, transparent);
-      border-radius: 14px;
-      padding: 12px 14px;
+      background: var(--m-accent-soft);
+      border: 1px solid color-mix(in srgb, var(--m-accent) 30%, transparent);
+      border-radius: var(--m-r-md);
+      padding: 16px 18px;
       margin: 0 0 16px;
       max-width: 820px;
     }
     .note mat-icon {
-      color: #c9a45c;
+      color: var(--m-accent-ink);
       flex-shrink: 0;
     }
     .note strong {
@@ -239,7 +232,7 @@ export class FieldDialog {
     }
     .note p {
       margin: 0;
-      color: var(--zz-muted);
+      color: var(--m-ink-muted);
       line-height: 1.45;
     }
     .full {
