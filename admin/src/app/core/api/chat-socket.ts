@@ -26,7 +26,6 @@ export class ChatSocket {
     if (!token) return;
     if (this.socket?.connected) return;
     if (this.socket) {
-      this.socket.auth = { token };
       this.socket.connect();
       return;
     }
@@ -34,8 +33,9 @@ export class ChatSocket {
       path: '/socket.io',
       transports: ['websocket'],
       upgrade: false,
-      auth: { token },
-      query: { token },
+      // Evaluated on every (re)connect so a refreshed token is used, and kept
+      // out of the URL, where proxies would log it.
+      auth: (cb) => cb({ token: this.auth.token() ?? '' }),
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 800,
