@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -27,37 +28,63 @@ class HomeBody extends StatelessWidget {
       body: RefreshIndicator(
         color: gold,
         onRefresh: () => context.read<HomeCubit>().load(),
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            if (!wideHeader)
-              const SliverAppBar(
-                floating: true,
-                title: AppLogo(height: 32),
-                actions: [CartBtn(), NotifBtn()],
-              ),
-            SliverToBoxAdapter(
-              child: AdaptivePage(
-                child: BlocBuilder<HomeCubit, HomeState>(
-                  builder: (context, state) {
-                    if (state.status == RequestStatus.failed) {
-                      return FailedShape(
-                        msg: state.error,
-                        onTapRefresh: () => context.read<HomeCubit>().load(),
-                      );
-                    }
-                    final loading = state.status == RequestStatus.loading;
-                    return Skeletonizer(
-                      enabled: loading,
-                      child: context.isLandscape
-                          ? SplitHome(state: state, loading: loading)
-                          : PortraitHome(state: state, loading: loading),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
+        child: BlocBuilder<HomeCubit, HomeState>(
+          builder: (context, state) {
+            final failed = state.status == RequestStatus.failed;
+            final empty =
+                state.status == RequestStatus.loaded &&
+                state.categories.isEmpty &&
+                state.featured.isEmpty &&
+                state.newArrivals.isEmpty &&
+                state.bestSellers.isEmpty &&
+                state.ads.isEmpty;
+            final loading = state.status == RequestStatus.loading;
+            final cubit = context.read<HomeCubit>();
+            return CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                if (!wideHeader)
+                  const SliverAppBar(
+                    floating: true,
+                    title: AppLogo(height: 32),
+                    actions: [CartBtn(), NotifBtn()],
+                  ),
+                if (failed)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: FailedShape(
+                      msg: state.error,
+                      onTapRefresh: () => cubit.load(),
+                    ),
+                  )
+                else if (empty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: EmptyState(
+                      title: 'empty_home_title'.tr(),
+                      subtitle: 'empty_home_subtitle'.tr(),
+                      icon: Icons.storefront_outlined,
+                      action: FilledButton.tonalIcon(
+                        onPressed: () => cubit.load(),
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text('try_again'.tr()),
+                      ),
+                    ),
+                  )
+                else
+                  SliverToBoxAdapter(
+                    child: AdaptivePage(
+                      child: Skeletonizer(
+                        enabled: loading,
+                        child: context.isLandscape
+                            ? SplitHome(state: state, loading: loading)
+                            : PortraitHome(state: state, loading: loading),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );

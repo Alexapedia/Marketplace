@@ -57,19 +57,30 @@ class ProductsBody extends StatelessWidget {
           child: BlocBuilder<ProductsCubit, ProductsState>(
             builder: (context, state) {
               if (state.status == RequestStatus.failed) {
-                return FailedShape(
-                  msg: state.error,
-                  onTapRefresh: cubit.load,
-                );
+                return FailedShape(msg: state.error, onTapRefresh: cubit.load);
               }
               final loading = state.status != RequestStatus.loaded;
               final items = loading
                   ? List.generate(
                       6,
-                      (_) => const ProductModel(name: 'Loading product', price: 99),
+                      (_) => const ProductModel(
+                        name: 'Loading product',
+                        price: 99,
+                      ),
                     )
                   : state.items;
               if (!loading && items.isEmpty) {
+                if (state.hasFilters) {
+                  return EmptyState(
+                    title: 'empty_products'.tr(),
+                    subtitle: 'empty_products_filtered'.tr(),
+                    icon: Icons.filter_alt_off_outlined,
+                    action: TextButton(
+                      onPressed: cubit.clearFilters,
+                      child: Text('clear_filters'.tr()),
+                    ),
+                  );
+                }
                 return EmptyState(
                   title: 'empty_products'.tr(),
                   icon: Icons.inventory_2_outlined,

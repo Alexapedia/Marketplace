@@ -297,5 +297,13 @@
   "a11y_notifications": "الإشعارات",
   "a11y_increase_qty": "زيادة الكمية",
   "a11y_decrease_qty": "تقليل الكمية",
-  "a11y_share": "مشاركة"
+  "a11y_share": "مشاركة",
+  "error_offline_title": "أنت غير متصل",
+  "error_server_title": "حدث خطأ من جهتنا",
+  "error_generic_title": "تعذر التحميل",
+  "try_again": "حاول مرة أخرى",
+  "empty_products_filtered": "لا توجد منتجات تطابق الفلاتر",
+  "empty_home_title": "لا يوجد شيء هنا بعد",
+  "empty_home_subtitle": "عد قريبا أو اسحب للأسفل للتحديث",
+  "empty_list_title": "لا يوجد شيء هنا بعد"
 }

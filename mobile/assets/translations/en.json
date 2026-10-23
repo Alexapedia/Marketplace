@@ -297,5 +297,13 @@
   "a11y_notifications": "Notifications",
   "a11y_increase_qty": "Increase quantity",
   "a11y_decrease_qty": "Decrease quantity",
-  "a11y_share": "Share"
+  "a11y_share": "Share",
+  "error_offline_title": "You're offline",
+  "error_server_title": "Something went wrong on our side",
+  "error_generic_title": "Couldn't load this",
+  "try_again": "Try again",
+  "empty_products_filtered": "No products match your filters",
+  "empty_home_title": "Nothing here yet",
+  "empty_home_subtitle": "Check back soon or pull down to refresh",
+  "empty_list_title": "Nothing here yet"
 }
