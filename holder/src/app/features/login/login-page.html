@@ -1,22 +1,26 @@
 <div class="login">
   <aside class="hero">
+    <span class="hero-rule" aria-hidden="true"></span>
+    <span class="orb" aria-hidden="true"></span>
     <div class="hero-inner">
-      <div class="mark">P</div>
-      <h1>{{ 'brand' | t }}</h1>
-      <p>{{ 'login.hero' | t }}</p>
+      <div class="mark m-enter" aria-hidden="true">P</div>
+      <p class="eyebrow">{{ 'brandSub' | t }}</p>
+      <h1 [mReveal]="0">{{ 'brand' | t }}</h1>
+      <p class="lead" [mReveal]="1">{{ 'login.hero' | t }}</p>
       <ul class="feats">
-        <li>{{ 'login.s1' | t }}</li>
-        <li>{{ 'login.s2' | t }}</li>
-        <li>{{ 'login.s3' | t }}</li>
+        <li [mReveal]="2"><mat-icon aria-hidden="true">toggle_on</mat-icon><span>{{ 'login.s1' | t }}</span></li>
+        <li [mReveal]="3"><mat-icon aria-hidden="true">bolt</mat-icon><span>{{ 'login.s2' | t }}</span></li>
+        <li [mReveal]="4"><mat-icon aria-hidden="true">monitoring</mat-icon><span>{{ 'login.s3' | t }}</span></li>
       </ul>
     </div>
   </aside>
 
   <section class="panel-wrap">
-    <button class="lang" type="button" (click)="i18n.toggle()">
+    <button class="lang m-press" type="button" (click)="i18n.toggle()">
+      <mat-icon aria-hidden="true">translate</mat-icon>
       {{ i18n.lang() === 'en' ? 'العربية' : 'English' }}
     </button>
-    <div class="panel">
+    <div class="panel" [mReveal]="1">
       <p class="kicker">{{ 'brandSub' | t }}</p>
       @if (step() === 'creds') {
         <h2>{{ 'login.title' | t }}</h2>
@@ -45,12 +49,12 @@
 
       <form [formGroup]="form" (ngSubmit)="submit()">
         @if (step() === 'creds') {
-          <mat-form-field appearance="outline" class="full" style="margin: 14px 0px;">
+          <mat-form-field class="full">
             <mat-label>{{ 'login.email' | t }}</mat-label>
             <input matInput type="email" formControlName="email" autocomplete="username" />
             <mat-icon matPrefix>mail_outline</mat-icon>
           </mat-form-field>
-          <mat-form-field appearance="outline" class="full">
+          <mat-form-field class="full">
             <mat-label>{{ 'login.password' | t }}</mat-label>
             <input
               matInput
@@ -59,7 +63,14 @@
               autocomplete="current-password"
             />
             <mat-icon matPrefix>lock_outline</mat-icon>
-            <button mat-icon-button matSuffix type="button" (click)="hide.set(!hide())">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              [attr.aria-label]="'login.password' | t"
+              [attr.aria-pressed]="!hide()"
+              (click)="hide.set(!hide())"
+            >
               <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
             </button>
           </mat-form-field>
@@ -82,7 +93,7 @@
         }
 
         @if (error()) {
-          <div class="error">{{ error() }}</div>
+          <div class="error m-enter" role="alert"><mat-icon aria-hidden="true">error_outline</mat-icon>{{ error() }}</div>
         }
 
         <button mat-flat-button class="submit" type="submit" [disabled]="loading()">

@@ -10,6 +10,7 @@ import { AuthService, LoginOutcome } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ApiError } from '../../core/api/api-client';
+import { MAISON } from '../../shared/maison';
 
 @Component({
   selector: 'app-login-page',
@@ -21,6 +22,7 @@ import { ApiError } from '../../core/api/api-client';
     MatIconModule,
     MatProgressSpinnerModule,
     TranslatePipe,
+    MAISON,
   ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
