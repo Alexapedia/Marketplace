@@ -10,6 +10,8 @@ export class StoreConfigService {
   readonly currency = signal('SAR');
   readonly brandName = signal('');
   readonly logo = signal('');
+  /** Logo variant for dark surfaces (sidebar band, dark mode); falls back to `logo`. */
+  readonly logoDark = signal('');
   readonly blocked = signal(false);
   readonly blockedKey = signal('maintenance.admin');
   readonly mark = computed(() => (this.brandName() || 'Z').charAt(0).toUpperCase());
@@ -40,6 +42,7 @@ export class StoreConfigService {
     const name = tenant.branding?.name || tenant.name || '';
     this.brandName.set(name);
     this.logo.set(tenant.branding?.logo || '');
+    this.logoDark.set(tenant.branding?.logoDark || '');
     if (name) {
       document.title = `${name} Admin`;
     }
