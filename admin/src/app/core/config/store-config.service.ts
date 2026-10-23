@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { ApiClient } from '../api/api-client';
 import { TenantPublic } from '../models/models';
 import { normalizeCurrency } from './currency';
+import { applyBrand } from '../../shared/maison/brand';
 
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
@@ -50,6 +51,7 @@ export class StoreConfigService {
     root.style.setProperty('--pm-sidebar', primary);
     root.style.setProperty('--pm-gold', accent);
     root.style.setProperty('--zz-gold', accent);
+    applyBrand(primary, accent, root);
     if (tenant.branding?.favicon) {
       let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
       if (!link) {

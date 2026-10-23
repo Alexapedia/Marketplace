@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { ApiClient } from '../api/api-client';
 import { AppPublicConfig } from '../models/models';
 import { normalizeCurrency } from './currency';
+import { applyBrand } from '../../shared/maison/brand';
 
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
@@ -29,9 +30,7 @@ export class StoreConfigService {
         if (name) document.title = name;
         const primary = tenant?.branding?.primary || '#071345';
         const accent = tenant?.branding?.accent || '#c9a45c';
-        const root = document.documentElement;
-        root.style.setProperty('--brand-primary', primary);
-        root.style.setProperty('--brand-accent', accent);
+        applyBrand(primary, accent);
         if (tenant?.branding?.favicon) {
           let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
           if (!link) {
