@@ -15,16 +15,25 @@ import {
 } from '../core/models/models';
 import { ToastService } from '../core/toast/toast.service';
 import { Stars } from './stars';
+import { Icon } from './icon';
 
 @Component({
   selector: 'app-product-card',
-  imports: [RouterLink, TranslatePipe, Stars],
+  imports: [RouterLink, TranslatePipe, Stars, Icon],
   template: `
-    <article class="pc">
-      <div class="pic">
-        <a [routerLink]="['/product', id]">
+    <article class="pc m-lift">
+      <div class="pic m-zoom">
+        <a
+          class="pic-link"
+          [routerLink]="['/product', id]"
+          (click)="markShared($event)"
+          [attr.aria-label]="name"
+          tabindex="-1"
+        >
           @if (img) {
-            <img [src]="img" alt="" />
+            <img [src]="img" alt="" loading="lazy" decoding="async" />
+          } @else {
+            <span class="pic-ph" aria-hidden="true">{{ name.charAt(0) }}</span>
           }
         </a>
         @if (sale) {
@@ -36,26 +45,39 @@ import { Stars } from './stars';
             [class.on]="liked"
             type="button"
             (click)="toggleFav($event)"
-            aria-label="favorite"
+            [attr.aria-label]="'favorites' | t"
+            [attr.aria-pressed]="liked"
           >
-            ♥
+            <m-icon name="heart" />
           </button>
         }
       </div>
-      <a class="pn" [routerLink]="['/product', id]">{{ name }}</a>
-      <app-stars [value]="product.ratingAvg ?? 0" />
-      <div class="r">
-        <em>
-          {{ price }} {{ 'currency' | t }}
-          @if (sale) {
-            <span class="old">{{ product.price }}</span>
+      <div class="pc-body">
+        <a class="pn" [routerLink]="['/product', id]" (click)="markShared($event)">{{ name }}</a>
+        <app-stars [value]="product.ratingAvg ?? 0" />
+        <div class="r">
+          <span class="price">
+            {{ price }} <small>{{ 'currency' | t }}</small>
+            @if (sale) {
+              <span class="old">{{ product.price }}</span>
+            }
+          </span>
+          @if (auth.user()) {
+            <button
+              class="add"
+              type="button"
+              (click)="add($event)"
+              [attr.aria-label]="'addToCart' | t"
+              [title]="'addToCart' | t"
+            >
+              <m-icon name="bagPlus" />
+            </button>
+          } @else {
+            <a class="add" routerLink="/login" [attr.aria-label]="'addToCart' | t" [title]="'addToCart' | t">
+              <m-icon name="bagPlus" />
+            </a>
           }
-        </em>
-        @if (auth.user()) {
-          <button class="btn" type="button" (click)="add($event)">{{ 'addToCart' | t }}</button>
-        } @else {
-          <a class="btn" routerLink="/login">{{ 'addToCart' | t }}</a>
-        }
+        </div>
       </div>
     </article>
   `,
@@ -88,6 +110,20 @@ export class ProductCard {
 
   get sale(): boolean {
     return onSale(this.product);
+  }
+
+  /**
+   * Presentation only: names this card's image for the route view transition
+   * so it morphs into the product gallery image. Only one element carries the
+   * name at a time, which keeps it unique on pages that repeat a product.
+   */
+  markShared(ev: Event): void {
+    const card = (ev.currentTarget as HTMLElement | null)?.closest('.pc');
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('.pc .pic img'))) {
+      el.style.viewTransitionName = '';
+    }
+    const img = card?.querySelector<HTMLElement>('.pic img');
+    if (img) img.style.viewTransitionName = 'm-product';
   }
 
   add(ev: Event): void {
