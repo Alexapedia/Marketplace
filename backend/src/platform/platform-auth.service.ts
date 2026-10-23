@@ -103,6 +103,9 @@ export class PlatformAuthService {
 
   async verify(challengeToken: string, code: string) {
     const user = await this.userFromChallenge(challengeToken, 'verify');
+    if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
+      throw new ForbiddenException('Too many attempts. Try again later.');
+    }
     const totpOk = user.totpSecret ? this.totp.verify(user.totpSecret, code) : false;
     const hashes = user.backupCodeHashes || [];
     const backupIdx = hashes.indexOf(this.totp.hashCode(code));

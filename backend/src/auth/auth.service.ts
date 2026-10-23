@@ -226,6 +226,9 @@ export class AuthService {
 
   async verifyStaff2fa(challengeToken: string, code: string) {
     const user = await this.userFromChallenge(challengeToken, 'verify');
+    if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
+      throw new ForbiddenException('Too many attempts. Try again later.');
+    }
     const secret = user.totpSecret;
     const hashes = user.backupCodeHashes || [];
     const totpOk = secret ? this.totp.verify(secret, code) : false;
