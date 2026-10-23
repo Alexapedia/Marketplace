@@ -10,6 +10,16 @@ import { Model } from 'mongoose';
 import { Tenant, TenantDocument } from '../schemas/tenant.schema';
 import { AppChannel } from './tenant.context';
 
+const BRANDING_KEYS = [
+  'name',
+  'primary',
+  'accent',
+  'logo',
+  'logoDark',
+  'favicon',
+  'splash',
+] as const;
+
 @Injectable()
 export class TenantService {
   constructor(
@@ -148,20 +158,30 @@ export class TenantService {
 
   async update(id: string, patch: Record<string, unknown>) {
     if (patch['domains']) {
-      const domains = patch['domains'] as Array<{ host: string; channel: string }>;
+      const domains = patch['domains'] as Array<{
+        host: string;
+        channel: string;
+      }>;
       patch['domains'] = domains.map((d) => ({
         host: this.normalizeHost(d.host),
         channel: d.channel,
       }));
     }
     if (patch['branding'] && typeof patch['branding'] === 'object') {
-      const current = await this.tenants.findById(id);
-      patch['branding'] = {
-        ...(current?.branding ? current.branding : {}),
-        ...(patch['branding'] as Record<string, unknown>),
-      };
+      // Merge field by field: saving colours must not wipe the logo, and
+      // only known branding keys are stored.
+      const branding = patch['branding'] as Record<string, unknown>;
+      delete patch['branding'];
+      for (const key of BRANDING_KEYS) {
+        if (typeof branding[key] === 'string')
+          patch[`branding.${key}`] = branding[key];
+      }
     }
-    const doc = await this.tenants.findByIdAndUpdate(id, { $set: patch }, { new: true });
+    const doc = await this.tenants.findByIdAndUpdate(
+      id,
+      { $set: patch },
+      { new: true },
+    );
     if (!doc) throw new NotFoundException('Tenant not found');
     return doc;
   }
@@ -177,13 +197,19 @@ export class TenantService {
   }
 
   async setStatus(id: string, status: 'active' | 'suspended') {
-    const doc = await this.tenants.findByIdAndUpdate(id, { $set: { status } }, { new: true });
+    const doc = await this.tenants.findByIdAndUpdate(
+      id,
+      { $set: { status } },
+      { new: true },
+    );
     if (!doc) throw new NotFoundException('Tenant not found');
     return doc;
   }
 
   async ensureDefault(): Promise<TenantDocument> {
-    const slug = (this.config.get<string>('DEFAULT_TENANT_SLUG') || 'zezo').toLowerCase();
+    const slug = (
+      this.config.get<string>('DEFAULT_TENANT_SLUG') || 'zezo'
+    ).toLowerCase();
     const existing = await this.tenants.findOne({ slug });
     if (existing) return existing;
     return this.tenants.create({
