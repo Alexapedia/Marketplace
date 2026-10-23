@@ -61,9 +61,14 @@
   padding: 28px 24px 20px;
   min-height: 48px;
 }
+.brand.has-logo {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
 .brand-logo {
   max-height: 44px;
-  max-width: 128px;
+  max-width: 100%;
   object-fit: contain;
   display: block;
 }
