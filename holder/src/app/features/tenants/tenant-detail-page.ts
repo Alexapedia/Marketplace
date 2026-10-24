@@ -137,6 +137,18 @@ import { HdState } from '../../shared/state';
                   (valueChange)="setLogo('logoDark', $event)"
                 />
               </div>
+              <div class="row2 logos">
+                <hd-logo-drop
+                  label="tenants.favicon"
+                  [value]="bv().favicon"
+                  (valueChange)="setLogo('favicon', $event)"
+                />
+                <hd-logo-drop
+                  label="tenants.splash"
+                  [value]="bv().splash"
+                  (valueChange)="setLogo('splash', $event)"
+                />
+              </div>
               <div class="actions">
                 @if (brand.dirty) {
                   <span class="dirty m-enter">{{ 'tenants.logoSaveHint' | t }}</span>
@@ -643,6 +655,8 @@ export class TenantDetailPage {
     accent: ['#c9a45c'],
     logo: [''],
     logoDark: [''],
+    favicon: [''],
+    splash: [''],
   });
   /** Live brand form values for the preview (visual only). */
   readonly bv = toSignal(
@@ -680,6 +694,8 @@ export class TenantDetailPage {
           accent: res.data.branding?.accent || '#c9a45c',
           logo: res.data.branding?.logo || '',
           logoDark: res.data.branding?.logoDark || '',
+          favicon: res.data.branding?.favicon || '',
+          splash: res.data.branding?.splash || '',
         });
         this.brand.markAsPristine();
       },
@@ -732,7 +748,7 @@ export class TenantDetailPage {
       .subscribe(run);
   }
 
-  setLogo(key: 'logo' | 'logoDark', url: string): void {
+  setLogo(key: 'logo' | 'logoDark' | 'favicon' | 'splash', url: string): void {
     this.brand.controls[key].setValue(url);
     this.brand.markAsDirty();
   }
@@ -754,6 +770,8 @@ export class TenantDetailPage {
           accent: v.accent,
           logo: v.logo,
           logoDark: v.logoDark,
+          favicon: v.favicon,
+          splash: v.splash,
         },
       })
       .subscribe({
