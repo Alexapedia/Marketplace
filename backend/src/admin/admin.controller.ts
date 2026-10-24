@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AppConfigService } from '../app-config/app-config.service';
 import { CategoriesService } from '../catalog/categories.service';
@@ -43,6 +44,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import {
   AdminUpdateOrderDto,
   ChangeOrderStatusDto,
+  ConfirmDeliveryDto,
 } from '../orders/dto/order.dto';
 import { OrdersService } from '../orders/orders.service';
 import {
@@ -204,6 +206,20 @@ export class AdminController {
     @Req() req: Request,
   ) {
     return this.orders.changeStatus(id, dto, user.userId, req.ip);
+  }
+
+  /** Admins for now; a driver app will reuse this with its own role. */
+  @Post('orders/:id/confirm-delivery')
+  @Roles('super_admin', 'admin')
+  @Permissions('orders.write')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  confirmDelivery(
+    @Param('id') id: string,
+    @Body() dto: ConfirmDeliveryDto,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Request,
+  ) {
+    return this.orders.confirmDelivery(id, dto.code, user.userId, req.ip);
   }
 
   @Get('custom-orders')

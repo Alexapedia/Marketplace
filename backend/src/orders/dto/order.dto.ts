@@ -8,6 +8,7 @@ import {
   IsString,
   Max,
   Min,
+  Matches,
   MinLength,
   ValidateIf,
   ValidateNested,
@@ -89,6 +90,13 @@ export class ChangeOrderStatusDto {
   @IsString()
   @MinLength(3)
   rejectionReason?: string;
+}
+
+export class ConfirmDeliveryDto {
+  @ApiProperty({ example: '048213' })
+  @IsString()
+  @Matches(/^\s*\d{6}\s*$/)
+  code: string;
 }
 
 export class AdminUpdateOrderDto {
