@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Tenant, TenantDocument } from '../schemas/tenant.schema';
+import { normalizeHost } from '../common/utils/host';
 import { AppChannel } from './tenant.context';
 
 const BRANDING_KEYS = [
@@ -28,15 +29,7 @@ export class TenantService {
   ) {}
 
   normalizeHost(raw?: string): string {
-    if (!raw) return '';
-    try {
-      if (raw.includes('://')) {
-        return new URL(raw).host.toLowerCase();
-      }
-    } catch {
-      /* ignore */
-    }
-    return raw.split('/')[0].toLowerCase();
+    return normalizeHost(raw);
   }
 
   async findById(id: string) {
