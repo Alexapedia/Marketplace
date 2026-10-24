@@ -3,59 +3,85 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/tokens.dart';
+import '../../../../../config/theme/typography.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
-import '../../../../../core/utils/functions/responsive.dart';
 
+/// Bespoke invitation set on the deep brand band.
 class CustomOrderCta extends StatelessWidget {
   const CustomOrderCta({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final m = context.maison;
+    final onBand = m.onBand;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: CustomPaint(
-        painter: _DashedRRect(color: gold),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.byDevice(mobileLandscape: 12.0, mobile: 12.0, tablet: 16.0),
-            vertical: 10,
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 4),
+      child: Reveal(
+        child: Container(
+          decoration: BoxDecoration(
+            color: m.band,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            boxShadow: AppShadows.one(m.brightness),
           ),
-          child: Row(
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
             children: [
-              Expanded(
-                child: Text(
-                  'custom_order_cta_title'.tr(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: context.font(13),
-                    color: onSurface,
+              // Signature gold rule along the top edge.
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        m.accent.withValues(alpha: 0),
+                        m.accent,
+                        m.accent.withValues(alpha: 0),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.blackColor,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(0, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                ),
-                onPressed: () => requireAuth(
-                  context,
-                  () => context.pushNamed(AppRouterKeys.myCustomOrders),
-                ),
-                child: Text(
-                  'custom_order'.tr(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Eyebrow('bespoke'.tr(), color: m.accent),
+                    const SizedBox(height: 10),
+                    Text(
+                      'custom_order_cta_title'.tr(),
+                      style: displayStyle(size: 24, color: onBand),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'custom_order_cta_body'.tr(),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: onBand.withValues(alpha: 0.78),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Pressable(
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 48),
+                        ),
+                        onPressed: () => requireAuth(
+                          context,
+                          () => context.pushNamed(AppRouterKeys.myCustomOrders),
+                        ),
+                        icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+                        label: Text('start_custom_order'.tr()),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -64,38 +90,4 @@ class CustomOrderCta extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DashedRRect extends CustomPainter {
-  _DashedRRect({required this.color});
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromLTRBR(
-      0.75,
-      0.75,
-      size.width - 0.75,
-      size.height - 0.75,
-      const Radius.circular(14),
-    );
-    final path = Path()..addRRect(rrect);
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    const dash = 6.0;
-    const gap = 4.0;
-    for (final metric in path.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final next = (distance + dash).clamp(0, metric.length).toDouble();
-        canvas.drawPath(metric.extractPath(distance, next), paint);
-        distance += dash + gap;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedRRect oldDelegate) => oldDelegate.color != color;
 }

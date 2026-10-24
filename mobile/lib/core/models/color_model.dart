@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/functions/color_convert.dart';
-import '../utils/functions/contrast.dart';
+import '../../config/theme/maison.dart';
 
 class AppColors extends ThemeExtension<AppColors> {
   static const Color blackColor = Color(0xff071345);
@@ -104,16 +104,13 @@ class AppColors extends ThemeExtension<AppColors> {
 
     final gold = c('gold', '#C9A45C', '#C9A45C');
     final surfaceLight = c('surfaceLight', '#FFFFFF', '#FFFFFF');
-    final Color goldText;
-    if (json['goldText'] != null) {
-      goldText = json['goldText'].toString().toColor();
-    } else if (dark) {
-      goldText = ensureContrast(gold, c('surfaceDark', '#12141C', '#12141C'));
-    } else if (json['gold'] != null) {
-      goldText = ensureContrast(gold, surfaceLight);
-    } else {
-      goldText = '#85641F'.toColor();
-    }
+    // goldText = Maison accent-ink: readable accent text on this mode.
+    final goldText = json['goldText'] != null
+        ? json['goldText'].toString().toColor()
+        : Maison.build(
+            brightness: dark ? Brightness.dark : Brightness.light,
+            accent: gold,
+          ).accentInk;
 
     return AppColors(
       primary: c('primary', '#071345', '#FFFFFF'),
@@ -123,24 +120,24 @@ class AppColors extends ThemeExtension<AppColors> {
       secondary: c('secondary', '#071345', '#FFFFFF'),
       secondaryContainer: c('secondaryContainer', '#E8EBF6', '#C5CEE8'),
       tertiary: c('tertiary', '#3D4F8A', '#8B9AD4'),
-      backgroundLight: c('backgroundLight', '#EEF0F6', '#EEF0F6'),
-      backgroundDark: c('backgroundDark', '#0E1017', '#0E1017'),
+      backgroundLight: c('backgroundLight', '#F7F4EE', '#F7F4EE'),
+      backgroundDark: c('backgroundDark', '#0C0B09', '#0C0B09'),
       surfaceLight: surfaceLight,
-      surfaceDark: c('surfaceDark', '#12141C', '#12141C'),
-      surfaceContainerLight: c('surfaceContainerLight', '#F3F4F9', '#F3F4F9'),
-      surfaceContainerDark: c('surfaceContainerDark', '#1B1E29', '#1B1E29'),
+      surfaceDark: c('surfaceDark', '#15130F', '#15130F'),
+      surfaceContainerLight: c('surfaceContainerLight', '#F1ECE3', '#F1ECE3'),
+      surfaceContainerDark: c('surfaceContainerDark', '#1E1B16', '#1E1B16'),
       cardLight: c('cardLight', '#FFFFFF', '#FFFFFF'),
-      cardDark: c('cardDark', '#1B1E29', '#1B1E29'),
-      textPrimaryLight: c('textPrimaryLight', '#071345', '#071345'),
-      textPrimaryDark: c('textPrimaryDark', '#ECEEF6', '#ECEEF6'),
-      textSecondary: c('textSecondary', '#5B6385', '#9CA2B8'),
-      hint: c('hint', '#5F6788', '#7A82A6'),
-      border: c('border', '#E3E6F0', '#E3E6F0'),
-      divider: c('divider', '#E3E6F0', '#2A2E3D'),
-      error: c('error', '#BA1A1A', '#BA1A1A'),
+      cardDark: c('cardDark', '#15130F', '#15130F'),
+      textPrimaryLight: c('textPrimaryLight', '#16130F', '#16130F'),
+      textPrimaryDark: c('textPrimaryDark', '#F5F0E6', '#F5F0E6'),
+      textSecondary: c('textSecondary', '#5E574D', '#A79F92'),
+      hint: c('hint', '#5E574D', '#A79F92'),
+      border: c('border', '#E5DED2', '#2C2821'),
+      divider: c('divider', '#E5DED2', '#2C2821'),
+      error: c('error', '#B4232F', '#F07178'),
       onError: c('onError', '#FFFFFF', '#FFFFFF'),
-      success: c('success', '#2E7D32', '#2E7D32'),
-      warning: c('warning', '#B54300', '#E65100'),
+      success: c('success', '#2F6B4F', '#7BC8A0'),
+      warning: c('warning', '#9A4A0B', '#E9A35B'),
       gradientStart: c('gradientStart', '#071345', '#C9A45C'),
       gradientEnd: c('gradientEnd', '#1C3190', '#C9A45C'),
       onSecondaryContainerLight: c(
@@ -151,17 +148,17 @@ class AppColors extends ThemeExtension<AppColors> {
       secondaryContainerDark: c('secondaryContainerDark', '#1A2B6B', '#1A2B6B'),
       tertiaryLight: c('tertiaryLight', '#C5CEE8', '#C5CEE8'),
       onTertiaryLight: c('onTertiaryLight', '#071345', '#071345'),
-      errorDark: c('errorDark', '#FFB4AB', '#FFB4AB'),
-      onErrorDark: c('onErrorDark', '#690005', '#690005'),
-      borderDark: c('borderDark', '#2A2E3D', '#2A2E3D'),
-      hintDark: c('hintDark', '#9CA2B8', '#9CA2B8'),
-      snackBarBgDark: c('snackBarBgDark', '#1A1D2E', '#1A1D2E'),
-      roseSoftLight: c('roseSoftLight', '#FBF6EA', '#2A2518'),
+      errorDark: c('errorDark', '#F07178', '#F07178'),
+      onErrorDark: c('onErrorDark', '#16130F', '#16130F'),
+      borderDark: c('borderDark', '#2C2821', '#2C2821'),
+      hintDark: c('hintDark', '#A79F92', '#A79F92'),
+      snackBarBgDark: c('snackBarBgDark', '#1E1B16', '#1E1B16'),
+      roseSoftLight: c('roseSoftLight', '#F8F1E3', '#241F17'),
       pinkAccent: c('pinkAccent', '#C9A45C', '#C9A45C'),
       gold: gold,
       goldText: goldText,
-      inputBorder: c('inputBorder', '#767D96', '#6D7491'),
-      navMuted: c('navMuted', '#5B6385', '#A3A9BF'),
+      inputBorder: c('inputBorder', '#8A8073', '#776E61'),
+      navMuted: c('navMuted', '#5E574D', '#A79F92'),
     );
   }
 

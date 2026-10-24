@@ -1,14 +1,22 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/tokens.dart';
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../controller/products_cubit.dart';
 import 'products_filter_sheet.dart';
 import 'products_grid_with_ads.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
+
+OutlineInputBorder _pill(Color color, [double width = 1]) => OutlineInputBorder(
+  borderRadius: BorderRadius.circular(AppRadius.pill),
+  borderSide: BorderSide(color: color, width: width),
+);
 
 class ProductsBody extends StatelessWidget {
   const ProductsBody({super.key, this.autofocus = false});
@@ -31,7 +39,11 @@ class ProductsBody extends StatelessWidget {
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: 'search_hint'.tr(),
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    border: _pill(context.maison.line),
+                    enabledBorder: _pill(context.maison.line),
+                    focusedBorder: _pill(context.maison.accentInk, 1.5),
                   ),
                   onChanged: cubit.onSearchChanged,
                   onSubmitted: (v) => cubit.load(search: v),
@@ -40,13 +52,14 @@ class ProductsBody extends StatelessWidget {
               const SizedBox(width: 8),
               BlocBuilder<ProductsCubit, ProductsState>(
                 buildWhen: (a, b) => a.hasFilters != b.hasFilters,
-                builder: (context, state) => IconButton.filledTonal(
-                  tooltip: 'filters'.tr(),
-                  onPressed: () => showProductsFilterSheet(context, cubit),
-                  icon: Badge(
-                    isLabelVisible: state.hasFilters,
-                    smallSize: 8,
-                    child: const Icon(Icons.tune),
+                builder: (context, state) => Badge(
+                  isLabelVisible: state.hasFilters,
+                  smallSize: 10,
+                  offset: const Offset(-6, 6),
+                  child: GlassCircleButton(
+                    tooltip: 'filters'.tr(),
+                    onPressed: () => showProductsFilterSheet(context, cubit),
+                    icon: Icons.tune_rounded,
                   ),
                 ),
               ),
@@ -95,7 +108,7 @@ class ProductsBody extends StatelessWidget {
                     }
                     return false;
                   },
-                  child: Skeletonizer(
+                  child: MaisonSkeleton(
                     enabled: loading,
                     child: ProductsGridWithAds(
                       products: items,

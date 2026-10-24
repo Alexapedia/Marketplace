@@ -8,7 +8,7 @@ import '../../../../core/components/circle_back_button.dart';
 import '../../../../core/components/failed_shape.dart';
 import '../../../../core/components/gold_stepper.dart';
 import '../../../../core/components/skeleton_placeholders.dart';
-import '../../../../core/models/color_model.dart';
+import '../../../../config/theme/maison.dart';
 import '../../../../core/utils/constant/app_enum.dart';
 import '../../../../core/utils/functions/status_label.dart';
 import '../controller/custom_order_details_cubit.dart';
@@ -48,15 +48,15 @@ class CustomOrderDetailsScreen extends StatelessWidget {
         builder: (context, state) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: AppColors.blackColor,
-              foregroundColor: Colors.white,
+              backgroundColor: context.maison.band,
+              foregroundColor: context.maison.onBand,
               leading: const CircleBackButton(),
               title: Text('custom_order'.tr()),
               actions: [
                 IconButton(
                   onPressed: () =>
                       context.pushNamed(AppRouterKeys.chat, extra: orderId),
-                  icon: const Icon(Icons.chat_bubble_outline),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded),
                 ),
               ],
               bottom: PreferredSize(
@@ -76,8 +76,9 @@ class CustomOrderDetailsScreen extends StatelessWidget {
   }
 
   Widget _content(BuildContext context, CustomOrderDetailsState state) {
-    if (state.status == RequestStatus.loading)
+    if (state.status == RequestStatus.loading) {
       return const SkeletonDetail(heroHeight: 120);
+    }
     if (state.order == null) {
       return FailedShape(
         msg: state.error,

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/components/adaptive_page.dart';
 import '../../../../core/components/circle_back_button.dart';
 import '../controller/notifications_cubit.dart';
 import 'widgets/notifications_body.dart';
@@ -23,14 +24,17 @@ class NotificationScreen extends StatelessWidget {
               builder: (context, state) => state.hasUnread
                   ? IconButton(
                       tooltip: 'mark_all_read'.tr(),
-                      onPressed: () => context.read<NotificationsCubit>().markAllRead(),
-                      icon: const Icon(Icons.done_all),
+                      onPressed: () =>
+                          context.read<NotificationsCubit>().markAllRead(),
+                      icon: const Icon(Icons.done_all_rounded),
                     )
                   : const SizedBox.shrink(),
             ),
           ],
         ),
-        body: SafeArea(child: const NotificationsBody()),
+        body: const SafeArea(
+          child: AdaptivePage(maxWidth: 720, child: NotificationsBody()),
+        ),
       ),
     );
   }

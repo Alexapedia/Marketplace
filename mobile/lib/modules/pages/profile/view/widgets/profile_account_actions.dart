@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../config/theme/maison.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../controller/profile_cubit.dart';
 
@@ -13,6 +14,7 @@ class ProfileAccountActions extends StatelessWidget {
     required String title,
     required String body,
     required String action,
+    bool destructive = false,
   }) async {
     return await showDialog<bool>(
           context: context,
@@ -25,6 +27,9 @@ class ProfileAccountActions extends StatelessWidget {
                 child: Text('cancel'.tr()),
               ),
               TextButton(
+                style: destructive
+                    ? TextButton.styleFrom(foregroundColor: ctx.maison.danger)
+                    : null,
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(action),
               ),
@@ -36,9 +41,10 @@ class ProfileAccountActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = context.maison;
     return Column(
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 24),
         AppButton(
           onTap: () async {
             final ok = await _confirm(
@@ -52,23 +58,28 @@ class ProfileAccountActions extends StatelessWidget {
             }
           },
           title: 'logout'.tr(),
+          icon: Icons.logout_rounded,
           isOutlined: true,
         ),
-        const SizedBox(height: 12),
-        AppButton(
-          onTap: () async {
+        const SizedBox(height: 4),
+        TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: m.danger,
+            minimumSize: const Size(double.infinity, 48),
+          ),
+          onPressed: () async {
             final ok = await _confirm(
               context,
               title: 'delete_account'.tr(),
               body: 'delete_account_confirm'.tr(),
               action: 'delete_account'.tr(),
+              destructive: true,
             );
             if (ok && context.mounted) {
               await context.read<ProfileCubit>().deleteAccount();
             }
           },
-          title: 'delete_account'.tr(),
-          isOutlined: true,
+          child: Text('delete_account'.tr()),
         ),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/components/ad_banner_tile.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/components/product_card.dart';
 import '../../../../../core/models/app_models.dart';
 import '../../../../../core/models/catalog_models.dart';
@@ -24,6 +25,14 @@ class ProductsGridWithAds extends StatelessWidget {
     final rowsPerAd = 2;
     final chunkSize = columns * rowsPerAd;
     final slivers = <Widget>[];
+    // Proportional cards: tall image well + text, never stretched.
+    final width = MediaQuery.sizeOf(
+      context,
+    ).width.clamp(0.0, context.contentMaxWidth);
+    final cell = (width - 32 - 12 * (columns - 1)) / columns;
+    final extent = context.isMobile && context.isPortrait
+        ? 292.0
+        : (cell * 1.55).clamp(260.0, 340.0);
     var adIndex = 0;
 
     for (var i = 0; i < products.length; i += chunkSize) {
@@ -37,23 +46,21 @@ class ProductsGridWithAds extends StatelessWidget {
           sliver: SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: columns,
-              mainAxisExtent: context.byDevice(
-                mobile: 240,
-                mobileLandscape: 220,
-                tablet: 250,
-
-                desktop: 260,
-              ),
+              mainAxisExtent: extent,
               crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+              mainAxisSpacing: 16,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
               final product = chunk[index];
-              return ProductCard(
+              final card = ProductCard(
                 product: product,
                 index: i + index,
                 heroScope: 'grid-${i + index}',
               );
+              // First screenful staggers in; later pages arrive quietly.
+              return i + index < 8
+                  ? Reveal(index: i + index, child: card)
+                  : card;
             }, childCount: chunk.length),
           ),
         ),

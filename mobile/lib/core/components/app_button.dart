@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../config/theme/maison.dart';
 import '../../config/theme/tokens.dart';
 import '../models/color_model.dart';
 import '../utils/functions/responsive.dart';
 import 'text_with_hero.dart';
 
+/// Maison primary action: an accent ("the light") pill with computed
+/// on-accent text, press scale .97 over `instant` and a light haptic.
+/// [isOutlined] gives the quiet secondary variant (hairline ink border).
+/// [isGradient] is kept for API compatibility; Maison fills are flat.
 class AppButton extends StatefulWidget {
   const AppButton({
     super.key,
@@ -48,11 +54,14 @@ class _AppButtonState extends State<AppButton>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: AppDurations.fast);
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppDurations.instant,
+    );
     _scaleAnimation = Tween<double>(
       begin: 1,
       end: 0.97,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    ).animate(CurvedAnimation(parent: _controller, curve: AppCurves.easeOut));
   }
 
   @override
@@ -65,17 +74,22 @@ class _AppButtonState extends State<AppButton>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final primary = scheme.primary;
-    final appColors = theme.extension<AppColors>()!;
+    final m = context.maison;
+    final outline = theme.extension<AppColors>()?.inputBorder ?? m.line;
     final Size btnSize = widget.size ?? const Size(double.infinity, 52);
-    final gold = appColors.gold;
+    final reduce = MediaQuery.disableAnimationsOf(context);
 
     final bool loading = widget.isLoading;
     final bool enabled = widget.onTap != null && !loading;
     final bool disabled = widget.onTap == null && !loading;
 
     final Color normalColor =
-        widget.textColor ?? (widget.isOutlined ? primary : scheme.onPrimary);
+        widget.textColor ??
+        (widget.isOutlined
+            ? m.ink
+            : widget.bgColor != null
+            ? Maison.onColor(widget.bgColor!)
+            : m.onAccentFill);
     final Color contentColor = disabled
         ? scheme.onSurface.withValues(alpha: 0.38)
         : normalColor;
@@ -100,13 +114,16 @@ class _AppButtonState extends State<AppButton>
                 Icon(widget.icon, color: contentColor, size: 18),
                 const SizedBox(width: 8),
               ],
-              Text(
-                widget.title ?? '',
-                style: TextStyle(
-                  color: contentColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: context.font(widget.titleSize),
-                  letterSpacing: 0.5,
+              Flexible(
+                child: Text(
+                  widget.title ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: contentColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: context.font(widget.titleSize),
+                  ),
                 ),
               ),
             ],
@@ -116,29 +133,22 @@ class _AppButtonState extends State<AppButton>
       }
     }
 
-    final Color? fill;
-    final Gradient? gradient;
+    final Color fill;
     if (disabled) {
       fill = widget.isOutlined
           ? Colors.transparent
           : scheme.surfaceContainerHighest;
-      gradient = null;
     } else {
       fill = widget.isOutlined
           ? Colors.transparent
-          : widget.bgColor ?? (widget.isGradient ? null : primary);
-      gradient =
-          widget.isOutlined || widget.bgColor != null || !widget.isGradient
-          ? null
-          : appColors.primaryGradient;
+          : widget.bgColor ?? m.accentFill;
     }
 
     final Border? border = widget.isOutlined
         ? Border.all(
             color: disabled
                 ? scheme.onSurface.withValues(alpha: 0.12)
-                : widget.bgColor ?? gold,
-            width: 1.8,
+                : widget.bgColor ?? outline,
           )
         : null;
 
@@ -149,23 +159,27 @@ class _AppButtonState extends State<AppButton>
       excludeSemantics: widget.title != null && widget.child == null,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) =>
-            Transform.scale(scale: _scaleAnimation.value, child: child),
+        builder: (context, child) => Transform.scale(
+          scale: reduce ? 1 : _scaleAnimation.value,
+          child: child,
+        ),
         child: Container(
           width: btnSize.width,
           height: btnSize.height,
           decoration: BoxDecoration(
             color: fill,
-            gradient: gradient,
             borderRadius: AppRadius.button,
             border: border,
             boxShadow: !enabled || widget.isOutlined
                 ? null
                 : [
                     BoxShadow(
-                      color: gold.withValues(alpha: 0.28),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
+                      color: (widget.bgColor ?? m.accentFill).withValues(
+                        alpha: m.isDark ? 0.18 : 0.32,
+                      ),
+                      blurRadius: 20,
+                      spreadRadius: -6,
+                      offset: const Offset(0, 8),
                     ),
                   ],
           ),
@@ -173,20 +187,31 @@ class _AppButtonState extends State<AppButton>
             color: Colors.transparent,
             child: InkWell(
               borderRadius: AppRadius.button,
-              onTap: enabled ? widget.onTap : null,
+              onTap: enabled
+                  ? () {
+                      HapticFeedback.lightImpact();
+                      widget.onTap!();
+                    }
+                  : null,
               onHighlightChanged: enabled
                   ? (down) =>
                         down ? _controller.forward() : _controller.reverse()
                   : null,
-              child: Center(child: label),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Center(child: label),
+              ),
             ),
           ),
         ),
       ),
     );
 
-    if (!MediaQuery.disableAnimationsOf(context)) {
-      button = button.animate().fadeIn(duration: 300.ms);
+    if (!reduce) {
+      button = button.animate().fadeIn(
+        duration: AppDurations.base,
+        curve: AppCurves.easeOut,
+      );
     }
     return button;
   }

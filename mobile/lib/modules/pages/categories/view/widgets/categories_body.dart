@@ -1,14 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/categories_cubit.dart';
 import 'category_tile.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class CategoriesBody extends StatelessWidget {
   const CategoriesBody({super.key});
@@ -33,7 +34,7 @@ class CategoriesBody extends StatelessWidget {
             icon: Icons.category_outlined,
           );
         }
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: GridView.builder(
             padding: EdgeInsets.fromLTRB(
@@ -46,16 +47,21 @@ class CategoriesBody extends StatelessWidget {
               crossAxisCount: context.catalogColumns.clamp(2, 4),
               mainAxisExtent: ResponsiveUtils.byDevice(
                 context: context,
-                mobileLandscape: 160,
-                mobile: 180,
-                tablet: 180,
-                desktop: 180,
+                mobileLandscape: 180,
+                mobile: 210,
+                tablet: 240,
+                desktop: 260,
               ),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
             ),
             itemCount: items.length,
-            itemBuilder: (context, i) => CategoryTile(category: items[i]),
+            itemBuilder: (context, i) => loading
+                ? CategoryTile(category: items[i])
+                : Reveal(
+                    index: i,
+                    child: CategoryTile(category: items[i]),
+                  ),
           ),
         );
       },

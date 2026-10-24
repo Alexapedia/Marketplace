@@ -308,5 +308,22 @@
   "empty_products_filtered": "لا توجد منتجات تطابق الفلاتر",
   "empty_home_title": "لا يوجد شيء هنا بعد",
   "empty_home_subtitle": "عد قريبا أو اسحب للأسفل للتحديث",
-  "empty_list_title": "لا يوجد شيء هنا بعد"
+  "empty_list_title": "لا يوجد شيء هنا بعد",
+  "a11y_open_gallery": "فتح معرض الصور",
+  "curated": "منتقاة",
+  "the_edit": "المختارات",
+  "bespoke": "حسب الطلب",
+  "shop_now": "تسوّق الآن",
+  "eyebrow_featured": "مختارة",
+  "eyebrow_new": "وصل حديثًا",
+  "eyebrow_loved": "الأكثر طلبًا",
+  "eyebrow_voices": "بكلماتهم",
+  "eyebrow_collections": "المجموعات",
+  "order_summary": "ملخص الطلب",
+  "your_account": "حسابك",
+  "preferences": "التفضيلات",
+  "secure_checkout": "دفع آمن",
+  "delivery_fee": "التوصيل",
+  "order_number": "طلب {}",
+  "track_order": "رحلة الطلب"
 }

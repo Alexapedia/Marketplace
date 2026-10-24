@@ -308,5 +308,22 @@
   "empty_products_filtered": "No products match your filters",
   "empty_home_title": "Nothing here yet",
   "empty_home_subtitle": "Check back soon or pull down to refresh",
-  "empty_list_title": "Nothing here yet"
+  "empty_list_title": "Nothing here yet",
+  "a11y_open_gallery": "Open photo gallery",
+  "curated": "Curated",
+  "the_edit": "The edit",
+  "bespoke": "Bespoke",
+  "shop_now": "Shop now",
+  "eyebrow_featured": "Selected",
+  "eyebrow_new": "Just in",
+  "eyebrow_loved": "Most loved",
+  "eyebrow_voices": "In their words",
+  "eyebrow_collections": "Collections",
+  "order_summary": "Order summary",
+  "your_account": "Your account",
+  "preferences": "Preferences",
+  "secure_checkout": "Secure checkout",
+  "delivery_fee": "Delivery",
+  "order_number": "Order {}",
+  "track_order": "Order journey"
 }

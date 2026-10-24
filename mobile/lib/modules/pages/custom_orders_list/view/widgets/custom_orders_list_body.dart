@@ -8,6 +8,7 @@ import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/components/infinite_scroll.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../controller/custom_orders_list_cubit.dart';
@@ -24,11 +25,11 @@ class CustomOrdersListBody extends StatelessWidget {
       return EmptyState(
         title: 'login_required'.tr(),
         subtitle: 'login_required_desc'.tr(),
-        icon: Icons.auto_awesome,
+        icon: Icons.auto_awesome_outlined,
         action: AppButton(
           onTap: () => requireAuth(context, () {}),
           title: 'login'.tr(),
-          size: const Size(220, 48),
+          size: const Size(240, 52),
         ),
       );
     }
@@ -46,11 +47,11 @@ class CustomOrdersListBody extends StatelessWidget {
         if (state.items.isEmpty) {
           return EmptyState(
             title: 'empty_custom_orders'.tr(),
-            icon: Icons.auto_awesome,
+            icon: Icons.auto_awesome_outlined,
             action: AppButton(
               onTap: () => context.pushNamed(AppRouterKeys.customOrder),
               title: 'start_custom_order'.tr(),
-              size: const Size(220, 48),
+              size: const Size(240, 52),
             ),
           );
         }
@@ -60,12 +61,15 @@ class CustomOrdersListBody extends StatelessWidget {
           onLoadMore: cubit.loadMore,
           child: ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
             itemCount: state.items.length + (state.loadingMore ? 1 : 0),
-            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, i) => i >= state.items.length
                 ? const LoadMoreFooter()
-                : CustomOrderTile(order: state.items[i]),
+                : Reveal(
+                    index: i,
+                    child: CustomOrderTile(order: state.items[i]),
+                  ),
           ),
         );
       },

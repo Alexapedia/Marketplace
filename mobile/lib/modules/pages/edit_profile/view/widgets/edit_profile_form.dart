@@ -8,7 +8,9 @@ import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/app_text_field.dart';
 import '../../../../../core/components/circle_back_button.dart';
 import '../../../../../core/components/image_item.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/typography.dart';
+import '../../../../../core/components/loading_item.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/validate.dart';
 import '../../controller/edit_profile_cubit.dart';
@@ -20,7 +22,7 @@ class EditProfileForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<EditProfileCubit>();
     final user = AppControllerCubit.get(context).state.user;
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
+    final m = context.maison;
     return BlocListener<EditProfileCubit, EditProfileState>(
       listenWhen: (p, n) => !p.saved && n.saved,
       listener: (context, state) => context.pop(),
@@ -33,55 +35,60 @@ class EditProfileForm extends StatelessWidget {
           child: Form(
             key: cubit.formKey,
             child: ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               children: [
                 Center(
                   child: Stack(
                     children: [
                       CircleAvatar(
-                        radius: 48,
-                        backgroundColor: AppColors.blackColor,
-                        child: ClipOval(
-                          child: BlocBuilder<EditProfileCubit, EditProfileState>(
-                            builder: (context, state) {
-                              if (state.avatar.isNotEmpty) {
-                                return ImageItem(
-                                  state.avatar,
-                                  width: 96,
-                                  height: 96,
-                                  fit: BoxFit.cover,
-                                );
-                              }
-                              return Text(
-                                (user?.name.isNotEmpty == true
-                                        ? user!.name[0]
-                                        : 'Z')
-                                    .toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
+                        radius: 52,
+                        backgroundColor: m.accentFill,
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: m.band,
+                          child: ClipOval(
+                            child:
+                                BlocBuilder<EditProfileCubit, EditProfileState>(
+                                  builder: (context, state) {
+                                    if (state.avatar.isNotEmpty) {
+                                      return ImageItem(
+                                        state.avatar,
+                                        width: 96,
+                                        height: 96,
+                                        fit: BoxFit.cover,
+                                      );
+                                    }
+                                    return Text(
+                                      (user?.name.isNotEmpty == true
+                                              ? user!.name[0]
+                                              : 'Z')
+                                          .toUpperCase(),
+                                      style: displayStyle(
+                                        size: 34,
+                                        color: m.onBand,
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
                           ),
                         ),
                       ),
                       Positioned(
-                        bottom: 0,
-                        right: 0,
+                        bottom: -4,
+                        right: -4,
                         child: BlocBuilder<EditProfileCubit, EditProfileState>(
                           builder: (context, state) {
                             return IconButton.filled(
                               style: IconButton.styleFrom(
-                                backgroundColor: gold,
+                                backgroundColor: m.accentFill,
+                                side: BorderSide(color: m.canvas, width: 3),
                               ),
                               onPressed: state.status == RequestStatus.loading
                                   ? null
                                   : cubit.pickPhoto,
-                              icon: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
+                              icon: Icon(
+                                Icons.photo_camera_outlined,
+                                color: m.onAccentFill,
                                 size: 18,
                               ),
                             );
@@ -92,7 +99,14 @@ class EditProfileForm extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Center(child: Text('change_photo'.tr())),
+                Center(
+                  child: Text(
+                    'change_photo'.tr(),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelMedium?.copyWith(color: m.inkMuted),
+                  ),
+                ),
                 const SizedBox(height: 20),
                 AppTextField(
                   controller: cubit.email,
@@ -114,7 +128,7 @@ class EditProfileForm extends StatelessWidget {
                 BlocBuilder<EditProfileCubit, EditProfileState>(
                   builder: (context, state) {
                     if (state.status == RequestStatus.loading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const LoadingItem();
                     }
                     return AppButton(
                       onTap: () => cubit.save(context),

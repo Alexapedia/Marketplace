@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/typography.dart';
 import '../../../../../core/components/image_item.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/models/app_models.dart';
-import '../../../../../core/models/color_model.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 
 class OnboardingSlideView extends StatelessWidget {
@@ -12,63 +13,69 @@ class OnboardingSlideView extends StatelessWidget {
   final OnboardingSlide page;
 
   IconData get _icon => switch (page.icon) {
-        'favorites' => Icons.favorite_rounded,
-        'custom' => Icons.auto_awesome_rounded,
-        _ => Icons.shopping_bag_rounded,
-      };
+    'favorites' => Icons.favorite_border_rounded,
+    'custom' => Icons.auto_awesome_outlined,
+    _ => Icons.shopping_bag_outlined,
+  };
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final onSurface = isDark ? AppColors.whiteColor : AppColors.blackColor;
+    final m = context.maison;
     final compact = context.isCompactHeight || context.isLandscape;
-    final iconSize = compact
-        ? context.byDevice(mobileLandscape: 72.0, mobile: 72.0, tablet: 96.0, desktop: 110.0)
-        : context.byDevice(mobileLandscape: 140.0, mobile: 140.0, tablet: 160.0, desktop: 180.0);
-    final glyphSize = compact ? 36.0 : 64.0;
+    final markSize = compact
+        ? 96.0
+        : context.byDevice(
+            mobileLandscape: 168.0,
+            mobile: 168.0,
+            tablet: 220.0,
+            desktop: 240.0,
+          );
 
-    final mark = page.image.isNotEmpty
-        ? ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: ImageItem(
-              page.image,
-              width: iconSize * 1.6,
-              height: iconSize * 1.6,
-              fit: BoxFit.cover,
-            ),
-          ).animate().fadeIn(duration: 280.ms)
-        : Container(
-            width: iconSize,
-            height: iconSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colors.gold.withValues(alpha: 0.12),
-              border: Border.all(color: colors.gold, width: 1.4),
-            ),
-            child: Icon(_icon, size: glyphSize, color: colors.gold),
-          ).animate().fadeIn(duration: 280.ms);
+    // Two concentric rings around the mark: hairline accent, then a soft well.
+    final mark = Container(
+      width: markSize + 28,
+      height: markSize + 28,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: m.accent.withValues(alpha: 0.55)),
+      ),
+      child: ClipOval(
+        child: page.image.isNotEmpty
+            ? ImageItem(page.image, fit: BoxFit.cover)
+            : ColoredBox(
+                color: m.band,
+                child: Icon(_icon, size: markSize * 0.4, color: m.accent),
+              ),
+      ),
+    );
 
     final texts = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          page.title,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: onSurface,
-            fontSize: context.font(compact ? 22 : 28),
-            fontWeight: FontWeight.w800,
+        Reveal(
+          index: 1,
+          child: Text(
+            page.title,
+            textAlign: TextAlign.center,
+            style: displayStyle(
+              size: context.font(compact ? 26 : 34),
+              color: m.ink,
+            ),
           ),
         ),
-        SizedBox(height: compact ? 8 : 14),
-        Text(
-          page.body,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: onSurface.withValues(alpha: 0.72),
-            height: 1.5,
-            fontSize: context.font(compact ? 13 : 15),
+        const SizedBox(height: 14),
+        const GoldRule(width: 56),
+        SizedBox(height: compact ? 10 : 16),
+        Reveal(
+          index: 2,
+          child: Text(
+            page.body,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: m.inkMuted,
+              fontSize: context.font(compact ? 14 : 16),
+            ),
           ),
         ),
       ],
@@ -77,16 +84,16 @@ class OnboardingSlideView extends StatelessWidget {
     final content = compact
         ? Row(
             children: [
-              mark,
-              const SizedBox(width: 20),
+              Reveal(child: mark),
+              const SizedBox(width: 28),
               Expanded(child: texts),
             ],
           )
         : Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              mark,
-              const SizedBox(height: 28),
+              Reveal(child: mark),
+              const SizedBox(height: 36),
               texts,
             ],
           );
@@ -95,12 +102,21 @@ class OnboardingSlideView extends StatelessWidget {
       builder: (context, constraints) {
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: context.byDevice(mobileLandscape: 24.0, mobile: 24.0, tablet: 40.0),
+            horizontal: context.byDevice(
+              mobileLandscape: 28.0,
+              mobile: 28.0,
+              tablet: 64.0,
+            ),
             vertical: compact ? 8 : 28,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(child: content),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: content,
+              ),
+            ),
           ),
         );
       },

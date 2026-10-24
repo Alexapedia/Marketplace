@@ -33,46 +33,55 @@ typedef RecordedCall = ({
 /// ApiConsumer fake that records calls and answers with [postResult].
 class FakeApiConsumer implements ApiConsumer {
   final List<RecordedCall> calls = [];
-  Either<String, ApiModel> postResult =
-      left('fake_failure');
-  Either<String, ApiModel> getResult =
-      right(ApiModel(response: {'data': []}, statusCode: 200));
+  Either<String, ApiModel> postResult = left('fake_failure');
+  Either<String, ApiModel> getResult = right(
+    ApiModel(response: {'data': []}, statusCode: 200),
+  );
 
   @override
-  Future<Either<String, ApiModel>> get(String path,
-      {Map<String, dynamic>? queryParameters}) async {
+  Future<Either<String, ApiModel>> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     calls.add((method: 'GET', path: path, body: null, headers: null));
     return getResult;
   }
 
   @override
-  Future<Either<String, ApiModel>> post(String path,
-      {dynamic body,
-      Map<String, dynamic>? queryParameters,
-      bool formDataIsEnabled = false,
-      Map<String, dynamic>? headers}) async {
+  Future<Either<String, ApiModel>> post(
+    String path, {
+    dynamic body,
+    Map<String, dynamic>? queryParameters,
+    bool formDataIsEnabled = false,
+    Map<String, dynamic>? headers,
+  }) async {
     calls.add((method: 'POST', path: path, body: body, headers: headers));
     return postResult;
   }
 
   @override
-  Future<Either<String, ApiModel>> auth(String path,
-          {Map<String, dynamic>? body,
-          Map<String, dynamic>? queryParameters}) async =>
-      throw UnimplementedError();
+  Future<Either<String, ApiModel>> auth(
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? queryParameters,
+  }) async => throw UnimplementedError();
   @override
-  Future<Either<String, ApiModel>> put(String path,
-          {Map<String, dynamic>? body,
-          Map<String, dynamic>? queryParameters}) async =>
-      throw UnimplementedError();
+  Future<Either<String, ApiModel>> put(
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? queryParameters,
+  }) async => throw UnimplementedError();
   @override
-  Future<Either<String, ApiModel>> delete(String path,
-          {Map<String, dynamic>? queryParameters}) async =>
-      throw UnimplementedError();
+  Future<Either<String, ApiModel>> delete(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async => throw UnimplementedError();
   @override
-  Future<Either<String, ApiModel>> patch(String path,
-          {dynamic body, Map<String, dynamic>? queryParameters}) async =>
-      throw UnimplementedError();
+  Future<Either<String, ApiModel>> patch(
+    String path, {
+    dynamic body,
+    Map<String, dynamic>? queryParameters,
+  }) async => throw UnimplementedError();
   @override
   Either<String, ApiModel> handleResponseStatus(Response response) =>
       throw UnimplementedError();
@@ -100,8 +109,11 @@ Future<void> setUpTestLocator({
 
 Future<void> tearDownTestLocator() => sl.reset();
 
-typedef ServerHandler = FutureOr<({int status, String body})> Function(
-    HttpRequest req, String body);
+typedef ServerHandler =
+    FutureOr<({int status, String body})> Function(
+      HttpRequest req,
+      String body,
+    );
 
 /// Local HTTP server on an ephemeral port. [redirectAllHttpTo] makes every
 /// dart:io HttpClient (including DioConsumer's bare refresh Dio) connect to it
@@ -110,7 +122,7 @@ class TestServer {
   TestServer._(this.server);
   final HttpServer server;
   final List<({String method, String path, String? auth, String body})>
-      requests = [];
+  requests = [];
 
   static Future<TestServer> start(ServerHandler handler) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);

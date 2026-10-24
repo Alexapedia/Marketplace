@@ -128,12 +128,18 @@ class TenantPublic {
   final String primary;
   final String accent;
 
+  /// Store logo URLs (`branding.logo` / `branding.logoDark`); empty = none.
+  final String logo;
+  final String logoDark;
+
   const TenantPublic({
     this.status = 'active',
     this.mobileEnabled = true,
     this.brandName = '',
     this.primary = '',
     this.accent = '',
+    this.logo = '',
+    this.logoDark = '',
   });
 
   factory TenantPublic.fromJson(dynamic json) {
@@ -146,6 +152,8 @@ class TenantPublic {
       brandName: asString(branding['name'], asString(map['name'])),
       primary: asString(branding['primary']),
       accent: asString(branding['accent']),
+      logo: asString(branding['logo']),
+      logoDark: asString(branding['logoDark']),
     );
   }
 

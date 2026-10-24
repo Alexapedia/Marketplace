@@ -2,7 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/typography.dart';
+import '../../../../../core/components/adaptive_page.dart';
 import '../../../../../core/components/app_button.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/components/order_status_timeline.dart';
 import '../../../../../core/components/review_card.dart';
 import '../../../../../core/components/star_rating.dart';
@@ -34,97 +38,114 @@ class OrderDetailsBody extends StatelessWidget {
     final shortId = order.id.length > 8
         ? order.id.substring(order.id.length - 8)
         : order.id;
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.paddingOf(context).bottom,
-      ),
-      children: [
-        Text(
-          '#$shortId',
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+    final m = context.maison;
+    final text = Theme.of(context).textTheme;
+    return AdaptivePage(
+      maxWidth: 720,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          32 + MediaQuery.paddingOf(context).bottom,
         ),
-        const SizedBox(height: 16),
-        OrderStatusTimeline(
-          status: order.status,
-          steps: _flow,
-          labelOf: statusLabel,
-        ),
-        const SizedBox(height: 20),
-        OrderInfoCard(
-          children: [
-            OrderKv(
-              label: 'total'.tr(),
-              value: '${order.total.toStringAsFixed(0)} ${AppString.currency}',
+        children: [
+          Reveal(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Eyebrow('track_order'.tr()),
+                const SizedBox(height: 6),
+                Text(
+                  'order_number'.tr(args: ['#$shortId']),
+                  style: displayStyle(size: 30, color: m.ink),
+                ),
+                const SizedBox(height: 12),
+                const GoldRule(width: 56, draw: true),
+              ],
             ),
-            OrderKv(label: 'payment_method'.tr(), value: order.paymentMethod),
-            if (order.address != null && order.address!.display.isNotEmpty)
-              OrderKv(label: 'address'.tr(), value: order.address!.display),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'items'.tr(),
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-        ),
-        const SizedBox(height: 8),
-        ...order.items.map((i) => OrderItemTile(item: i)),
-        if (order.rejectionReason != null &&
-            order.rejectionReason!.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            'rejection_reason'.tr(),
-            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
-          Text(order.rejectionReason!),
-        ],
-        if (order.status == 'pending') ...[
+          const SizedBox(height: 24),
+          Reveal(
+            index: 1,
+            child: OrderStatusTimeline(
+              status: order.status,
+              steps: _flow,
+              labelOf: statusLabel,
+            ),
+          ),
           const SizedBox(height: 20),
-          AppButton(
-            onTap: () => context.read<OrderDetailsCubit>().cancel(order.id),
-            title: 'cancel_order'.tr(),
-            isOutlined: true,
+          OrderInfoCard(
+            children: [
+              OrderKv(
+                label: 'total'.tr(),
+                value:
+                    '${order.total.toStringAsFixed(0)} ${AppString.currency}',
+              ),
+              OrderKv(label: 'payment_method'.tr(), value: order.paymentMethod),
+              if (order.address != null && order.address!.display.isNotEmpty)
+                OrderKv(label: 'address'.tr(), value: order.address!.display),
+            ],
           ),
-        ],
-        const SizedBox(height: 20),
-        Text(
-          'order_rating'.tr(),
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-        ),
-        const SizedBox(height: 8),
-        if (order.rating > 0) ...[
-          StarRating(value: order.rating, size: 22, showValue: true),
-          if (order.ratingComment.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          MaisonSectionHeader(
+            title: 'items'.tr(),
+            padding: const EdgeInsetsDirectional.only(top: 12, bottom: 14),
+          ),
+          ...order.items.map((i) => OrderItemTile(item: i)),
+          if (order.rejectionReason != null &&
+              order.rejectionReason!.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(order.ratingComment),
+            Text(
+              'rejection_reason'.tr(),
+              style: text.labelLarge?.copyWith(color: m.danger),
+            ),
+            const SizedBox(height: 4),
+            Text(order.rejectionReason!),
           ],
-        ] else if (order.canRate) ...[
-          Text(
-            'rate_order_products_hint'.tr(),
-            style: TextStyle(
-              fontSize: 13,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.65),
+          if (order.status == 'pending') ...[
+            const SizedBox(height: 20),
+            AppButton(
+              onTap: () => context.read<OrderDetailsCubit>().cancel(order.id),
+              title: 'cancel_order'.tr(),
+              isOutlined: true,
             ),
+          ],
+          const SizedBox(height: 20),
+          MaisonSectionHeader(
+            title: 'order_rating'.tr(),
+            padding: const EdgeInsetsDirectional.only(top: 12, bottom: 14),
           ),
-          const SizedBox(height: 8),
-          AppButton(
-            onTap: () => showRateSheet(
-              context: context,
-              title: 'rate_order'.tr(),
-              onSubmit: (rating, comment) => context
-                  .read<OrderDetailsCubit>()
-                  .rate(order.id, rating, comment),
+          if (order.rating > 0) ...[
+            StarRating(value: order.rating, size: 22, showValue: true),
+            if (order.ratingComment.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(order.ratingComment),
+            ],
+          ] else if (order.canRate) ...[
+            Text(
+              'rate_order_products_hint'.tr(),
+              style: text.bodySmall?.copyWith(color: m.inkMuted),
             ),
-            title: 'add_rating'.tr(),
-          ),
-        ] else
-          Text('rate_order_hint'.tr()),
-      ],
+            const SizedBox(height: 8),
+            AppButton(
+              onTap: () => showRateSheet(
+                context: context,
+                title: 'rate_order'.tr(),
+                onSubmit: (rating, comment) => context
+                    .read<OrderDetailsCubit>()
+                    .rate(order.id, rating, comment),
+              ),
+              title: 'add_rating'.tr(),
+            ),
+          ] else
+            Text(
+              'rate_order_hint'.tr(),
+              style: text.bodyMedium?.copyWith(color: m.inkMuted),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -60,11 +60,17 @@ void main() {
     expect(contrastRatio(c.goldText, c.surfaceLight), greaterThanOrEqualTo(4.5));
   });
 
-  test('theme focusedBorder color is colorScheme.primary', () {
+  // Maison: the focus ring is the accent ("the light"), as accent-ink so it
+  // keeps >= 3:1 against the field fill.
+  test('theme focusedBorder is accent-ink and visible on the field', () {
     for (final t in [light(l), dark(d)]) {
       final b = t.inputDecorationTheme.focusedBorder as OutlineInputBorder;
-      expect(b.borderSide.color, t.colorScheme.primary);
+      expect(b.borderSide.color, t.colorScheme.tertiary);
       expect(b.borderSide.width, 2);
+      expect(
+        contrastRatio(b.borderSide.color, t.inputDecorationTheme.fillColor!),
+        greaterThanOrEqualTo(3.0),
+      );
     }
   });
 

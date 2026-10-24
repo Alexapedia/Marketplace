@@ -1,16 +1,18 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/components/infinite_scroll.dart';
+import '../../../../../core/components/maison.dart';
+import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../controller/orders_cubit.dart';
 import 'order_tile.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class OrdersBody extends StatelessWidget {
   const OrdersBody({super.key});
@@ -26,7 +28,7 @@ class OrdersBody extends StatelessWidget {
         action: AppButton(
           onTap: () => requireAuth(context, () {}),
           title: 'login'.tr(),
-          size: const Size(220, 48),
+          size: const Size(240, 52),
         ),
       );
     }
@@ -58,7 +60,7 @@ class OrdersBody extends StatelessWidget {
             ),
           );
         }
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: InfiniteScroll(
             onRefresh: cubit.refresh,
@@ -67,18 +69,31 @@ class OrdersBody extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(
                 16,
+                8,
                 16,
-                16,
-                16 + MediaQuery.paddingOf(context).bottom,
+                // Clears the floating glass bottom navigation.
+                24 + MediaQuery.paddingOf(context).bottom,
               ),
               itemCount: loading
                   ? 4
                   : state.items.length + (state.loadingMore ? 1 : 0),
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, i) {
-                if (loading) return ListTile(title: Text('order'.tr()));
+                if (loading) {
+                  return OrderTile(
+                    order: OrderModel(
+                      id: '00000000',
+                      status: 'pending',
+                      total: 100,
+                      createdAt: DateTime(2026, 1, 1),
+                    ),
+                  );
+                }
                 if (i >= state.items.length) return const LoadMoreFooter();
-                return OrderTile(order: state.items[i]);
+                return Reveal(
+                  index: i,
+                  child: OrderTile(order: state.items[i]),
+                );
               },
             ),
           ),

@@ -9,9 +9,9 @@ import '../../../../../core/components/circle_back_button.dart';
 import '../../../../../core/components/gold_stepper.dart';
 import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/components/loading_item.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
-import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/custom_order_cubit.dart';
 import 'custom_category_grid.dart';
 import 'custom_field_block.dart';
@@ -25,8 +25,8 @@ class CustomOrderBody extends StatelessWidget {
     final cubit = context.read<CustomOrderCubit>();
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.blackColor,
-        foregroundColor: Colors.white,
+        backgroundColor: context.maison.band,
+        foregroundColor: context.maison.onBand,
         leading: const CircleBackButton(),
         title: Text('custom_order'.tr()),
         bottom: PreferredSize(
@@ -49,20 +49,16 @@ class CustomOrderBody extends StatelessWidget {
               return const LoadingItem();
             }
             if (state.status == RequestStatus.failed) {
-              return FailedShape(msg: state.error, onTapRefresh: cubit.loadCategories);
+              return FailedShape(
+                msg: state.error,
+                onTapRefresh: cubit.loadCategories,
+              );
             }
             return AdaptivePage(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 children: [
-                  Text(
-                    'pick_category'.tr(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: context.font(16),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
+                  Eyebrow('pick_category'.tr(), color: context.maison.inkMuted),
                   const SizedBox(height: 12),
                   const CustomCategoryGrid(),
                   const SizedBox(height: 20),
@@ -76,13 +72,9 @@ class CustomOrderBody extends StatelessWidget {
                   ),
                   if (state.fields.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(
+                    Eyebrow(
                       'custom_fields'.tr(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: context.font(16),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                      color: context.maison.inkMuted,
                     ),
                     const SizedBox(height: 8),
                     ...state.fields.map(
@@ -93,14 +85,7 @@ class CustomOrderBody extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 16),
-                  Text(
-                    'upload_images'.tr(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: context.font(16),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
+                  Eyebrow('upload_images'.tr(), color: context.maison.inkMuted),
                   const SizedBox(height: 10),
                   const CustomOrderImages(),
                   const SizedBox(height: 28),

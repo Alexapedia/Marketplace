@@ -133,7 +133,10 @@ class CustomFieldBlock extends StatelessWidget {
       case 'boolean':
         return SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
           value: selected == true || selected == 'true',
           onChanged: (v) => cubit.setAnswer(field.key, v),
         );

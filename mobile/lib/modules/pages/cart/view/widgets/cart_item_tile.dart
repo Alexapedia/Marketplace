@@ -1,10 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/tokens.dart';
+import '../../../../../config/theme/typography.dart';
 import '../../../../../core/components/image_item.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/models/catalog_models.dart';
-import '../../../../../core/models/color_model.dart';
 import '../../../../../core/utils/constant/app_string.dart';
 import '../../../../../core/utils/functions/open_product.dart';
 import '../../controller/cart_cubit.dart';
@@ -16,95 +20,114 @@ class CartItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
+    final m = context.maison;
+    final text = Theme.of(context).textTheme;
     final name = item.product?.name ?? 'item'.tr();
-    return InkWell(
+    final details = [
+      if (item.variant != null && item.variant!.isNotEmpty) item.variant!,
+      if (item.size != null && item.size!.isNotEmpty) item.size!,
+    ].join(' · ');
+    return SurfaceCard(
+      padding: const EdgeInsets.all(12),
       onTap: () => openProductDetails(context, item.productId),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.outline.withValues(alpha: 0.12),
-          ),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.md + 2),
+            child: ColoredBox(
+              color: m.surface2,
               child: ImageItem(
                 item.product?.cover ?? '',
                 semanticLabel: name,
-                width: 72,
-                height: 72,
+                width: 84,
+                height: 96,
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: displayStyle(size: 16, color: m.ink, height: 1.2),
+                ),
+                if (details.isNotEmpty) ...[
+                  const SizedBox(height: 4),
                   Text(
-                    name,
+                    details,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: text.labelMedium?.copyWith(color: m.inkMuted),
                   ),
-                  if (item.size != null)
-                    Text(
-                      item.size!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.5),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AnimatedNumber(
+                        value: item.lineTotal,
+                        format: (v) =>
+                            '${v.toStringAsFixed(0)} ${AppString.currency}',
+                        style: text.titleSmall?.copyWith(
+                          color: m.accentInk,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  Text(
-                    '${item.lineTotal.toStringAsFixed(0)} ${AppString.currency}',
-                    style: TextStyle(color: gold, fontWeight: FontWeight.w800),
-                  ),
-                ],
-              ),
+                    _QtyPill(item: item),
+                  ],
+                ),
+              ],
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    tooltip: 'a11y_decrease_qty'.tr(),
-                    onPressed: () => context.read<CartCubit>().updateQty(
-                      item.id,
-                      item.quantity - 1,
-                    ),
-                    icon: const Icon(Icons.remove, size: 18),
-                  ),
-                  Text(
-                    '${item.quantity}',
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  IconButton(
-                    tooltip: 'a11y_increase_qty'.tr(),
-                    onPressed: () => context.read<CartCubit>().updateQty(
-                      item.id,
-                      item.quantity + 1,
-                    ),
-                    icon: const Icon(Icons.add, size: 18),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QtyPill extends StatelessWidget {
+  const _QtyPill({required this.item});
+  final CartItemModel item;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = context.maison;
+    void set(int q) {
+      HapticFeedback.selectionClick();
+      context.read<CartCubit>().updateQty(item.id, q);
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: m.line),
+        color: m.canvas,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'a11y_decrease_qty'.tr(),
+            onPressed: () => set(item.quantity - 1),
+            icon: const Icon(Icons.remove_rounded, size: 18),
+          ),
+          AnimatedNumber(
+            value: item.quantity.toDouble(),
+            format: (v) => v.round().toString(),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          IconButton(
+            tooltip: 'a11y_increase_qty'.tr(),
+            onPressed: () => set(item.quantity + 1),
+            icon: const Icon(Icons.add_rounded, size: 18),
+          ),
+        ],
       ),
     );
   }

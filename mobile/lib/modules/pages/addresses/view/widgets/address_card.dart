@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/models/address_models.dart';
-import '../../../../../core/models/color_model.dart';
 import '../../controller/addresses_cubit.dart';
 
 class AddressCard extends StatelessWidget {
@@ -15,93 +16,87 @@ class AddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () async {
-          final ok = await context.pushNamed(
-            AppRouterKeys.addressForm,
-            extra: address,
-          );
-          if (ok == true && context.mounted) cubit.load();
-        },
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: address.isDefault
-                  ? gold
-                  : Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.12),
+    final m = context.maison;
+    final text = Theme.of(context).textTheme;
+    return SurfaceCard(
+      color: address.isDefault ? m.accentSoft : null,
+      onTap: () async {
+        final ok = await context.pushNamed(
+          AppRouterKeys.addressForm,
+          extra: address,
+        );
+        if (ok == true && context.mounted) cubit.load();
+      },
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 4, 16),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: address.isDefault ? m.accentFill : m.surface2,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              address.isDefault
+                  ? Icons.home_rounded
+                  : Icons.location_on_outlined,
+              color: address.isDefault ? m.onAccentFill : m.inkMuted,
+              size: 20,
             ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                address.isDefault ? Icons.home_rounded : Icons.location_on_outlined,
-                color: gold,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          address.label,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                        if (address.isDefault) ...[
-                          const SizedBox(width: 8),
-                          Text(
-                            'default_address'.tr(),
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .extension<AppColors>()!
-                                  .goldText,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    Text(address.fullName),
-                    Text(
-                      address.display,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    Flexible(
+                      child: Text(
+                        address.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.titleSmall?.copyWith(color: m.ink),
                       ),
                     ),
+                    if (address.isDefault) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        'default_address'.tr(),
+                        style: text.labelMedium?.copyWith(color: m.accentInk),
+                      ),
+                    ],
                   ],
                 ),
-              ),
-              PopupMenuButton<String>(
-                onSelected: (v) {
-                  if (v == 'default') cubit.setDefault(address.id);
-                  if (v == 'delete') cubit.remove(address.id);
-                },
-                itemBuilder: (_) => [
-                  if (!address.isDefault)
-                    PopupMenuItem(
-                      value: 'default',
-                      child: Text('set_default'.tr()),
-                    ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Text('delete'.tr()),
-                  ),
-                ],
-              ),
+                const SizedBox(height: 2),
+                Text(
+                  address.fullName,
+                  style: text.bodyMedium?.copyWith(color: m.ink),
+                ),
+                Text(
+                  address.display,
+                  style: text.bodySmall?.copyWith(color: m.inkMuted),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'settings'.tr(),
+            onSelected: (v) {
+              if (v == 'default') cubit.setDefault(address.id);
+              if (v == 'delete') cubit.remove(address.id);
+            },
+            itemBuilder: (_) => [
+              if (!address.isDefault)
+                PopupMenuItem(
+                  value: 'default',
+                  child: Text('set_default'.tr()),
+                ),
+              PopupMenuItem(value: 'delete', child: Text('delete'.tr())),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

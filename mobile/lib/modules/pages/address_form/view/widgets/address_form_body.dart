@@ -4,7 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/tokens.dart';
 import '../../../../../core/components/app_button.dart';
+import '../../../../../core/components/loading_item.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/components/app_text_field.dart';
 import '../../../../../core/components/circle_back_button.dart';
 import '../../../../../core/components/map_picker.dart';
@@ -31,20 +35,20 @@ class AddressFormBody extends StatelessWidget {
         body: Form(
           key: cubit.formKey,
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              Text(
-                'tap_map'.tr(),
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
+              Eyebrow('tap_map'.tr(), color: context.maison.inkMuted),
+              const SizedBox(height: 10),
               BlocBuilder<AddressFormCubit, AddressFormState>(
                 buildWhen: (p, n) => p.lat != n.lat || p.lng != n.lng,
                 builder: (context, state) {
-                  return MapPicker(
-                    lat: state.lat,
-                    lng: state.lng,
-                    onChanged: (LatLng p) => cubit.setPoint(p),
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.xl - 4),
+                    child: MapPicker(
+                      lat: state.lat,
+                      lng: state.lng,
+                      onChanged: (LatLng p) => cubit.setPoint(p),
+                    ),
                   );
                 },
               ),
@@ -71,13 +75,20 @@ class AddressFormBody extends StatelessWidget {
                 title: 'street'.tr(),
                 validator: (v) => Validate.notEmpty(v ?? ''),
               ),
-              AppTextField(controller: cubit.notes, title: 'notes'.tr(), maxlines: 2),
+              AppTextField(
+                controller: cubit.notes,
+                title: 'notes'.tr(),
+                maxlines: 2,
+              ),
               BlocBuilder<AddressFormCubit, AddressFormState>(
                 buildWhen: (p, n) => p.isDefault != n.isDefault,
                 builder: (context, state) {
                   return SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text('default_address'.tr()),
+                    title: Text(
+                      'default_address'.tr(),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                     value: state.isDefault,
                     onChanged: cubit.setDefault,
                   );
@@ -87,7 +98,7 @@ class AddressFormBody extends StatelessWidget {
               BlocBuilder<AddressFormCubit, AddressFormState>(
                 builder: (context, state) {
                   if (state.status == RequestStatus.loading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const LoadingItem();
                   }
                   return AppButton(onTap: cubit.save, title: 'save'.tr());
                 },

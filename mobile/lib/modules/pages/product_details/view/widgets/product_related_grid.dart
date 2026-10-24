@@ -16,14 +16,14 @@ class ProductRelatedGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'related'.tr()),
+        SectionHeader(title: 'related'.tr(), eyebrow: 'curated'.tr()),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: products.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: context.catalogColumns.clamp(2, 4),
-            childAspectRatio: 0.62,
+            childAspectRatio: 0.6,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
           ),

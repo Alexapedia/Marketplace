@@ -1,10 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import '../../controller/navigation_bar_cubit.dart' show NavItemData;
+import 'package:flutter/services.dart';
+
+import '../../../../../config/theme/maison.dart';
 import '../../../../../config/theme/tokens.dart';
-import '../../../../../core/models/color_model.dart';
 import '../../../../../core/utils/functions/motion.dart';
+import '../../controller/navigation_bar_cubit.dart' show NavItemData;
 
 class NavbarBtn extends StatelessWidget {
   const NavbarBtn({
@@ -17,60 +18,60 @@ class NavbarBtn extends StatelessWidget {
 
   final NavItemData item;
   final bool isSelected;
+
+  /// Active colour (accent-ink).
   final Color primary;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final gold = theme.extension<AppColors>()!.gold;
-    final dark = theme.brightness == Brightness.dark;
-    final activeBg = dark ? gold : AppColors.blackColor;
-    final activeFg = dark ? const Color(0xFF12141C) : Colors.white;
-    final muted = theme.extension<AppColors>()!.navMuted;
-    final labelStyle = theme.textTheme.labelMedium;
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedContainer(
-                  duration: context.motion(AppDurations.base),
-                  curve: AppCurves.standard,
-                  width: 38,
-                  height: 26,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isSelected ? activeBg : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
+    final m = context.maison;
+    final labelStyle = Theme.of(context).textTheme.labelMedium;
+    final color = isSelected ? primary : m.inkMuted;
+    return Semantics(
+      selected: isSelected,
+      button: true,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () {
+            if (!isSelected) HapticFeedback.selectionClick();
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedScale(
+                    scale: isSelected && !context.reduceMotion ? 1.08 : 1,
+                    duration: context.motion(AppDurations.base),
+                    curve: AppCurves.easeOut,
+                    child: Icon(
+                      isSelected ? item.activeIcon : item.icon,
+                      color: color,
+                      size: 22,
+                    ),
                   ),
-                  child: Icon(
-                    isSelected ? item.activeIcon : item.icon,
-                    color: isSelected ? activeFg : muted,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
+                  const SizedBox(height: 3),
+                  AnimatedDefaultTextStyle(
+                    duration: context.motion(AppDurations.fast),
+                    style: labelStyle!.copyWith(
+                      color: color,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
+                    child: Text(
                       item.label.tr(),
-                      style: labelStyle?.copyWith(
-                        color: isSelected
-                            ? (dark ? gold : AppColors.blackColor)
-                            : muted,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                      ),
-                    )
-                    .animate(target: isSelected ? 1 : 0)
-                    .fadeIn(duration: context.motion(180.ms)),
-              ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

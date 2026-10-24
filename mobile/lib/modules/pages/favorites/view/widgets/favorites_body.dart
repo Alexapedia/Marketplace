@@ -1,17 +1,18 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/components/product_card.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/favorites_cubit.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class FavoritesBody extends StatelessWidget {
   const FavoritesBody({super.key});
@@ -27,7 +28,7 @@ class FavoritesBody extends StatelessWidget {
         action: AppButton(
           onTap: () => requireAuth(context, () {}),
           title: 'login'.tr(),
-          size: const Size(220, 48),
+          size: const Size(240, 52),
         ),
       );
     }
@@ -53,31 +54,34 @@ class FavoritesBody extends StatelessWidget {
             icon: Icons.favorite_border,
           );
         }
-        return Skeletonizer(
+        return MaisonSkeleton(
           enabled: loading,
           child: RefreshIndicator(
             onRefresh: () => context.read<FavoritesCubit>().load(),
             child: GridView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(12),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: context.catalogColumns,
-              mainAxisExtent: context.byDevice(
-                mobile: 240,
-                mobileLandscape: 220,
-                tablet: 250,
-                desktop: 260,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: context.catalogColumns,
+                mainAxisExtent: context.byDevice(
+                  mobile: 292,
+                  mobileLandscape: 260,
+                  tablet: 320,
+                  desktop: 340,
+                ),
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 16,
               ),
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+              itemCount: items.length,
+              itemBuilder: (context, i) {
+                final card = ProductCard(
+                  product: items[i],
+                  index: i,
+                  heroScope: 'fav-$i',
+                );
+                return loading ? card : Reveal(index: i, child: card);
+              },
             ),
-            itemCount: items.length,
-            itemBuilder: (context, i) => ProductCard(
-              product: items[i],
-              index: i,
-              heroScope: 'fav-$i',
-            ),
-          ),
           ),
         );
       },

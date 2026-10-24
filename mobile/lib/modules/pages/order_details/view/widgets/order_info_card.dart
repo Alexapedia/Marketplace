@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/components/maison.dart';
+
 class OrderInfoCard extends StatelessWidget {
   const OrderInfoCard({super.key, required this.children});
 
@@ -7,17 +9,15 @@ class OrderInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.18),
+      child: SurfaceCard(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
         ),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
     );
   }
 }

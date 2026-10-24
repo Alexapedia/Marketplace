@@ -8,6 +8,7 @@ import 'config/theme/dark_mode.dart';
 import 'config/theme/light_mode.dart';
 import 'core/models/color_model.dart';
 import 'core/utils/constant/app_string.dart';
+import 'core/utils/functions/color_convert.dart';
 import 'core/utils/functions/responsive.dart';
 import 'core/utils/functions/service_locator.dart';
 
@@ -19,8 +20,8 @@ class PlaceMarketApp extends StatelessWidget {
 
   static final Map<String, ThemeData> _themes = {};
 
-  /// Themes with the tenant's brand colors layered over the defaults.
-  /// Primary only tints light mode; dark mode keeps its light-on-dark primary.
+  /// Maison themes with the tenant's brand colours (primary = deep band,
+  /// accent = "the light"). Text on brand fills is computed in [Maison].
   static ThemeData _theme(bool isDark, String primary, String accent) {
     return _themes.putIfAbsent('$isDark|$primary|$accent', () {
       final overrides = <String, dynamic>{
@@ -29,12 +30,16 @@ class PlaceMarketApp extends StatelessWidget {
           'primary': primary,
           'secondary': primary,
           'gradientStart': primary,
-          'textPrimaryLight': primary,
         },
         if (isDark && accent.isNotEmpty) ...{'gradientStart': accent, 'gradientEnd': accent},
       };
       return isDark
-          ? dark(overrides.isEmpty ? AppColors.darkDefaults : AppColors.fromJson(overrides, dark: true))
+          ? dark(
+              overrides.isEmpty
+                  ? AppColors.darkDefaults
+                  : AppColors.fromJson(overrides, dark: true),
+              brandPrimary: primary.isEmpty ? null : primary.toColor(),
+            )
           : light(overrides.isEmpty ? AppColors.lightDefaults : AppColors.fromJson(overrides));
     });
   }

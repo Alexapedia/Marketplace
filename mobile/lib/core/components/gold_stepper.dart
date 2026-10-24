@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../config/theme/tokens.dart';
-import '../models/color_model.dart';
+import '../../config/theme/maison.dart';
 
 class GoldBarStepper extends StatelessWidget {
   const GoldBarStepper({
@@ -20,8 +20,8 @@ class GoldBarStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.extension<AppColors>() ?? AppColors.defaults;
-    final gold = colors.gold;
+    final m = context.maison;
+    final gold = m.accent;
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, 10),
       child: Row(
@@ -35,7 +35,7 @@ class GoldBarStepper extends StatelessWidget {
                   color: i < completed
                       ? gold
                       : (onDark
-                            ? Colors.white.withValues(alpha: 0.2)
+                            ? m.onBand.withValues(alpha: 0.2)
                             : theme.colorScheme.outlineVariant),
                   borderRadius: BorderRadius.circular(2),
                 ),
@@ -67,8 +67,8 @@ class GoldDotStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.extension<AppColors>() ?? AppColors.defaults;
-    final gold = colors.gold;
+    final m = context.maison;
+    final gold = m.accent;
     final idx = steps.indexOf(current);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -93,7 +93,7 @@ class GoldDotStepper extends StatelessWidget {
                         color: idx >= i
                             ? gold
                             : (onDark
-                                  ? const Color(0xFF4A5AA8)
+                                  ? m.onBand.withValues(alpha: 0.4)
                                   : theme.colorScheme.outlineVariant),
                         width: 2,
                       ),
@@ -108,12 +108,10 @@ class GoldDotStepper extends StatelessWidget {
                     style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: idx >= i ? FontWeight.w700 : FontWeight.w400,
                       color: idx >= i
-                          ? (onDark
-                                ? Colors.white
-                                : theme.colorScheme.onSurface)
+                          ? (onDark ? m.onBand : theme.colorScheme.onSurface)
                           : (onDark
-                                ? const Color(0xFF9AA6DC)
-                                : colors.navMuted),
+                                ? m.onBand.withValues(alpha: 0.7)
+                                : m.inkMuted),
                     ),
                   ),
                 ],

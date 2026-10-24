@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/components/adaptive_page.dart';
+import '../../../../core/components/circle_back_button.dart';
 import '../controller/products_cubit.dart';
 import 'widgets/products_body.dart';
 
@@ -34,8 +35,19 @@ class ProductsScreen extends StatelessWidget {
         search: search,
       )..load(),
       child: Scaffold(
-        appBar: AppBar(title: Text(title ?? 'search_products'.tr())),
-        body: SafeArea(child: AdaptivePage(child: ProductsBody(autofocus: autofocus))),
+        appBar: AppBar(
+          leadingWidth: 64,
+          leading: Navigator.of(context).canPop()
+              ? const Padding(
+                  padding: EdgeInsetsDirectional.only(start: 8),
+                  child: Center(child: CircleBackButton()),
+                )
+              : null,
+          title: Text(title ?? 'search_products'.tr()),
+        ),
+        body: SafeArea(
+          child: AdaptivePage(child: ProductsBody(autofocus: autofocus)),
+        ),
       ),
     );
   }

@@ -2,7 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/typography.dart';
 import '../../../../../core/components/app_button.dart';
+import '../../../../../core/components/maison.dart';
 import '../../controller/products_cubit.dart';
 
 const _sorts = <String, String>{
@@ -14,7 +17,10 @@ const _sorts = <String, String>{
 };
 
 /// Bottom sheet for sort + price range. Applies through [ProductsCubit.applyFilters].
-Future<void> showProductsFilterSheet(BuildContext context, ProductsCubit cubit) {
+Future<void> showProductsFilterSheet(
+  BuildContext context,
+  ProductsCubit cubit,
+) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -33,11 +39,16 @@ class _FilterSheet extends StatefulWidget {
 
 class _FilterSheetState extends State<_FilterSheet> {
   late String _sort = widget.cubit.state.sort;
-  late final _min = TextEditingController(text: _fmt(widget.cubit.state.minPrice));
-  late final _max = TextEditingController(text: _fmt(widget.cubit.state.maxPrice));
+  late final _min = TextEditingController(
+    text: _fmt(widget.cubit.state.minPrice),
+  );
+  late final _max = TextEditingController(
+    text: _fmt(widget.cubit.state.maxPrice),
+  );
 
   static String _fmt(double? v) => v == null ? '' : v.toStringAsFixed(0);
-  static double? _parse(String v) => v.trim().isEmpty ? null : double.tryParse(v.trim());
+  static double? _parse(String v) =>
+      v.trim().isEmpty ? null : double.tryParse(v.trim());
 
   @override
   void dispose() {
@@ -50,19 +61,32 @@ class _FilterSheetState extends State<_FilterSheet> {
   Widget build(BuildContext context) {
     final digits = [FilteringTextInputFormatter.digitsOnly];
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        20 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('sort_by'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          Text(
+            'filters'.tr(),
+            style: displayStyle(size: 24, color: context.maison.ink),
+          ),
           const SizedBox(height: 10),
+          const GoldRule(width: 48),
+          const SizedBox(height: 22),
+          Eyebrow('sort_by'.tr(), color: context.maison.inkMuted),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: _sorts.entries
                 .map(
                   (e) => ChoiceChip(
+                    showCheckmark: false,
                     label: Text(e.value.tr()),
                     selected: _sort == e.key,
                     onSelected: (_) => setState(() => _sort = e.key),
@@ -71,8 +95,8 @@ class _FilterSheetState extends State<_FilterSheet> {
                 .toList(),
           ),
           const SizedBox(height: 20),
-          Text('price_range'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-          const SizedBox(height: 10),
+          Eyebrow('price_range'.tr(), color: context.maison.inkMuted),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -83,7 +107,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                   decoration: InputDecoration(labelText: 'min_price'.tr()),
                 ),
               ),
-              const Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('–')),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Text('–'),
+              ),
               Expanded(
                 child: TextField(
                   controller: _max,
@@ -98,12 +125,13 @@ class _FilterSheetState extends State<_FilterSheet> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
+                child: AppButton(
+                  isOutlined: true,
+                  title: 'clear_filters'.tr(),
+                  onTap: () {
                     widget.cubit.clearFilters();
                     Navigator.pop(context);
                   },
-                  child: Text('clear_filters'.tr()),
                 ),
               ),
               const SizedBox(width: 12),

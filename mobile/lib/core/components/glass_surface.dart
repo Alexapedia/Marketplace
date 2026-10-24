@@ -2,15 +2,27 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-/// "Liquid glass" chrome surface: blurred backdrop under a translucent
-/// surface fill. Use for app chrome only (navigation, sticky bars), never for
-/// content cards.
+import '../../config/theme/maison.dart';
+import '../../config/theme/tokens.dart';
+
+/// Saturation matrix (1.4) for the glass backdrop.
+const List<double> _saturate14 = [
+  1.2873, -0.2861, -0.0012, 0, 0, //
+  -0.0427, 1.0439, -0.0012, 0, 0, //
+  -0.0427, -0.2861, 1.3288, 0, 0, //
+  0, 0, 0, 1, 0, //
+];
+
+/// Maison glass chrome: surface at 72% over a blur(18) saturate(1.4)
+/// backdrop with a hairline edge. App chrome only (navigation, sticky bars),
+/// never content cards.
 class GlassSurface extends StatelessWidget {
   const GlassSurface({
     super.key,
     required this.child,
     this.borderRadius = BorderRadius.zero,
     this.elevated = false,
+    this.edge = GlassEdge.top,
   });
 
   final Widget child;
@@ -19,9 +31,19 @@ class GlassSurface extends StatelessWidget {
   /// Adds a soft upward shadow (sticky CTA bars).
   final bool elevated;
 
+  /// Where the hairline sits.
+  final GlassEdge edge;
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final m = context.maison;
+    final side = BorderSide(color: m.line);
+    final Border border = switch (edge) {
+      GlassEdge.top => Border(top: side),
+      GlassEdge.bottom => Border(bottom: side),
+      GlassEdge.all => Border.all(color: m.line),
+      GlassEdge.none => const Border(),
+    };
     // BackdropFilter expands to fill its constraints, so it lives in a
     // positioned layer and the child alone decides the surface's size.
     final glass = Stack(
@@ -30,13 +52,23 @@ class GlassSurface extends StatelessWidget {
           child: ClipRRect(
             borderRadius: borderRadius,
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              filter: ImageFilter.compose(
+                outer: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                inner: const ColorFilter.matrix(_saturate14),
+              ),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: scheme.surface.withValues(alpha: 0.82),
+                  color: m.glass,
                   borderRadius: borderRadius,
-                  border: Border(top: BorderSide(color: scheme.outlineVariant)),
+                  border: edge == GlassEdge.all ? border : null,
                 ),
+                position: DecorationPosition.background,
+                child: edge == GlassEdge.all || edge == GlassEdge.none
+                    ? const SizedBox.expand()
+                    : DecoratedBox(
+                        decoration: BoxDecoration(border: border),
+                        child: const SizedBox.expand(),
+                      ),
               ),
             ),
           ),
@@ -48,15 +80,11 @@ class GlassSurface extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        boxShadow: [
-          BoxShadow(
-            color: scheme.shadow.withValues(alpha: 0.10),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        boxShadow: AppShadows.up(m.brightness),
       ),
       child: glass,
     );
   }
 }
+
+enum GlassEdge { top, bottom, all, none }

@@ -1,12 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../../core/components/adaptive_page.dart';
 import '../../../../../core/components/app_logo.dart';
 import '../../../../../core/components/failed_shape.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../core/components/glass_surface.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/responsive.dart';
 import '../../controller/home_cubit.dart';
@@ -15,18 +14,17 @@ import 'notif_btn.dart';
 import 'portrait_home.dart';
 import 'split_home.dart';
 import 'wide_app_bar.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
 
 class HomeBody extends StatelessWidget {
   const HomeBody({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
     final wideHeader = context.useNavRail;
     return Scaffold(
       appBar: wideHeader ? const WideAppBar() : null,
       body: RefreshIndicator(
-        color: gold,
         onRefresh: () => context.read<HomeCubit>().load(),
         child: BlocBuilder<HomeCubit, HomeState>(
           builder: (context, state) {
@@ -45,9 +43,16 @@ class HomeBody extends StatelessWidget {
               slivers: [
                 if (!wideHeader)
                   const SliverAppBar(
-                    floating: true,
-                    title: AppLogo(height: 32),
-                    actions: [CartBtn(), NotifBtn()],
+                    pinned: true,
+                    backgroundColor: Colors.transparent,
+                    flexibleSpace: GlassSurface(
+                      edge: GlassEdge.bottom,
+                      child: SizedBox.expand(),
+                    ),
+                    leadingWidth: 64,
+                    leading: NotifBtn(),
+                    title: AppLogo(height: 30),
+                    actions: [CartBtn(), SizedBox(width: 8)],
                   ),
                 if (failed)
                   SliverFillRemaining(
@@ -74,7 +79,7 @@ class HomeBody extends StatelessWidget {
                 else
                   SliverToBoxAdapter(
                     child: AdaptivePage(
-                      child: Skeletonizer(
+                      child: MaisonSkeleton(
                         enabled: loading,
                         child: context.isLandscape
                             ? SplitHome(state: state, loading: loading)

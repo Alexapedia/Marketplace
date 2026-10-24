@@ -6,10 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../config/theme/maison.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/app_text_field.dart';
 import '../../../../../core/components/loading_item.dart';
-import '../../../../../core/models/color_model.dart';
 import '../../../../../core/repository/firebase/firebase_service.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/validate.dart';
@@ -21,7 +21,7 @@ class LoginForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = LoginCubit.get(context);
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
+    final m = context.maison;
     return Form(
       key: cubit.formKey,
       autovalidateMode: cubit.autoValidateMode,
@@ -56,11 +56,13 @@ class LoginForm extends StatelessWidget {
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TextButton(
-              onPressed: () =>
-                  context.pushNamed(AppRouterKeys.forgetPassword),
+              onPressed: () => context.pushNamed(AppRouterKeys.forgetPassword),
               child: Text(
                 'forgot_password'.tr(),
-                style: TextStyle(color: gold, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: m.accentInk,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -86,7 +88,7 @@ class LoginForm extends StatelessWidget {
               const Expanded(child: Divider()),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('or'.tr()),
+                child: Text('or'.tr(), style: TextStyle(color: m.inkMuted)),
               ),
               const Expanded(child: Divider()),
             ],
@@ -102,8 +104,8 @@ class LoginForm extends StatelessWidget {
             onTap: FirebaseService.initialized
                 ? () => cubit.googleSignIn(context)
                 : () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('google_unavailable'.tr())),
-                    ),
+                    SnackBar(content: Text('google_unavailable'.tr())),
+                  ),
             title: 'continue_with_google'.tr(),
             isOutlined: true,
             icon: Icons.g_mobiledata_rounded,
