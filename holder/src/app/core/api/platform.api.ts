@@ -7,7 +7,7 @@ import {
   PlatformReports,
   TenantRow,
 } from '../models/models';
-import { ApiClient, ApiResult } from './api-client';
+import { ApiClient, ApiResult, UploadProgress } from './api-client';
 
 @Injectable({ providedIn: 'root' })
 export class PlatformApi {
@@ -31,6 +31,11 @@ export class PlatformApi {
 
   patch(id: string, body: unknown): Observable<ApiResult<TenantRow>> {
     return this.api.patch<TenantRow>(`/platform/tenants/${id}`, body);
+  }
+
+  /** Store logo upload (holder token); resolves to `{ url }`. */
+  uploadLogo(file: File): Observable<UploadProgress<{ url: string }>> {
+    return this.api.uploadWithProgress<{ url: string }>(file, '/platform/uploads');
   }
 
   setChannel(

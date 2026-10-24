@@ -5,10 +5,12 @@ import { PageMeta, PlatformIssue } from '../../core/models/models';
 import { HdState } from '../../shared/state';
 import { MatButtonModule } from '@angular/material/button';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MAISON } from '../../shared/maison';
 
 @Component({
   selector: 'app-issues-page',
-  imports: [TranslatePipe, DatePipe, HdState, MatButtonModule],
+  imports: [TranslatePipe, DatePipe, HdState, MatButtonModule, MatIconModule, MAISON],
   templateUrl: './issues-page.html',
   styleUrl: './issues-page.scss',
 })

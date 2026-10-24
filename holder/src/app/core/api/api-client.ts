@@ -1,6 +1,11 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpEventType,
+  HttpParams,
+} from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, filter, map, Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope, PageMeta } from '../models/models';
 
@@ -12,6 +17,12 @@ export interface ApiResult<T> {
   data: T;
   meta?: PageMeta;
   message?: string;
+}
+
+/** Progress (0..1) while sending, then the unwrapped result once the response arrives. */
+export interface UploadProgress<T> {
+  progress: number;
+  result?: ApiResult<T>;
 }
 
 export class ApiError extends Error {
@@ -63,6 +74,33 @@ export class ApiClient {
     return this.http
       .post<ApiEnvelope<T>>(`${this.base}${path}`, body)
       .pipe(map((res) => this.unwrap<T>(res)), catchError((err) => this.handle(err)));
+  }
+
+  /** Multipart upload of `file` (field `file`) that reports send progress. */
+  uploadWithProgress<T = { url: string }>(
+    file: File,
+    path: string,
+  ): Observable<UploadProgress<T>> {
+    const body = new FormData();
+    body.append('file', file);
+    return this.http
+      .post<ApiEnvelope<T>>(`${this.base}${path}`, body, {
+        reportProgress: true,
+        observe: 'events',
+      })
+      .pipe(
+        filter(
+          (e) => e.type === HttpEventType.UploadProgress || e.type === HttpEventType.Response,
+        ),
+        map((e): UploadProgress<T> => {
+          if (e.type === HttpEventType.Response) {
+            return { progress: 1, result: this.unwrap<T>(e.body as ApiEnvelope<T>) };
+          }
+          const p = e as { loaded: number; total?: number };
+          return { progress: p.total ? p.loaded / p.total : 0 };
+        }),
+        catchError((err) => this.handle(err)),
+      );
   }
 
   private toParams(params?: QueryParams): HttpParams {

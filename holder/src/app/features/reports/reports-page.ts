@@ -4,11 +4,14 @@ import { RouterLink } from '@angular/router';
 import { PlatformApi } from '../../core/api/platform.api';
 import { PlatformReports } from '../../core/models/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { areaPath, barPct } from '../../core/chart';
+import { barPct } from '../../core/chart';
+import { MatIconModule } from '@angular/material/icon';
+import { MAISON } from '../../shared/maison';
+import { HdAreaChart } from '../../shared/area-chart';
 
 @Component({
   selector: 'app-reports-page',
-  imports: [TranslatePipe, DecimalPipe, RouterLink],
+  imports: [TranslatePipe, DecimalPipe, RouterLink, MatIconModule, MAISON, HdAreaChart],
   templateUrl: './reports-page.html',
   styleUrl: './reports-page.scss',
 })
@@ -17,18 +20,14 @@ export class ReportsPage {
   readonly data = signal<PlatformReports | null>(null);
   readonly error = signal<string | null>(null);
 
-  readonly orderSpark = computed(() =>
-    areaPath((this.data()?.series14 || []).map((p) => p.orders), 640, 132),
-  );
-  readonly revSpark = computed(() =>
-    areaPath((this.data()?.series14 || []).map((p) => p.revenue), 640, 132),
-  );
-  readonly visitSpark = computed(() =>
-    areaPath((this.data()?.series14 || []).map((p) => p.visits || 0), 360, 96),
-  );
-  readonly crashSpark = computed(() =>
-    areaPath((this.data()?.series14 || []).map((p) => p.crashes || 0), 360, 96),
-  );
+  private readonly series = computed(() => this.data()?.series14 || []);
+  readonly orderValues = computed(() => this.series().map((p) => p.orders));
+  readonly revenueValues = computed(() => this.series().map((p) => p.revenue));
+  readonly visitValues = computed(() => this.series().map((p) => p.visits || 0));
+  readonly crashValues = computed(() => this.series().map((p) => p.crashes || 0));
+  readonly days = computed(() => this.series().map((p) => p.day));
+  readonly skeleton = [0, 1, 2, 3];
+  readonly whole = (n: number): string => Math.round(n).toLocaleString('en-US');
   readonly statusMax = computed(() =>
     Math.max(1, ...(this.data()?.ordersByStatus || []).map((r) => r.count)),
   );

@@ -7,43 +7,63 @@ import { PlatformApi } from '../../core/api/platform.api';
 import { PageMeta, PlatformAudit, TenantRow } from '../../core/models/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { HdState } from '../../shared/state';
+import { MatIconModule } from '@angular/material/icon';
+import { MAISON } from '../../shared/maison';
 
 const PAGE = 25;
 
 @Component({
   selector: 'app-audit-page',
-  imports: [TranslatePipe, DatePipe, MatFormFieldModule, MatSelectModule, MatButtonModule, HdState],
+  imports: [
+    TranslatePipe,
+    DatePipe,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    HdState,
+    MAISON,
+  ],
   template: `
     <div class="hd-page">
-      <p class="hd-kicker">{{ 'nav.insights' | t }}</p>
-      <h2 class="hd-h">{{ 'audit.title' | t }}</h2>
-      <p class="hd-lead">{{ 'audit.lead' | t }}</p>
-      <mat-form-field appearance="outline" class="filter">
-        <mat-label>{{ 'audit.tenant' | t }}</mat-label>
-        <mat-select [value]="tenantId()" (selectionChange)="filter($event.value)">
-          <mat-option value="">{{ 'common.all' | t }}</mat-option>
-          @for (t of tenants(); track t.id) {
-            <mat-option [value]="t.id">{{ t.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      @if (!loading()) {
-        <div class="list">
-          @for (item of rows(); track item._id) {
-            <article class="hd-card row">
-              <div>
-                <strong>{{ item.action }}</strong>
-                <small
-                  >{{ 'audit.tenant' | t }} · {{ item.tenantName || item.tenantId || '—' }}
-                  @if (item.ip) {
-                    · {{ item.ip }}
-                  }
-                </small>
-              </div>
-              <span>{{ item.createdAt | date: 'medium' }}</span>
-            </article>
-          }
+      <header class="hd-head">
+        <div [mReveal]="0">
+          <p class="hd-kicker">{{ 'nav.insights' | t }}</p>
+          <h1 class="hd-h">{{ 'audit.title' | t }}</h1>
+          <p class="hd-lead">{{ 'audit.lead' | t }}</p>
+          <span class="m-rule" [mReveal]="1"></span>
         </div>
+        <mat-form-field class="filter" subscriptSizing="dynamic" [mReveal]="1">
+          <mat-label>{{ 'audit.tenant' | t }}</mat-label>
+          <mat-icon matPrefix aria-hidden="true">storefront</mat-icon>
+          <mat-select [value]="tenantId()" (selectionChange)="filter($event.value)">
+            <mat-option value="">{{ 'common.all' | t }}</mat-option>
+            @for (t of tenants(); track t.id) {
+              <mat-option [value]="t.id">{{ t.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </header>
+      @if (!loading()) {
+        @if (rows().length) {
+          <ol class="timeline hd-card">
+            @for (item of rows(); track item._id; let i = $index) {
+              <li class="row m-enter" [style.animation-delay.ms]="i < 12 ? i * 30 : 360">
+                <span class="dot" aria-hidden="true"><mat-icon>{{ iconFor(item.action) }}</mat-icon></span>
+                <div class="what">
+                  <strong>{{ item.action }}</strong>
+                  <small
+                    >{{ 'audit.tenant' | t }} · {{ item.tenantName || item.tenantId || '—' }}
+                    @if (item.ip) {
+                      · <span dir="ltr">{{ item.ip }}</span>
+                    }
+                  </small>
+                </div>
+                <time class="when m-num">{{ item.createdAt | date: 'medium' }}</time>
+              </li>
+            }
+          </ol>
+        }
         @if (hasMore()) {
           <button
             mat-stroked-button
@@ -55,38 +75,86 @@ const PAGE = 25;
           </button>
         }
       }
-      <hd-state [loading]="loading()" [error]="error()" [empty]="!rows().length" (retry)="load()" />
+      <hd-state [loading]="loading()" [error]="error()" [empty]="!rows().length" icon="policy" (retry)="load()" />
     </div>
   `,
   styles: `
-    .hd-lead {
-      margin-bottom: 16px;
-    }
     .filter {
-      min-width: 260px;
+      width: min(300px, 100%);
     }
-    .list {
-      display: grid;
-      gap: 8px;
+    .filter mat-icon {
+      margin-inline: 12px 4px;
+      color: var(--m-accent-ink);
+    }
+    .timeline {
+      list-style: none;
+      margin: 0;
+      padding: 8px 24px;
     }
     .row {
+      position: relative;
       display: flex;
-      justify-content: space-between;
-      gap: 16px;
       align-items: center;
+      gap: 16px;
+      min-height: 64px;
+      padding: 12px 0;
+      border-top: 1px solid var(--m-line);
     }
-    .row small,
-    .row span {
-      display: block;
-      color: var(--zz-muted);
+    .row:first-child {
+      border-top: 0;
+    }
+    .dot {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--m-accent-soft);
+      color: var(--m-accent-ink);
+    }
+    .dot mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+    .what {
+      flex: 1;
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+    .what strong {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+    small,
+    .when {
+      color: var(--m-ink-muted);
+      font-size: 12px;
+    }
+    .when {
+      flex: none;
       font-size: 13px;
-    }
-    .row small {
-      margin-top: 4px;
     }
     .more {
       display: block;
-      margin: 16px auto 0;
+      margin: 24px auto 0;
+    }
+    @media (max-width: 599.98px) {
+      .timeline {
+        padding: 4px 16px;
+      }
+      .row {
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .when {
+        width: 100%;
+        box-sizing: border-box;
+        padding-inline-start: 52px;
+        font-size: 12px;
+      }
     }
   `,
 })
@@ -106,6 +174,17 @@ export class AuditPage {
       error: () => undefined,
     });
     this.load();
+  }
+
+  /** Icon for an audit action (visual only). */
+  iconFor(action: string): string {
+    const a = (action || '').toLowerCase();
+    if (a.includes('2fa')) return 'key';
+    if (a.includes('channel')) return 'toggle_on';
+    if (a.includes('status') || a.includes('suspend')) return 'pause_circle';
+    if (a.includes('create')) return 'add_business';
+    if (a.includes('domain')) return 'language';
+    return 'edit_note';
   }
 
   hasMore(): boolean {

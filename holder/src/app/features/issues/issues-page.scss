@@ -1,80 +1,177 @@
-.intro { margin-bottom: 16px; }
-
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px 20px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
-.filters .hd-pill {
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--m-r-pill);
+  background: var(--m-surface-2);
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 14px;
   border: 0;
+  border-radius: var(--m-r-pill);
+  background: transparent;
+  color: var(--m-ink-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
   cursor: pointer;
-  background: var(--zz-white);
-  border: 1px solid var(--zz-line);
+  transition:
+    background-color var(--m-dur-fast) var(--m-ease-out),
+    color var(--m-dur-fast) var(--m-ease-out),
+    transform var(--m-dur-instant) var(--m-ease-out);
 }
 
-.filters .hd-pill.on {
-  background: #071345;
-  color: #fff;
-  border-color: #071345;
+.chip:hover {
+  color: var(--m-ink);
 }
 
-.sep {
-  width: 1px;
-  height: 18px;
-  background: var(--zz-line);
-  margin: 0 4px;
+.chip.on {
+  background: var(--m-surface);
+  color: var(--m-ink);
+  box-shadow: var(--m-shadow-1), inset 0 -2px 0 var(--m-accent);
 }
 
-.list { display: grid; gap: 10px; }
+.list {
+  display: grid;
+  gap: 12px;
+}
 
 .incident {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 22px;
   cursor: pointer;
+  transition:
+    border-color var(--m-dur-fast) var(--m-ease-out),
+    box-shadow var(--m-dur-base) var(--m-ease-out);
+}
+
+.incident:hover {
+  border-color: color-mix(in srgb, var(--m-accent) 45%, var(--m-line));
+}
+
+.incident.done {
+  opacity: 0.78;
+}
+
+.kind {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--m-r-sm);
+  background: var(--m-accent-soft);
+  color: var(--m-accent-ink);
+}
+
+.kind.k-crash {
+  background: color-mix(in srgb, var(--m-danger) 12%, var(--m-surface));
+  color: var(--m-danger);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
 }
 
 .top {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  margin-bottom: 8px;
+}
+
+.top .hd-pill {
+  text-transform: capitalize;
 }
 
 .count {
-  color: var(--zz-muted);
+  color: var(--m-ink-muted);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  margin-inline-start: 4px;
+}
+
+.msg {
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+small {
+  color: var(--m-ink-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
 }
 
 .resolve {
-  margin-inline-start: auto;
-  border: 0;
-  background: #ecfdf3;
-  color: #166534;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-weight: 700;
-  cursor: pointer;
+  --mat-button-outlined-label-text-color: var(--m-success);
+  --mat-button-outlined-outline-color: color-mix(in srgb, var(--m-success) 35%, transparent);
 }
 
-.incident strong { display: block; }
-.incident small { display: block; color: var(--zz-muted); margin-top: 4px; font-size: 12px; }
+.chev {
+  color: var(--m-ink-muted);
+  transition: transform var(--m-dur-base) var(--m-ease-out);
+}
+
+.chev.none {
+  visibility: hidden;
+}
+
+.incident.open .chev {
+  transform: rotate(180deg);
+}
 
 pre {
-  margin: 12px 0 0;
-  padding: 12px;
-  background: #0b1850;
-  color: #f4f6fb;
-  border-radius: 12px;
+  margin: 10px 0 0;
+  padding: 16px;
+  background: #0c0b09;
+  color: #f5f0e6;
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-r-sm);
   overflow: auto;
   font-size: 12px;
-  line-height: 1.45;
-  max-height: 240px;
+  line-height: 1.5;
+  max-height: 280px;
+  text-align: start;
 }
 
-.err { color: #9f1239; }
-.muted { color: var(--zz-muted); }
+.more {
+  display: block;
+  margin: 24px auto 0;
+}
 
-.more { display: block; margin: 16px auto 0; }
+@media (max-width: 599.98px) {
+  .incident {
+    flex-wrap: wrap;
+    padding: 16px;
+    gap: 12px;
+  }
+  .side {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

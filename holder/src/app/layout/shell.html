@@ -1,57 +1,89 @@
-<mat-sidenav-container class="shell">
+<mat-sidenav-container class="shell" [hasBackdrop]="isMobile()">
   <mat-sidenav
     #nav
     [mode]="isMobile() ? 'over' : 'side'"
     [opened]="!isMobile()"
+    (openedStart)="remeasure()"
     class="sidenav"
   >
-    <div class="brand">
-      <div class="mark">P</div>
-      <div>
-        <div class="brand-name">{{ 'brand' | t }}</div>
-        <div class="brand-sub">{{ 'brandSub' | t }}</div>
-      </div>
-    </div>
-    @for (group of groups; track group.labelKey) {
-      <p class="group">{{ group.labelKey | t }}</p>
-      <mat-nav-list class="nav">
-        @for (item of group.items; track item.path) {
-          <a mat-list-item [routerLink]="item.path" routerLinkActive="active" (click)="isMobile() && nav.close()">
-            <mat-icon matListItemIcon [matBadge]="item.badge ? issueCount() || null : null" matBadgeSize="small" matBadgeColor="warn">{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.labelKey | t }}</span>
-          </a>
+    <div class="side-inner">
+      <a class="brand" routerLink="/overview" (click)="isMobile() && nav.close()">
+        <span class="mark" aria-hidden="true">P</span>
+        <span class="brand-copy">
+          <span class="brand-name">{{ 'brand' | t }}</span>
+          <span class="brand-sub">{{ 'brandSub' | t }}</span>
+        </span>
+      </a>
+      <span class="side-rule" aria-hidden="true"></span>
+
+      <nav class="nav" #navList [attr.aria-label]="'common.menu' | t">
+        <span
+          class="pill"
+          aria-hidden="true"
+          [class.ready]="pill().h > 0"
+          [style.transform]="'translate3d(0,' + pill().top + 'px,0)'"
+          [style.height.px]="pill().h"
+        ></span>
+        @for (group of groups; track group.labelKey) {
+          <p class="group">{{ group.labelKey | t }}</p>
+          @for (item of group.items; track item.path) {
+            <a
+              class="nav-item"
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              #rla="routerLinkActive"
+              [attr.aria-current]="rla.isActive ? 'page' : null"
+              (click)="isMobile() && nav.close()"
+            >
+              <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+              <span class="label">{{ item.labelKey | t }}</span>
+              @if (item.badge && issueCount()) {
+                <span class="badge" [mBump]="issueCount()">{{ issueCount() }}</span>
+              }
+            </a>
+          }
         }
-      </mat-nav-list>
-    }
-    <div class="sidenav-user">
-      <div class="avatar">{{ initials() }}</div>
-      <div class="user-copy">
-        <strong>{{ auth.user()?.name }}</strong>
-        <span>{{ auth.user()?.email }}</span>
+      </nav>
+
+      <div class="sidenav-user">
+        <div class="avatar" aria-hidden="true">{{ initials() }}</div>
+        <div class="user-copy">
+          <strong>{{ auth.user()?.name }}</strong>
+          <span>{{ auth.user()?.email }}</span>
+        </div>
       </div>
     </div>
   </mat-sidenav>
-  <mat-sidenav-content>
-    <mat-toolbar class="topbar">
+
+  <mat-sidenav-content class="main" (scroll)="onScroll($event)">
+    <header class="topbar" [class.scrolled]="scrolled()">
       @if (isMobile()) {
-        <button mat-icon-button (click)="nav.toggle()" [attr.aria-label]="'common.menu' | t">
+        <button mat-icon-button class="menu" (click)="nav.toggle()" [attr.aria-label]="'common.menu' | t">
           <mat-icon>menu</mat-icon>
         </button>
+        <span class="top-mark" aria-hidden="true">P</span>
       }
-      <div class="crumb">
-        <span class="live">{{ 'common.live' | t }}</span>
-      </div>
+      <span class="live">{{ 'common.live' | t }}</span>
       <span class="spacer"></span>
-      <button mat-stroked-button class="lang-btn" (click)="i18n.toggle()">
-        {{ i18n.lang() === 'en' ? 'العربية' : 'English' }}
+      <button type="button" class="chip-btn m-press" (click)="i18n.toggle()">
+        <mat-icon aria-hidden="true">translate</mat-icon>
+        <span>{{ i18n.lang() === 'en' ? 'العربية' : 'English' }}</span>
       </button>
-      <button mat-icon-button (click)="theme.toggle()">
+      <button
+        mat-icon-button
+        class="icon-btn"
+        (click)="theme.toggle()"
+        [attr.aria-label]="(theme.mode() === 'dark' ? 'common.lightMode' : 'common.darkMode') | t"
+      >
         <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
-      <button mat-button (click)="logout()">{{ 'common.logout' | t }}</button>
-    </mat-toolbar>
-    <div class="content">
+      <button type="button" class="chip-btn ghost m-press" (click)="logout()">
+        <mat-icon aria-hidden="true">logout</mat-icon>
+        <span class="logout-label">{{ 'common.logout' | t }}</span>
+      </button>
+    </header>
+    <main class="content">
       <router-outlet />
-    </div>
+    </main>
   </mat-sidenav-content>
 </mat-sidenav-container>
