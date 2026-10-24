@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../config/theme/maison.dart';
 import '../controller/splash_cubit.dart';
 import 'widgets/splash_brand.dart';
+import 'widgets/splash_image.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -61,22 +62,24 @@ class _SplashViewState extends State<_SplashView>
     // The deep brand band, lit by a soft accent bloom behind the mark.
     return Scaffold(
       backgroundColor: m.band,
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0, -0.15),
-            radius: 0.9,
-            colors: [
-              Color.alphaBlend(m.accent.withValues(alpha: 0.14), m.band),
-              m.band,
-            ],
+      body: SplashImage(
+        fallback: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(0, -0.15),
+              radius: 0.9,
+              colors: [
+                Color.alphaBlend(m.accent.withValues(alpha: 0.14), m.band),
+                m.band,
+              ],
+            ),
           ),
-        ),
-        child: SizedBox.expand(
-          child: Center(
-            child: SplashBrand(
-              logoController: _logoController,
-              textController: _textController,
+          child: SizedBox.expand(
+            child: Center(
+              child: SplashBrand(
+                logoController: _logoController,
+                textController: _textController,
+              ),
             ),
           ),
         ),

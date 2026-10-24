@@ -19,4 +19,5 @@ class StorageKey {
   static const String brandAccent = 'brand_accent';
   static const String brandLogo = 'brand_logo';
   static const String brandLogoDark = 'brand_logo_dark';
+  static const String brandSplash = 'brand_splash';
 }

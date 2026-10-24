@@ -144,12 +144,15 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
       final logoDark = (config.tenant?.logoDark ?? '').trim();
       PreferenceUtils.setString(StorageKey.brandLogo, logo);
       PreferenceUtils.setString(StorageKey.brandLogoDark, logoDark);
+      final splash = (config.tenant?.splash ?? '').trim();
+      PreferenceUtils.setString(StorageKey.brandSplash, splash);
       emit(
         state.copyWith(
           brandPrimary: primary,
           brandAccent: accent,
           brandLogo: logo,
           brandLogoDark: logoDark,
+          brandSplash: splash,
           supportEmail: asString(settings['supportEmail']),
           supportPhone: asString(settings['supportPhone']),
           currency: asString(settings['currency']).toUpperCase().isEmpty
@@ -172,6 +175,7 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
       brandAccent: _hexOrEmpty(PreferenceUtils.getString(StorageKey.brandAccent, '')),
       brandLogo: PreferenceUtils.getString(StorageKey.brandLogo, ''),
       brandLogoDark: PreferenceUtils.getString(StorageKey.brandLogoDark, ''),
+      brandSplash: PreferenceUtils.getString(StorageKey.brandSplash, ''),
     ));
   }
 

@@ -18,6 +18,7 @@ class AppControllerState extends Equatable {
     this.brandAccent = '',
     this.brandLogo = '',
     this.brandLogoDark = '',
+    this.brandSplash = '',
   });
 
   final int countOfUnReadNot;
@@ -41,6 +42,9 @@ class AppControllerState extends Equatable {
   final String brandLogo;
   final String brandLogoDark;
 
+  /// Tenant splash image URL from the app config ('' = built-in splash).
+  final String brandSplash;
+
   bool get isDark => themeMode == ThemeMode.dark;
   bool isFavorite(String productId) => favoriteIds.contains(productId);
 
@@ -62,6 +66,7 @@ class AppControllerState extends Equatable {
     brandAccent,
     brandLogo,
     brandLogoDark,
+    brandSplash,
   ];
 
   AppControllerState copyWith({
@@ -81,6 +86,7 @@ class AppControllerState extends Equatable {
     String? brandAccent,
     String? brandLogo,
     String? brandLogoDark,
+    String? brandSplash,
   }) => AppControllerState(
     countOfUnReadNot: countOfUnReadNot ?? this.countOfUnReadNot,
     cartItemsCount: cartItemsCount ?? this.cartItemsCount,
@@ -98,5 +104,6 @@ class AppControllerState extends Equatable {
     brandAccent: brandAccent ?? this.brandAccent,
     brandLogo: brandLogo ?? this.brandLogo,
     brandLogoDark: brandLogoDark ?? this.brandLogoDark,
+    brandSplash: brandSplash ?? this.brandSplash,
   );
 }

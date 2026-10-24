@@ -132,6 +132,9 @@ class TenantPublic {
   final String logo;
   final String logoDark;
 
+  /// Full-screen splash image URL (`branding.splash`); empty = built-in splash.
+  final String splash;
+
   const TenantPublic({
     this.status = 'active',
     this.mobileEnabled = true,
@@ -140,6 +143,7 @@ class TenantPublic {
     this.accent = '',
     this.logo = '',
     this.logoDark = '',
+    this.splash = '',
   });
 
   factory TenantPublic.fromJson(dynamic json) {
@@ -154,6 +158,7 @@ class TenantPublic {
       accent: asString(branding['accent']),
       logo: asString(branding['logo']),
       logoDark: asString(branding['logoDark']),
+      splash: asString(branding['splash']),
     );
   }
 
