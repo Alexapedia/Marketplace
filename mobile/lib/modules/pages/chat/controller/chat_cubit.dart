@@ -1,9 +1,10 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../../../../core/connection/concept/end_points.dart';
 import '../../../../core/connection/interfaces/api_consumer.dart';
@@ -15,14 +16,45 @@ import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
 import '../../../../core/utils/functions/safe_emit.dart';
 
+import 'chat_socket.dart';
+
 part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
-  ChatCubit() : super(const ChatState());
+  ChatCubit({
+    ChatSocket Function(String token)? socketFactory,
+    Future<String?> Function()? currentToken,
+    Future<void> Function()? refreshToken,
+    this.retryDelay = const Duration(seconds: 1),
+  }) : _socketFactory = socketFactory ?? ioChatSocket,
+       _currentToken = currentToken ?? _storedToken,
+       _refreshToken = refreshToken ?? _renewSession,
+       super(const ChatState());
+
+  final ChatSocket Function(String token) _socketFactory;
+  final Future<String?> Function() _currentToken;
+  final Future<void> Function() _refreshToken;
+
+  /// Pause before reconnecting with a renewed token.
+  final Duration retryDelay;
+
+  /// Renewals in a row without a successful connect before giving up.
+  static const _maxRenewals = 3;
 
   final text = TextEditingController();
-  io.Socket? _socket;
+  ChatSocket? _socket;
   String? _myId;
+  int _renewals = 0;
+
+  static Future<String?> _storedToken() => sl
+      .get<HandleMultiCallLocal>()
+      .getLocalData(keyType: LocalEnumKey.accessToken);
+
+  /// Any authenticated call: on 401 the API client refreshes and stores a new
+  /// access token.
+  static Future<void> _renewSession() async {
+    await sl.get<ApiConsumer>().get(EndPoints.me);
+  }
 
   Future<void> load(String orderId) async {
     emit(state.copyWith(status: RequestStatus.loading, orderId: orderId));
@@ -46,7 +78,7 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
             socketReady: false,
           ),
         );
-        _connectSocket(orderId);
+        connectSocket(orderId);
       },
     );
   }
@@ -91,37 +123,45 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
     if (file != null) await send(imagePath: file.path);
   }
 
-  Future<void> _connectSocket(String orderId) async {
+  /// Opens the live chat. The server drops the socket when its access token
+  /// expires (and rejects an expired one), and socket.io does not retry after
+  /// a server-side drop, so renew the token and connect again.
+  @visibleForTesting
+  Future<void> connectSocket(String orderId) async {
     _socket?.dispose();
-    final token = await sl.get<HandleMultiCallLocal>().getLocalData(
-      keyType: LocalEnumKey.accessToken,
-    );
-    if (token == null || token.isEmpty) return;
-    final socket = io.io(
-      '${EndPoints.origin}/chat',
-      io.OptionBuilder()
-          .setTransports(['websocket', 'polling'])
-          .setPath('/socket.io')
-          .setAuth({'token': token})
-          .setExtraHeaders({'Authorization': 'Bearer $token'})
-          .enableForceNew()
-          .enableReconnection()
-          .disableAutoConnect()
-          .build(),
-    );
+    _socket = null;
+    final token = await _currentToken();
+    if (isClosed || token == null || token.isEmpty) return;
+    final socket = _socketFactory(token);
     _socket = socket;
-    socket.onConnect((_) {
+    socket.on('connect', (_) {
+      _renewals = 0;
       socket.emit('join', {'customOrderId': orderId});
       if (!isClosed) emit(state.copyWith(socketReady: true));
     });
-    socket.onDisconnect((_) {
+    socket.on('disconnect', (reason) {
       if (!isClosed) emit(state.copyWith(socketReady: false));
+      if (reason == 'io server disconnect') {
+        unawaited(_reconnectWithFreshToken(orderId, socket));
+      }
     });
-    socket.onConnectError((_) {
+    socket.on('connect_error', (_) {
       if (!isClosed) emit(state.copyWith(socketReady: false));
     });
     socket.on('message', (data) => _append(data));
     socket.connect();
+  }
+
+  Future<void> _reconnectWithFreshToken(String orderId, ChatSocket from) async {
+    if (isClosed || !identical(_socket, from) || _renewals >= _maxRenewals) {
+      return;
+    }
+    _renewals++;
+    await Future<void>.delayed(retryDelay);
+    if (isClosed || !identical(_socket, from)) return;
+    await _refreshToken();
+    if (isClosed || !identical(_socket, from)) return;
+    await connectSocket(orderId);
   }
 
   void _append(dynamic data) {
