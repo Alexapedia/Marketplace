@@ -13,7 +13,7 @@ class ChatBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = context.maison;
     final mine = message.isMine;
-    final fg = mine ? m.onAccent : m.ink;
+    final fg = mine ? m.onAccentFill : m.ink;
     final big = const Radius.circular(20);
     final small = const Radius.circular(6);
     // The tail sits on the sender's side of the reading direction.
@@ -32,7 +32,7 @@ class ChatBubble extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
         constraints: const BoxConstraints(maxWidth: 320),
         decoration: BoxDecoration(
-          color: mine ? m.accent : m.surface,
+          color: mine ? m.accentFill : m.surface,
           borderRadius: radius,
           border: mine ? null : Border.all(color: m.line),
         ),

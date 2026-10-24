@@ -16,12 +16,12 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     brightness: m.brightness,
     // Light: the brand primary leads (focus-free UI accents, switches,
     // links). Dark: the accent is "the light" of the room.
-    primary: dark ? m.accent : m.primary,
-    onPrimary: dark ? m.onAccent : m.onPrimary,
+    primary: dark ? m.accentFill : m.primary,
+    onPrimary: dark ? m.onAccentFill : m.onPrimary,
     primaryContainer: m.primarySoft,
     onPrimaryContainer: m.ink,
-    secondary: m.accent,
-    onSecondary: m.onAccent,
+    secondary: m.accentFill,
+    onSecondary: m.onAccentFill,
     secondaryContainer: m.accentSoft,
     onSecondaryContainer: m.ink,
     tertiary: m.accentInk,
@@ -48,7 +48,7 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     scrim: Colors.black,
     inverseSurface: dark ? const Color(0xFFF5F0E6) : const Color(0xFF16130F),
     onInverseSurface: dark ? const Color(0xFF16130F) : const Color(0xFFF5F0E6),
-    inversePrimary: m.accent,
+    inversePrimary: m.accentFill,
   );
 
   final text = buildTextTheme(onSurface: m.ink, secondary: m.inkMuted);
@@ -90,9 +90,9 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     dividerColor: m.line,
     splashFactory: InkSparkle.splashFactory,
     highlightColor: m.ink.withValues(alpha: 0.04),
-    splashColor: m.accent.withValues(alpha: 0.12),
+    splashColor: m.accentFill.withValues(alpha: 0.12),
     hoverColor: m.ink.withValues(alpha: 0.04),
-    focusColor: m.accent.withValues(alpha: 0.18),
+    focusColor: m.accentFill.withValues(alpha: 0.18),
     iconTheme: IconThemeData(color: m.ink, size: 22),
     textTheme: text,
     dividerTheme: DividerThemeData(color: m.line, thickness: 1, space: 1),
@@ -118,8 +118,8 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: m.accent,
-        foregroundColor: m.onAccent,
+        backgroundColor: m.accentFill,
+        foregroundColor: m.onAccentFill,
         disabledBackgroundColor: m.surface2,
         disabledForegroundColor: m.inkMuted,
         elevation: 0,
@@ -131,8 +131,8 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: m.accent,
-        foregroundColor: m.onAccent,
+        backgroundColor: m.accentFill,
+        foregroundColor: m.onAccentFill,
         disabledBackgroundColor: m.surface2,
         disabledForegroundColor: m.inkMuted,
         minimumSize: buttonSize,
@@ -207,20 +207,20 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: m.surface,
-      selectedColor: m.accent,
-      secondarySelectedColor: m.accent,
-      checkmarkColor: m.onAccent,
+      selectedColor: m.accentFill,
+      secondarySelectedColor: m.accentFill,
+      checkmarkColor: m.onAccentFill,
       labelStyle: text.labelLarge!.copyWith(color: m.ink),
-      secondaryLabelStyle: text.labelLarge!.copyWith(color: m.onAccent),
+      secondaryLabelStyle: text.labelLarge!.copyWith(color: m.onAccentFill),
       side: BorderSide(color: m.line),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: AppRadius.button),
     ),
     checkboxTheme: CheckboxThemeData(
       fillColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? m.accent : null,
+        (s) => s.contains(WidgetState.selected) ? m.accentFill : null,
       ),
-      checkColor: WidgetStatePropertyAll(m.onAccent),
+      checkColor: WidgetStatePropertyAll(m.onAccentFill),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
     ),
     radioTheme: RadioThemeData(
@@ -230,13 +230,13 @@ ThemeData maisonTheme(AppColors c, Maison m) {
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? m.onAccent : m.inkMuted,
+        (s) => s.contains(WidgetState.selected) ? m.onAccentFill : m.inkMuted,
       ),
       trackColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? m.accent : m.surface2,
+        (s) => s.contains(WidgetState.selected) ? m.accentFill : m.surface2,
       ),
       trackOutlineColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? m.accent : c.inputBorder,
+        (s) => s.contains(WidgetState.selected) ? m.accentFill : c.inputBorder,
       ),
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -252,13 +252,13 @@ ThemeData maisonTheme(AppColors c, Maison m) {
       unselectedLabelStyle: text.labelLarge!.copyWith(
         fontWeight: FontWeight.w500,
       ),
-      indicatorColor: m.accent,
+      indicatorColor: m.accentFill,
       dividerColor: m.line,
       indicatorSize: TabBarIndicatorSize.label,
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: m.accent,
-      foregroundColor: m.onAccent,
+      backgroundColor: m.accentFill,
+      foregroundColor: m.onAccentFill,
       elevation: 2,
       highlightElevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -287,7 +287,7 @@ ThemeData maisonTheme(AppColors c, Maison m) {
       contentTextStyle: text.bodyMedium!.copyWith(
         color: const Color(0xFFF5F0E6),
       ),
-      actionTextColor: m.accent,
+      actionTextColor: m.accentFill,
       behavior: SnackBarBehavior.floating,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -303,8 +303,8 @@ ThemeData maisonTheme(AppColors c, Maison m) {
       textStyle: text.labelMedium!.copyWith(color: const Color(0xFFF5F0E6)),
     ),
     badgeTheme: BadgeThemeData(
-      backgroundColor: m.accent,
-      textColor: m.onAccent,
+      backgroundColor: m.accentFill,
+      textColor: m.onAccentFill,
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {

@@ -187,13 +187,13 @@ class ProductCard extends StatelessWidget {
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: m.accent,
+                                      color: m.accentFill,
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       Icons.add_rounded,
                                       size: 18,
-                                      color: m.onAccent,
+                                      color: m.onAccentFill,
                                     ),
                                   ),
                                 ],

@@ -89,7 +89,7 @@ class _AppButtonState extends State<AppButton>
             ? m.ink
             : widget.bgColor != null
             ? Maison.onColor(widget.bgColor!)
-            : m.onAccent);
+            : m.onAccentFill);
     final Color contentColor = disabled
         ? scheme.onSurface.withValues(alpha: 0.38)
         : normalColor;
@@ -141,7 +141,7 @@ class _AppButtonState extends State<AppButton>
     } else {
       fill = widget.isOutlined
           ? Colors.transparent
-          : widget.bgColor ?? m.accent;
+          : widget.bgColor ?? m.accentFill;
     }
 
     final Border? border = widget.isOutlined
@@ -174,7 +174,7 @@ class _AppButtonState extends State<AppButton>
                 ? null
                 : [
                     BoxShadow(
-                      color: (widget.bgColor ?? m.accent).withValues(
+                      color: (widget.bgColor ?? m.accentFill).withValues(
                         alpha: m.isDark ? 0.18 : 0.32,
                       ),
                       blurRadius: 20,

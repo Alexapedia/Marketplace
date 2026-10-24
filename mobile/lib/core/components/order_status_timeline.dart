@@ -87,7 +87,7 @@ class _OrderStatusTimelineState extends State<OrderStatusTimeline> {
                         width: rail.maxWidth * progress,
                         height: 2,
                         decoration: BoxDecoration(
-                          color: m.accent,
+                          color: m.accentFill,
                           borderRadius: BorderRadius.circular(1),
                         ),
                       ),
@@ -151,13 +151,13 @@ class _Step extends StatelessWidget {
     final fill = failed
         ? m.danger
         : current || done
-        ? m.accent
+        ? m.accentFill
         : m.surface;
-    final onFill = failed ? Maison.onColor(m.danger) : m.onAccent;
+    final onFill = failed ? Maison.onColor(m.danger) : m.onAccentFill;
     final border = failed
         ? m.danger
         : current || done
-        ? m.accent
+        ? m.accentFill
         : m.line;
     return Semantics(
       label: label,
@@ -177,7 +177,7 @@ class _Step extends StatelessWidget {
                 boxShadow: current
                     ? [
                         BoxShadow(
-                          color: m.accent.withValues(alpha: 0.35),
+                          color: m.accentFill.withValues(alpha: 0.35),
                           blurRadius: 0,
                           spreadRadius: 4,
                         ),
@@ -196,7 +196,7 @@ class _Step extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: m.onAccent,
+                          color: m.onAccentFill,
                           shape: BoxShape.circle,
                         ),
                       ),

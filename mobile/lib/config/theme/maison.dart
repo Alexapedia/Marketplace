@@ -56,6 +56,17 @@ class Maison extends ThemeExtension<Maison> {
   final Color accentSoft;
   final Color primarySoft;
 
+  /// The accent when it stands out from this mode's surfaces (>= 1.6:1),
+  /// otherwise accent-ink. Use it for filled controls (buttons, badges, discs)
+  /// so a very pale or very dark tenant accent never makes them vanish.
+  Color get accentFill =>
+      contrastRatio(accent, surface) >= 1.6 && contrastRatio(accent, canvas) >= 1.6
+      ? accent
+      : accentInk;
+
+  /// Text / icon colour on [accentFill].
+  Color get onAccentFill => onColor(accentFill);
+
   /// Hero / header band fill and its text colour.
   final Color band;
   final Color onBand;

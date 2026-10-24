@@ -107,7 +107,7 @@ class ProductQtyAddBar extends StatelessWidget {
                                 Icon(
                                   Icons.shopping_bag_outlined,
                                   size: 18,
-                                  color: m.onAccent,
+                                  color: m.onAccentFill,
                                 ),
                                 const SizedBox(width: 8),
                                 Flexible(
@@ -116,7 +116,7 @@ class ProductQtyAddBar extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      color: m.onAccent,
+                                      color: m.onAccentFill,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 15,
                                     ),
@@ -129,14 +129,14 @@ class ProductQtyAddBar extends StatelessWidget {
                                     margin: const EdgeInsets.symmetric(
                                       horizontal: 10,
                                     ),
-                                    color: m.onAccent.withValues(alpha: 0.35),
+                                    color: m.onAccentFill.withValues(alpha: 0.35),
                                   ),
                                   AnimatedNumber(
                                     value: total,
                                     format: (v) =>
                                         '${v.toStringAsFixed(0)} ${AppString.currency}',
                                     style: TextStyle(
-                                      color: m.onAccent,
+                                      color: m.onAccentFill,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 15,
                                     ),

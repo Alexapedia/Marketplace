@@ -42,7 +42,7 @@ class EditProfileForm extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 52,
-                        backgroundColor: m.accent,
+                        backgroundColor: m.accentFill,
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: m.band,
@@ -80,7 +80,7 @@ class EditProfileForm extends StatelessWidget {
                           builder: (context, state) {
                             return IconButton.filled(
                               style: IconButton.styleFrom(
-                                backgroundColor: m.accent,
+                                backgroundColor: m.accentFill,
                                 side: BorderSide(color: m.canvas, width: 3),
                               ),
                               onPressed: state.status == RequestStatus.loading
@@ -88,7 +88,7 @@ class EditProfileForm extends StatelessWidget {
                                   : cubit.pickPhoto,
                               icon: Icon(
                                 Icons.photo_camera_outlined,
-                                color: m.onAccent,
+                                color: m.onAccentFill,
                                 size: 18,
                               ),
                             );

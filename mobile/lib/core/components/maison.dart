@@ -287,14 +287,14 @@ class BumpBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: m.accent,
+        color: m.accentFill,
         borderRadius: BorderRadius.circular(AppRadius.pill),
         border: Border.all(color: m.canvas, width: 1.5),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: m.onAccent,
+          color: m.onAccentFill,
           fontSize: 12,
           fontWeight: FontWeight.w700,
           height: 1.1,

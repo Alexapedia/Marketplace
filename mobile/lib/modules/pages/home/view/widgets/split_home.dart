@@ -26,6 +26,7 @@ class SplitHome extends StatelessWidget {
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (!context.useNavRail) const HomeSearchBar(),
                 AdsPart(ads: state.ads),

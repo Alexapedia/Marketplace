@@ -54,8 +54,8 @@ class ChatComposer extends StatelessWidget {
               IconButton.filled(
                 tooltip: 'send'.tr(),
                 style: IconButton.styleFrom(
-                  backgroundColor: m.accent,
-                  foregroundColor: m.onAccent,
+                  backgroundColor: m.accentFill,
+                  foregroundColor: m.onAccentFill,
                   minimumSize: const Size(48, 48),
                 ),
                 onPressed: () {

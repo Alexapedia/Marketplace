@@ -39,7 +39,7 @@ class NotificationTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: item.isRead ? m.surface2 : m.accent,
+              color: item.isRead ? m.surface2 : m.accentFill,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -48,7 +48,7 @@ class NotificationTile extends StatelessWidget {
                   : (item.isRead
                         ? Icons.notifications_none_rounded
                         : Icons.local_shipping_outlined),
-              color: item.isRead ? m.inkMuted : m.onAccent,
+              color: item.isRead ? m.inkMuted : m.onAccentFill,
               size: 20,
             ),
           ),

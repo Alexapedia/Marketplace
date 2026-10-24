@@ -68,7 +68,7 @@ class OrderTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: m.accent,
+                        color: m.accentFill,
                         shape: BoxShape.rectangle,
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(color: m.surface, width: 2),
@@ -76,7 +76,7 @@ class OrderTile extends StatelessWidget {
                       child: Text(
                         '+${order.items.length - 1}',
                         style: text.labelSmall?.copyWith(
-                          color: m.onAccent,
+                          color: m.onAccentFill,
                           fontWeight: FontWeight.w700,
                         ),
                       ),

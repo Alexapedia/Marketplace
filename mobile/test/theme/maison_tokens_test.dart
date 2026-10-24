@@ -78,6 +78,28 @@ void main() {
       });
     }
 
+    test('accentFill never vanishes into the surface and keeps its text legible', () {
+      for (final (p, a) in _tenants) {
+        for (final b in Brightness.values) {
+          final m = Maison.build(
+            brightness: b,
+            primary: _hex(p),
+            accent: _hex(a),
+          );
+          expect(
+            contrastRatio(m.accentFill, m.surface),
+            greaterThanOrEqualTo(1.6),
+            reason: '$b accent $a',
+          );
+          expect(
+            contrastRatio(m.onAccentFill, m.accentFill),
+            greaterThanOrEqualTo(4.5),
+            reason: '$b accent $a',
+          );
+        }
+      }
+    });
+
     test('light accent-ink is the accent mixed toward black (oklab 62%)', () {
       final m = Maison.build(brightness: Brightness.light);
       final hsl = HSLColor.fromColor(m.accentInk);
@@ -93,8 +115,8 @@ void main() {
       final c = AppColors.fromJson({'gold': '#FFF4D6', 'primary': '#E11D48'});
       final t = light(c);
       final m = t.extension<Maison>()!;
-      expect(t.colorScheme.secondary, m.accent);
-      expect(t.colorScheme.onSecondary, m.onAccent);
+      expect(t.colorScheme.secondary, m.accentFill);
+      expect(t.colorScheme.onSecondary, m.onAccentFill);
       expect(t.scaffoldBackgroundColor, m.canvas);
       final dt = dark(
         AppColors.fromJson({'gold': '#3A2A10'}, dark: true),

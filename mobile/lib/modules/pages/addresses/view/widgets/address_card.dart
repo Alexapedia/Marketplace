@@ -34,14 +34,14 @@ class AddressCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: address.isDefault ? m.accent : m.surface2,
+              color: address.isDefault ? m.accentFill : m.surface2,
               shape: BoxShape.circle,
             ),
             child: Icon(
               address.isDefault
                   ? Icons.home_rounded
                   : Icons.location_on_outlined,
-              color: address.isDefault ? m.onAccent : m.inkMuted,
+              color: address.isDefault ? m.onAccentFill : m.inkMuted,
               size: 20,
             ),
           ),
