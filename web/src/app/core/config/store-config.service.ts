@@ -33,14 +33,16 @@ export class StoreConfigService {
         const primary = tenant?.branding?.primary || '#071345';
         const accent = tenant?.branding?.accent || '#c9a45c';
         applyBrand(primary, accent);
-        if (tenant?.branding?.favicon) {
+        // The holder has no favicon field, so fall back to the store's own logo.
+        const favicon = tenant?.branding?.favicon || tenant?.branding?.logo || tenant?.branding?.logoDark;
+        if (favicon) {
           let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
           if (!link) {
             link = document.createElement('link');
             link.rel = 'icon';
             document.head.appendChild(link);
           }
-          link.href = tenant.branding.favicon;
+          link.href = favicon;
         }
         if (tenant?.status === 'suspended') {
           this.blocked.set(true);
