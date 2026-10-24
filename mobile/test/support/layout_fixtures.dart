@@ -11,7 +11,6 @@ Map<String, dynamic> _product(
   num price, {
   num? sale,
   int rating = 0,
-  String? cat,
 }) => {
   '_id': id,
   'names': {'en': en, 'ar': ar},
