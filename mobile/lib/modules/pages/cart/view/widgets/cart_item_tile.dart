@@ -22,7 +22,7 @@ class CartItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = context.maison;
     final text = Theme.of(context).textTheme;
-    final name = item.product?.name ?? 'item'.tr();
+    final name = item.displayName.isNotEmpty ? item.displayName : 'item'.tr();
     final details = [
       if (item.variant != null && item.variant!.isNotEmpty) item.variant!,
       if (item.size != null && item.size!.isNotEmpty) item.size!,
@@ -37,7 +37,7 @@ class CartItemTile extends StatelessWidget {
             child: ColoredBox(
               color: m.surface2,
               child: ImageItem(
-                item.product?.cover ?? '',
+                item.cover,
                 semanticLabel: name,
                 width: 84,
                 height: 96,
