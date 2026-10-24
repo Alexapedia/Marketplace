@@ -20,7 +20,11 @@ class OrderDetailsScreen extends StatelessWidget {
       create: (_) => OrderDetailsCubit()..load(orderId),
       child: Scaffold(
         appBar: AppBar(
-          leading: const CircleBackButton(),
+          leadingWidth: 64,
+          leading: const Padding(
+            padding: EdgeInsetsDirectional.only(start: 8),
+            child: Center(child: CircleBackButton()),
+          ),
           title: Text('order_details'.tr()),
         ),
         body: BlocBuilder<OrderDetailsCubit, OrderDetailsState>(

@@ -2,10 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/typography.dart';
 import '../../../../../core/components/image_item.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/components/review_card.dart';
 import '../../../../../core/models/catalog_models.dart';
-import '../../../../../core/models/color_model.dart';
 import '../../../../../core/utils/functions/open_product.dart';
 import '../../controller/order_details_cubit.dart';
 
@@ -16,43 +18,39 @@ class OrderItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
-    return InkWell(
-      onTap: () => openProductDetails(context, item.productId),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: gold.withValues(alpha: 0.12)),
-        ),
+    final m = context.maison;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: SurfaceCard(
+        padding: const EdgeInsets.all(12),
+        onTap: () => openProductDetails(context, item.productId),
         child: Row(
           children: [
-            ClipRRect(
+            ImageItem(
+              item.cover,
+              width: 64,
+              height: 72,
+              fit: BoxFit.cover,
               borderRadius: BorderRadius.circular(12),
-              child: ImageItem(
-                item.cover,
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
                 item.displayName,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w700),
+                style: displayStyle(size: 16, color: m.ink, height: 1.2),
               ),
             ),
+            const SizedBox(width: 8),
             Text(
-              'x${item.quantity}',
-              style: TextStyle(fontWeight: FontWeight.w800, color: gold),
+              '×${item.quantity}',
+              style: text.titleSmall
+                  ?.copyWith(color: m.accentInk, fontWeight: FontWeight.w700)
+                  .tabular,
             ),
-            if (item.productId.isNotEmpty) ...[
-              const SizedBox(width: 6),
+            if (item.productId.isNotEmpty)
               IconButton(
                 tooltip: 'rate_product'.tr(),
                 onPressed: () => showRateSheet(
@@ -62,9 +60,8 @@ class OrderItemTile extends StatelessWidget {
                       .read<OrderDetailsCubit>()
                       .rateProduct(item.productId, rating, comment),
                 ),
-                icon: Icon(Icons.star_rate_rounded, color: gold),
+                icon: Icon(Icons.star_outline_rounded, color: m.accentInk),
               ),
-            ],
           ],
         ),
       ),
