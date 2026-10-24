@@ -61,6 +61,7 @@ export class TenantMiddleware implements NestMiddleware {
         referer: typeof req.headers.referer === 'string' ? req.headers.referer : undefined,
         host: typeof req.headers.host === 'string' ? req.headers.host : undefined,
         client: String(req.headers['x-client'] || ''),
+        tenantSlug: String(req.headers['x-tenant'] || ''),
         path,
       });
       if (!resolved) {
@@ -88,6 +89,7 @@ export class TenantMiddleware implements NestMiddleware {
         referer: typeof req.headers.referer === 'string' ? req.headers.referer : undefined,
         host: typeof req.headers.host === 'string' ? req.headers.host : undefined,
         client: String(req.headers['x-client'] || ''),
+        tenantSlug: String(req.headers['x-tenant'] || ''),
         path,
       });
       if (!resolved) {
