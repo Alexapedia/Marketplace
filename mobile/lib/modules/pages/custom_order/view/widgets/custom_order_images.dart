@@ -1,9 +1,10 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/models/color_model.dart';
+import '../../../../../config/theme/maison.dart';
 import '../../controller/custom_order_cubit.dart';
 
 class CustomOrderImages extends StatelessWidget {
@@ -13,7 +14,7 @@ class CustomOrderImages extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<CustomOrderCubit>();
     final state = context.watch<CustomOrderCubit>().state;
-    final colors = Theme.of(context).extension<AppColors>()!;
+    final m = context.maison;
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -25,17 +26,19 @@ class CustomOrderImages extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 child: Image.file(
                   File(e.value),
-                  width: 88,
-                  height: 88,
+                  width: 96,
+                  height: 96,
                   fit: BoxFit.cover,
                 ),
               ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: InkWell(
-                  onTap: () => cubit.removeImage(e.key),
-                  child: const CircleAvatar(
+              PositionedDirectional(
+                top: 2,
+                end: 2,
+                child: IconButton(
+                  tooltip: 'remove'.tr(),
+                  onPressed: () => cubit.removeImage(e.key),
+                  style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+                  icon: const CircleAvatar(
                     radius: 12,
                     backgroundColor: Colors.black54,
                     child: Icon(Icons.close, size: 14, color: Colors.white),
@@ -49,14 +52,14 @@ class CustomOrderImages extends StatelessWidget {
           onTap: cubit.pickImages,
           borderRadius: BorderRadius.circular(14),
           child: Container(
-            width: 88,
-            height: 88,
+            width: 96,
+            height: 96,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: colors.gold.withValues(alpha: 0.45)),
-              color: colors.gold.withValues(alpha: 0.08),
+              border: Border.all(color: m.accent.withValues(alpha: 0.6)),
+              color: m.accentSoft,
             ),
-            child: Icon(Icons.add_a_photo_outlined, color: colors.gold),
+            child: Icon(Icons.add_a_photo_outlined, color: m.accentInk),
           ),
         ),
       ],
