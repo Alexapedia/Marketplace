@@ -310,7 +310,7 @@ class DioConsumer implements ApiConsumer {
       onRequest: (options, handler) async {
         options.headers[AppString.headerAcceptLanguage] =
             PreferenceUtils.getString(StorageKey.lang, AppString.localeEn);
-        options.headers['X-Client'] = 'mobile';
+        options.headers.addAll(EndPoints.clientHeaders());
         if (options.extra[AppString.requiresTokenKey] != false) {
           final token = await sl<HandleMultiCallLocal>().getLocalData(
             keyType: LocalEnumKey.accessToken,
@@ -386,7 +386,7 @@ class DioConsumer implements ApiConsumer {
           baseUrl: client.options.baseUrl,
           connectTimeout: client.options.connectTimeout,
           receiveTimeout: client.options.receiveTimeout,
-          headers: {'X-Client': 'mobile'},
+          headers: EndPoints.clientHeaders(),
         ),
       );
       final res = await bare.post(EndPoints.refresh, data: {'refreshToken': refresh});
