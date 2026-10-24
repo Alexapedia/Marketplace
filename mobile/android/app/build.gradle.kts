@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -34,11 +36,32 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+    // Each store's upload key lives in android/keys/<store>.properties
+    // (storeFile, storePassword, keyAlias, keyPassword; never committed).
+    // Without one, release builds fall back to the debug key.
+    fun storeSigning(store: String) =
+        rootProject.file("keys/$store.properties").let { file ->
+            if (!file.exists()) {
+                signingConfigs.getByName("debug")
+            } else {
+                val props = Properties().apply { file.inputStream().use { load(it) } }
+                signingConfigs.create(store) {
+                    storeFile = rootProject.file(props.getProperty("storeFile"))
+                    storePassword = props.getProperty("storePassword")
+                    keyAlias = props.getProperty("keyAlias")
+                    keyPassword = props.getProperty("keyPassword")
+                }
+            }
+        }
+
+    // One flavor per store: build with `--flavor <store>` (see docs/new-store.md).
+    flavorDimensions += "store"
+    productFlavors {
+        create("zezo") {
+            dimension = "store"
+            applicationId = "RK.Alexapedia.zezo_store"
+            resValue("string", "app_name", "Zezo Store")
+            signingConfig = storeSigning("zezo")
         }
     }
 }
