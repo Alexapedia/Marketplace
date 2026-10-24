@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/models/color_model.dart';
 import 'widgets/onboarding_body.dart';
 
 class OnBoardingScreen extends StatelessWidget {
@@ -8,10 +7,7 @@ class OnBoardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
-      body: const OnboardingBody(),
-    );
+    // The scaffold takes the Maison canvas (ivory / onyx) from the theme.
+    return const Scaffold(body: OnboardingBody());
   }
 }

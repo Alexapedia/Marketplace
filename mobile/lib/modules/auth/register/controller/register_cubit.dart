@@ -19,7 +19,8 @@ import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'register_state.dart';
 
-class RegisterCubit extends Cubit<RegisterState> with SafeEmitMixin<RegisterState> {
+class RegisterCubit extends Cubit<RegisterState>
+    with SafeEmitMixin<RegisterState> {
   RegisterCubit() : super(const RegisterState());
 
   static RegisterCubit get(context) => BlocProvider.of(context);

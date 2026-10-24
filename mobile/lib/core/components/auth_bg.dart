@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../models/color_model.dart';
+import '../../config/theme/maison.dart';
+import '../../config/theme/tokens.dart';
+import '../../config/theme/typography.dart';
 import '../utils/functions/responsive.dart';
+import 'app_logo.dart';
 import 'circle_back_button.dart';
+import 'maison.dart';
 
+/// Auth scaffold: a deep brand band with the store logo and display title,
+/// and the form on a raised card. Landscape / tablets split the band and the
+/// form side by side; the form never stretches past a comfortable width.
 class AuthBg extends StatelessWidget {
   const AuthBg({
     super.key,
@@ -20,102 +27,105 @@ class AuthBg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final gold = theme.extension<AppColors>()!.gold;
-    final dark = theme.brightness == Brightness.dark;
+    final m = context.maison;
     final canPop = Navigator.of(context).canPop();
-    final landscape = context.isLandscape;
+    final split = context.isLandscape || context.isTablet || context.isDesktop;
+    final onBand = m.onBand;
 
     final header = Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
         16,
-        MediaQuery.paddingOf(context).top + (landscape ? 8 : 12),
+        MediaQuery.paddingOf(context).top + (split ? 8 : 12),
         16,
-        landscape ? 24 : 50,
+        split ? 24 : 56,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: dark
-              ? const [Color(0xFF1A1D2E), Color(0xFF2A2F4D)]
-              : const [AppColors.blackColor, Color(0xFF1C3190)],
-        ),
-        borderRadius: landscape
+        color: m.band,
+        borderRadius: split
             ? BorderRadius.zero
-            : const BorderRadius.vertical(bottom: Radius.circular(36)),
+            : const BorderRadius.vertical(
+                bottom: Radius.circular(AppRadius.xxl),
+              ),
+        border: m.isDark ? Border(bottom: BorderSide(color: m.line)) : null,
       ),
       child: Column(
-        mainAxisAlignment: landscape ? MainAxisAlignment.center : MainAxisAlignment.start,
+        mainAxisAlignment: split
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
         children: [
           if (canPop)
             const Align(
               alignment: AlignmentDirectional.centerStart,
-              child: CircleBackButton( ),
+              child: CircleBackButton(),
             ),
-          SizedBox(height: landscape ? 4 : 8),
-          Container(
-            width: landscape ? 48 : 62,
-            height: landscape ? 48 : 62,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: gold, width: 2),
-            ),
-            child: Text(
-              'Z',
-              style: TextStyle(
-                color: gold,
-                fontSize: landscape ? 22 : 28,
-                fontWeight: FontWeight.w600,
-              ),
+          SizedBox(height: split ? 4 : 8),
+          Reveal(
+            child: AppLogo(
+              height: split ? 56 : 52,
+              onDarkSurface: onBand != Maison.inkLight,
             ),
           ),
           if (title != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              title!,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+            const SizedBox(height: 18),
+            Reveal(
+              index: 1,
+              child: Text(
+                title!,
+                textAlign: TextAlign.center,
+                style: displayStyle(size: split ? 34 : 30, color: onBand),
               ),
             ),
           ],
+          const SizedBox(height: 12),
+          const GoldRule(width: 64, draw: true),
           if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFFCDD3F0), fontSize: 12),
+            const SizedBox(height: 12),
+            Reveal(
+              index: 2,
+              child: Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: onBand.withValues(alpha: 0.8),
+                ),
+              ),
             ),
           ],
         ],
       ),
     );
 
-    final sheet = ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      children: [
-        Material(
-          color: theme.colorScheme.surface,
-          elevation: 12,
-          shadowColor: AppColors.blackColor.withValues(alpha: 0.28),
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-            child: child,
-          ),
+    final sheet = Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          children: [
+            Reveal(
+              index: 2,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: m.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  border: Border.all(color: m.line),
+                  boxShadow: AppShadows.two(m.brightness),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+                child: child,
+              ),
+            ),
+            if (belowSheet != null) ...[
+              const SizedBox(height: 16),
+              belowSheet!,
+            ],
+          ],
         ),
-        if (belowSheet != null) ...[
-          const SizedBox(height: 16),
-          belowSheet!,
-        ],
-      ],
+      ),
     );
 
-    if (landscape) {
+    if (split) {
       return Scaffold(
         body: Row(
           children: [
@@ -132,7 +142,7 @@ class AuthBg extends StatelessWidget {
           header,
           Expanded(
             child: Transform.translate(
-              offset: const Offset(0, -34),
+              offset: const Offset(0, -36),
               child: sheet,
             ),
           ),

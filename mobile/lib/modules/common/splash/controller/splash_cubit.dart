@@ -21,6 +21,7 @@ import '../../../../core/utils/functions/safe_emit.dart';
 part 'splash_state.dart';
 part 'splash_boot_mixin.dart';
 
-class SplashCubit extends Cubit<SplashState> with SafeEmitMixin<SplashState>, SplashBootMixin {
+class SplashCubit extends Cubit<SplashState>
+    with SafeEmitMixin<SplashState>, SplashBootMixin {
   SplashCubit() : super(const SplashState());
 }

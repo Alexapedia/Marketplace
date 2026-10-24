@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../config/theme/maison.dart';
 import '../controller/splash_cubit.dart';
 import 'widgets/splash_brand.dart';
 
@@ -33,13 +34,13 @@ class _SplashViewState extends State<_SplashView>
     super.initState();
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 900),
     )..forward();
     _textController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 560),
     );
-    Future.delayed(const Duration(milliseconds: 700), () {
+    Future.delayed(const Duration(milliseconds: 420), () {
       if (mounted) _textController.forward();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,21 +57,27 @@ class _SplashViewState extends State<_SplashView>
 
   @override
   Widget build(BuildContext context) {
+    final m = context.maison;
+    // The deep brand band, lit by a soft accent bloom behind the mark.
     return Scaffold(
+      backgroundColor: m.band,
       body: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: Theme.of(context).brightness == Brightness.dark
-                ? [Color(0xFF071345), Color(0xFF1C3190)]
-                : [Color.fromARGB(255, 255, 255, 255), Color.fromARGB(255, 255, 255, 255), Color.fromARGB(162, 7, 19, 69)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.15),
+            radius: 0.9,
+            colors: [
+              Color.alphaBlend(m.accent.withValues(alpha: 0.14), m.band),
+              m.band,
+            ],
           ),
         ),
-        child: Center(
-          child: SplashBrand(
-            logoController: _logoController,
-            textController: _textController,
+        child: SizedBox.expand(
+          child: Center(
+            child: SplashBrand(
+              logoController: _logoController,
+              textController: _textController,
+            ),
           ),
         ),
       ),

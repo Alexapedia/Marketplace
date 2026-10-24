@@ -11,7 +11,8 @@ import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'forget_password_state.dart';
 
-class ForgetPasswordCubit extends Cubit<ForgetPasswordState> with SafeEmitMixin<ForgetPasswordState> {
+class ForgetPasswordCubit extends Cubit<ForgetPasswordState>
+    with SafeEmitMixin<ForgetPasswordState> {
   ForgetPasswordCubit() : super(const ForgetPasswordState());
 
   static ForgetPasswordCubit get(context) => BlocProvider.of(context);
@@ -36,7 +37,12 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> with SafeEmitMixin<
       },
       (_) {
         AppToast('reset_sent');
-        emit(state.copyWith(status: RequestStatus.loaded, step: ForgetPasswordStep.reset));
+        emit(
+          state.copyWith(
+            status: RequestStatus.loaded,
+            step: ForgetPasswordStep.reset,
+          ),
+        );
       },
     );
   }
@@ -66,7 +72,12 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> with SafeEmitMixin<
   void backToEmail() {
     codeController.clear();
     passwordController.clear();
-    emit(state.copyWith(status: RequestStatus.init, step: ForgetPasswordStep.email));
+    emit(
+      state.copyWith(
+        status: RequestStatus.init,
+        step: ForgetPasswordStep.email,
+      ),
+    );
   }
 
   @override

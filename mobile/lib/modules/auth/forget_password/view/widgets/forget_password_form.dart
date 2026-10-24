@@ -68,7 +68,8 @@ class _ForgetPasswordFormState extends State<ForgetPasswordForm> {
                 title: 'reset_code'.tr(),
                 prefexIcon: Icons.key_outlined,
                 textInputType: TextInputType.visiblePassword,
-                validator: (v) => (v ?? '').trim().isEmpty ? 'can_not_be_empty'.tr() : null,
+                validator: (v) =>
+                    (v ?? '').trim().isEmpty ? 'can_not_be_empty'.tr() : null,
               ),
               const SizedBox(height: 8),
               AppTextField(
@@ -79,8 +80,13 @@ class _ForgetPasswordFormState extends State<ForgetPasswordForm> {
                 textInputType: TextInputType.visiblePassword,
                 textInputAction: TextInputAction.done,
                 suffixIconWidget: IconButton(
-                  onPressed: () => setState(() => _hidePassword = !_hidePassword),
-                  icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  onPressed: () =>
+                      setState(() => _hidePassword = !_hidePassword),
+                  icon: Icon(
+                    _hidePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
                 ),
                 validator: (v) => Validate.validatePassword(v ?? ''),
               ),
@@ -88,7 +94,10 @@ class _ForgetPasswordFormState extends State<ForgetPasswordForm> {
               if (loading)
                 const LoadingItem()
               else
-                AppButton(onTap: cubit.resetPassword, title: 'reset_password'.tr()),
+                AppButton(
+                  onTap: cubit.resetPassword,
+                  title: 'reset_password'.tr(),
+                ),
               TextButton(
                 onPressed: loading ? null : cubit.backToEmail,
                 child: Text('resend_code'.tr()),

@@ -22,7 +22,8 @@ class OnBoardingPageChanged {
   final int page;
 }
 
-class OnBoardingBloc extends Cubit<OnBoardingState> with SafeEmitMixin<OnBoardingState> {
+class OnBoardingBloc extends Cubit<OnBoardingState>
+    with SafeEmitMixin<OnBoardingState> {
   OnBoardingBloc() : super(const OnBoardingState()) {
     load();
   }
