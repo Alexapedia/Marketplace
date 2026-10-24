@@ -40,9 +40,9 @@ describe('Access control (characterization)', () => {
     expect(res.status).toBe(201);
     const url: string = res.body.data.url;
     expect(url).toMatch(/\.png$/);
-    const path = new URL(url).pathname;
-    expect(path).toMatch(/^\/uploads\//);
-    await ctx.http().get(path).expect(200);
+    // Host-free, so it works behind any store domain.
+    expect(url).toMatch(/^\/uploads\//);
+    await ctx.http().get(url).expect(200);
   });
 
   it('super_admin can block a customer, who then gets 401 on /auth/me', async () => {

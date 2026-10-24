@@ -9,6 +9,7 @@ import {
   MAX_UPLOAD_BYTES,
   MIME_EXTENSIONS,
 } from '../common/constants';
+import { uploadPath } from '../common/utils/upload-url';
 
 @Injectable()
 export class UploadsService {
@@ -25,11 +26,7 @@ export class UploadsService {
   }
 
   toUrl(filename: string) {
-    const publicBase = (
-      this.config.get<string>('PUBLIC_URL') ||
-      `http://localhost:${this.config.get('PORT') || 3000}`
-    ).replace(/\/$/, '');
-    return `${publicBase}/uploads/${filename}`;
+    return uploadPath(filename);
   }
 }
 

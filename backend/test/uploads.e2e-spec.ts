@@ -35,7 +35,7 @@ describe('uploads security', () => {
 
   it('uploads are served with nosniff and a locked-down CSP', async () => {
     const res = await upload('x.html', 'image/png', Buffer.from('<script>alert(1)</script>'));
-    const path = new URL(res.body.data.url).pathname;
+    const path: string = res.body.data.url;
 
     const get = await ctx.http().get(path).expect(200);
 

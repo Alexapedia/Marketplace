@@ -20,6 +20,7 @@ import { TenantContext } from '../tenant/tenant.context';
 import { TenantService } from '../tenant/tenant.service';
 import { resolveSeedPassword } from './seed-credentials';
 import { MIGRATIONS_COLLECTION, runMigrationOnce } from '../database/migrations';
+import { relativizeUploads } from '../common/utils/upload-url';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
@@ -56,6 +57,9 @@ export class SeedService implements OnApplicationBootstrap {
         await this.dropLegacyIndexes();
         await this.backfillTenantId(tenantId);
       });
+      await runMigrationOnce(this.connection, 'relative-uploads-v1', () =>
+        this.relativizeUploadUrls(),
+      );
       await this.userModel.syncIndexes();
       await this.seedPlatformOwner();
     });
@@ -112,6 +116,31 @@ export class SeedService implements OnApplicationBootstrap {
         { tenantId: { $exists: false } },
         { $set: { tenantId } },
       );
+    }
+  }
+
+  /** Uploads used to be stored as `<PUBLIC_URL>/uploads/<file>`; keep only the path. */
+  private async relativizeUploadUrls() {
+    const collections = await this.connection.db!.listCollections().toArray();
+    for (const col of collections) {
+      if (
+        col.name === MIGRATIONS_COLLECTION ||
+        col.name.startsWith('system.')
+      ) {
+        continue;
+      }
+      const collection = this.connection.db!.collection(col.name);
+      for await (const doc of collection.find({})) {
+        const $set: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(doc)) {
+          if (key === '_id') continue;
+          const next = relativizeUploads(value);
+          if (next !== value) $set[key] = next;
+        }
+        if (Object.keys($set).length > 0) {
+          await collection.updateOne({ _id: doc._id }, { $set });
+        }
+      }
     }
   }
 
