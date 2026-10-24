@@ -12,10 +12,17 @@
         <mat-label>{{ 'orders.changeStatus' | t }}</mat-label>
         <mat-select [value]="orderStatus(o)" (selectionChange)="changeStatus(o, $event.value)">
           @for (s of statuses; track s) {
-            <mat-option [value]="s">{{ 'orderStatus.' + s | t }}</mat-option>
+            <!-- Delivered / completed only come from the delivery code. -->
+            <mat-option [value]="s" [disabled]="!manualStatuses.includes(s)">{{ 'orderStatus.' + s | t }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
+      @if (canConfirmDelivery(o)) {
+        <button mat-flat-button class="full" (click)="confirmDelivery(o)">
+          <mat-icon>verified</mat-icon>
+          {{ 'orders.confirmDelivery' | t }}
+        </button>
+      }
       @if (o.rejectionReason) {
         <p>{{ 'orders.rejectionReason' | t }}: {{ o.rejectionReason }}</p>
       }

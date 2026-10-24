@@ -26,4 +26,9 @@ export class OrdersApi {
     }
     return this.api.patch<Order>(`/admin/orders/${id}/status`, body);
   }
+
+  /** Completes the order with the code the customer reads out. */
+  confirmDelivery(id: string, code: string): Observable<ApiResult<Order>> {
+    return this.api.post<Order>(`/admin/orders/${id}/confirm-delivery`, { code });
+  }
 }
