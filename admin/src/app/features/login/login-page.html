@@ -79,7 +79,7 @@
         <div class="error m-enter" role="alert"><mat-icon>error_outline</mat-icon><span>{{ error() }}</span></div>
         }
 
-        <button mat-flat-button class="submit m-sheen" type="submit" [disabled]="loading()">
+        <button mat-flat-button class="submit" type="submit" [disabled]="loading()">
           @if (loading()) {
           <mat-spinner diameter="18" />
           } @else if (step() === 'backup') {

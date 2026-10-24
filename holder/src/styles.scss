@@ -194,10 +194,6 @@ h4 {
 
 // ---- Material polish -----------------------------------------------------
 
-.mat-mdc-unelevated-button:not(:disabled) {
-  @extend .m-sheen;
-}
-
 .mat-mdc-button-base {
   transition: transform var(--m-dur-instant) var(--m-ease-out);
 }
