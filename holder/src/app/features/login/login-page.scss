@@ -223,6 +223,8 @@ h2 {
 
 form {
   display: grid;
+  // minmax(0, ...) stops the six pin boxes widening the track past the panel.
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
