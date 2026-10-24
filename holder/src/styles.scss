@@ -1,6 +1,16 @@
 @use '@angular/material' as mat;
 @use './styles/maison';
 
+// The platform control plane is brand-neutral: graphite + warm stone, so it
+// never competes with (or looks like) any store's own colours. Store colours
+// only appear inside the tenant brand previews.
+:root {
+  --brand-primary: #23211e;
+  --brand-accent: #b9b1a4;
+  --brand-on-primary: #ffffff;
+  --brand-on-accent: #16130f;
+}
+
 // Material M3 builds its structure from this theme; every colour role is then
 // re-pointed at the Maison tokens below, so Material follows --m-* in light
 // and dark (body.dark-theme) without its own palette.
