@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '113515739998',
     projectId: 'market-place-cfe60',
     storageBucket: 'market-place-cfe60.firebasestorage.app',
-    iosBundleId: 'RK.Alexapedia.zezoStore',
+    iosBundleId: 'RK.Marketplace.zezoStore',
   );
 }

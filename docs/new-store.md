@@ -40,7 +40,7 @@ In `mobile/android/app/build.gradle.kts`, add the store inside `productFlavors`:
 ```kotlin
 create("<slug>") {
     dimension = "store"
-    applicationId = "com.yourcompany.<slug>"   // final: cannot change after publishing
+    applicationId = "RK.Marketplace.<slug>"   // final: cannot change after publishing
     resValue("string", "app_name", "<Store Name>")
     signingConfig = storeSigning("<slug>")
 }
@@ -65,7 +65,7 @@ keytool -genkeypair -v -keystore <slug>-upload.jks -alias upload -keyalg RSA -ke
 
 ```bash
 cd mobile
-ruby ios/scripts/add_store_flavor.rb <slug> com.yourcompany.<slug> "<Store Name>" AppIcon-<slug>
+ruby ios/scripts/add_store_flavor.rb <slug> RK.Marketplace.<slug> "<Store Name>" AppIcon-<slug>
 cd ios && pod install
 ```
 
@@ -103,7 +103,7 @@ flutter build ipa --release --flavor <slug> \
   --dart-define=TENANT_SLUG=<slug> \
   --dart-define=API_URL=https://api.<domain>/api/v1 \
   --dart-define=FIREBASE_APP_ID=<ios app id> \
-  --dart-define=FIREBASE_IOS_BUNDLE_ID=com.yourcompany.<slug>
+  --dart-define=FIREBASE_IOS_BUNDLE_ID=RK.Marketplace.<slug>
 ```
 
 - **(you)** Google Play Console → Create app (one per store) → upload `build/app/outputs/bundle/<slug>Release/app-<slug>-release.aab`. Store listing, privacy policy and content rating are per app.

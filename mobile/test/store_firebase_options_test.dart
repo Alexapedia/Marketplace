@@ -7,14 +7,14 @@ const _base = FirebaseOptions(
   appId: '1:1:android:zezo',
   messagingSenderId: '1',
   projectId: 'market-place',
-  iosBundleId: 'RK.Alexapedia.zezoStore',
+  iosBundleId: 'RK.Marketplace.zezoStore',
 );
 
 void main() {
   test('without store values the bundled (Zezo) Firebase app is used', () {
     final options = storeFirebaseOptions(_base, appId: '', iosBundleId: '');
     expect(options.appId, '1:1:android:zezo');
-    expect(options.iosBundleId, 'RK.Alexapedia.zezoStore');
+    expect(options.iosBundleId, 'RK.Marketplace.zezoStore');
   });
 
   test("a store build uses its own Firebase app in the same project", () {
