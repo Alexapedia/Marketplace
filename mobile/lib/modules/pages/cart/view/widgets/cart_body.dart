@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../config/theme/maison.dart';
 import '../../../../../core/components/app_button.dart';
+import '../../../../../core/components/maison.dart';
+import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../../../../core/utils/functions/responsive.dart';
@@ -36,7 +39,7 @@ class CartBody extends StatelessWidget {
             action: AppButton(
               onTap: () => context.goNamed(AppRouterKeys.navigatorBarScreen),
               title: 'continue_shopping'.tr(),
-              size: const Size(220, 48),
+              size: const Size(240, 52),
             ),
           );
         }
@@ -46,17 +49,19 @@ class CartBody extends StatelessWidget {
             onRefresh: () => context.read<CartCubit>().load(),
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               itemCount: loading ? 3 : items.length,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, i) {
                 if (loading) {
-                  return ListTile(
-                    title: Text('loading'.tr()),
-                    subtitle: const Text('0'),
+                  return const CartItemTile(
+                    item: CartItemModel(id: '', productId: ''),
                   );
                 }
-                return CartItemTile(item: items[i]);
+                return Reveal(
+                  index: i,
+                  child: CartItemTile(item: items[i]),
+                );
               },
             ),
           ),
@@ -73,10 +78,13 @@ class CartBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     list,
-                    ColoredBox(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: context.maison.surface,
+                        border: BorderDirectional(
+                          start: BorderSide(color: context.maison.line),
+                        ),
+                      ),
                       child: SizedBox(
                         width: (context.responsive.width * 0.38).clamp(
                           280,

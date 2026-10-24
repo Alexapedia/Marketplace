@@ -15,12 +15,16 @@ class CartScreen extends StatelessWidget {
       create: (_) => CartCubit()..load(),
       child: Scaffold(
         appBar: AppBar(
-          leading: const CircleBackButton(),
+          leadingWidth: 64,
+          leading: const Padding(
+            padding: EdgeInsetsDirectional.only(start: 8),
+            child: Center(child: CircleBackButton()),
+          ),
           title: Text('cart'.tr()),
           actions: [
             IconButton(
               onPressed: () => context.read<CartCubit>().clear(),
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_outline_rounded),
               tooltip: 'clear_cart'.tr(),
             ),
           ],
