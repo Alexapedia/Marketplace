@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../config/theme/maison.dart';
 import '../utils/functions/responsive.dart';
 
 class AppTextField extends StatefulWidget {
@@ -67,7 +68,7 @@ class _AppTextFieldState extends State<AppTextField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final m = context.maison;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
@@ -77,12 +78,8 @@ class _AppTextFieldState extends State<AppTextField> {
             ExcludeSemantics(
               child: Text(
                 widget.title,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: _isFocused
-                      ? primary
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: _isFocused ? m.accentInk : m.inkMuted,
                 ),
               ),
             ),
@@ -102,7 +99,10 @@ class _AppTextFieldState extends State<AppTextField> {
               readOnly: widget.isReadOnly,
               validator: widget.validator,
               obscureText: widget.obscureText,
-              style: TextStyle(fontSize: context.font(14.5)),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontSize: context.font(15),
+                color: m.ink,
+              ),
               decoration: InputDecoration(
                 hintText: widget.hintText,
                 suffixIcon:

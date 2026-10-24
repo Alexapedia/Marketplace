@@ -19,7 +19,8 @@ import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'checkout_state.dart';
 
-class CheckOutCubit extends Cubit<CheckOutState> with SafeEmitMixin<CheckOutState> {
+class CheckOutCubit extends Cubit<CheckOutState>
+    with SafeEmitMixin<CheckOutState> {
   CheckOutCubit() : super(const CheckOutState());
 
   final notes = TextEditingController();
@@ -41,10 +42,11 @@ class CheckOutCubit extends Cubit<CheckOutState> with SafeEmitMixin<CheckOutStat
       (l) => emit(state.copyWith(status: RequestStatus.failed, error: l)),
       (s) {
         final data = unwrapData(s.response);
-        final list = asList(data is List ? data : asMap(data)['items'])
-            .map(AddressModel.fromJson)
-            .toList();
-        final selected = list.where((e) => e.isDefault).firstOrNull?.id ??
+        final list = asList(
+          data is List ? data : asMap(data)['items'],
+        ).map(AddressModel.fromJson).toList();
+        final selected =
+            list.where((e) => e.isDefault).firstOrNull?.id ??
             (list.isNotEmpty ? list.first.id : '');
         emit(
           state.copyWith(

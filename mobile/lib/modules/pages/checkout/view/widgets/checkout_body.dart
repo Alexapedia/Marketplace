@@ -4,13 +4,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../config/theme/tokens.dart';
+import '../../../../../core/components/adaptive_page.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/app_text_field.dart';
 import '../../../../../core/components/circle_back_button.dart';
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/glass_surface.dart';
 import '../../../../../core/components/loading_item.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../core/components/maison.dart';
+import '../../../../../core/models/address_models.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
+import '../../../../../core/utils/functions/motion.dart';
 import '../../controller/check_out_cubit.dart';
 
 class CheckoutBody extends StatelessWidget {
@@ -19,45 +25,40 @@ class CheckoutBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<CheckOutCubit>();
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
     return Scaffold(
       appBar: AppBar(
-        leading: const CircleBackButton(),
+        leadingWidth: 64,
+        leading: const Padding(
+          padding: EdgeInsetsDirectional.only(start: 8),
+          child: Center(child: CircleBackButton()),
+        ),
         title: Text('checkout'.tr()),
       ),
       body: BlocBuilder<CheckOutCubit, CheckOutState>(
         builder: (context, state) {
           if (state.status == RequestStatus.failed && state.addresses.isEmpty) {
-            return FailedShape(
-              msg: state.error,
-              onTapRefresh: cubit.load,
-            );
+            return FailedShape(msg: state.error, onTapRefresh: cubit.load);
           }
           final loading =
               state.status == RequestStatus.loading && state.addresses.isEmpty;
           if (loading) return const LoadingItem();
-          return ListView(
-            padding: const EdgeInsets.all(20),
+          final placing = state.status == RequestStatus.loading;
+          final form = ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'delivery_details'.tr(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  TextButton(
+              Reveal(
+                child: MaisonSectionHeader(
+                  title: 'delivery_details'.tr(),
+                  eyebrow: 'secure_checkout'.tr(),
+                  padding: const EdgeInsetsDirectional.only(bottom: 16),
+                  trailing: TextButton(
                     onPressed: () async {
                       await context.pushNamed(AppRouterKeys.addresses);
                       if (context.mounted) cubit.load();
                     },
                     child: Text('manage_addresses'.tr()),
                   ),
-                ],
+                ),
               ),
               if (state.addresses.isEmpty)
                 EmptyState(
@@ -70,106 +71,185 @@ class CheckoutBody extends StatelessWidget {
                       if (context.mounted) cubit.load();
                     },
                     title: 'add_address'.tr(),
-                    size: const Size(220, 48),
+                    size: const Size(240, 52),
                   ),
                 )
               else
-                ...state.addresses.map(
-                  (a) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Material(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () => cubit.select(a.id),
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: state.selectedId == a.id
-                                  ? gold
-                                  : Theme.of(context)
-                                      .colorScheme
-                                      .outline
-                                      .withValues(alpha: 0.12),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                state.selectedId == a.id
-                                    ? Icons.radio_button_checked
-                                    : Icons.radio_button_off,
-                                color: gold,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      a.label,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    Text('${a.fullName} · ${a.phone}'),
-                                    Text(a.display),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                for (var i = 0; i < state.addresses.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Reveal(
+                      index: i + 1,
+                      child: _AddressChoice(
+                        address: state.addresses[i],
+                        selected: state.selectedId == state.addresses[i].id,
+                        onTap: () => cubit.select(state.addresses[i].id),
                       ),
                     ),
                   ),
-                ),
+              const SizedBox(height: 8),
               AppTextField(
                 controller: cubit.notes,
                 title: 'order_notes'.tr(),
                 hintText: 'order_notes_hint'.tr(),
                 maxlines: 3,
               ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: gold.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
+              const SizedBox(height: 16),
+              const _PaymentNote(),
+            ],
+          );
+          return Column(
+            children: [
+              Expanded(child: AdaptivePage(maxWidth: 640, child: form)),
+              GlassSurface(
+                elevated: true,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 600),
+                        child: AppButton(
+                          isLoading: placing,
+                          onTap: placing ? null : () => cubit.submit(context),
+                          title: 'place_order'.tr(),
+                          icon: Icons.lock_outline_rounded,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AddressChoice extends StatelessWidget {
+  const _AddressChoice({
+    required this.address,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AddressModel address;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = context.maison;
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      inMutuallyExclusiveGroup: true,
+      selected: selected,
+      child: Pressable(
+        child: AnimatedContainer(
+          duration: context.motion(AppDurations.fast),
+          curve: AppCurves.easeOut,
+          decoration: BoxDecoration(
+            color: selected ? m.accentSoft : m.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? m.accent : m.line,
+              width: selected ? 1.5 : 1,
+            ),
+            boxShadow: selected ? null : AppShadows.one(m.brightness),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(Icons.payments_outlined, color: gold),
-                    const SizedBox(width: 12),
+                    Icon(
+                      selected
+                          ? Icons.radio_button_checked_rounded
+                          : Icons.radio_button_off_rounded,
+                      color: selected ? m.accentInk : m.inkMuted,
+                    ),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'cod'.tr(),
-                            style: const TextStyle(fontWeight: FontWeight.w800),
+                            address.label,
+                            style: text.titleSmall?.copyWith(color: m.ink),
                           ),
-                          Text('checkout_cod_note'.tr()),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${address.fullName} · ${address.phone}',
+                            style: text.bodyMedium?.copyWith(color: m.ink),
+                          ),
+                          Text(
+                            address.display,
+                            style: text.bodySmall?.copyWith(color: m.inkMuted),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              if (state.status == RequestStatus.loading)
-                const LoadingItem()
-              else
-                AppButton(
-                  onTap: () => cubit.submit(context),
-                  title: 'place_order'.tr(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PaymentNote extends StatelessWidget {
+  const _PaymentNote();
+
+  @override
+  Widget build(BuildContext context) {
+    final m = context.maison;
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: m.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: m.line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: m.accentSoft,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.payments_outlined, color: m.accentInk),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'cod'.tr(),
+                  style: text.titleSmall?.copyWith(color: m.ink),
                 ),
-            ],
-          );
-        },
+                const SizedBox(height: 2),
+                Text(
+                  'checkout_cod_note'.tr(),
+                  style: text.bodySmall?.copyWith(color: m.inkMuted),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
