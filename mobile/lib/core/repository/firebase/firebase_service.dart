@@ -3,8 +3,8 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../firebase_options.dart';
 import '../push/push_notification_service.dart';
+import 'store_firebase_options.dart';
 
 class FirebaseService {
   FirebaseService._();
@@ -14,7 +14,7 @@ class FirebaseService {
   static Future<void> init() async {
     try {
       await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
+        options: currentStoreFirebaseOptions,
       );
       initialized = true;
       FlutterError.onError = (details) {

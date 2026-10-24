@@ -7,7 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routing/app_router_keys.dart';
-import '../../../firebase_options.dart';
+import '../firebase/store_firebase_options.dart';
 import '../../../placemarket_app.dart';
 import '../../connection/concept/end_points.dart';
 import '../../connection/interfaces/api_consumer.dart';
@@ -19,7 +19,7 @@ import '../../utils/functions/shared_preferance_utils.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: currentStoreFirebaseOptions);
 }
 
 class PushNotificationService {
