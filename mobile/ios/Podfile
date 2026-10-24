@@ -5,6 +5,9 @@
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
+  'Profile-zezo' => :release,
+  'Release-zezo' => :release,
+  'Debug-zezo' => :debug,
   'Debug' => :debug,
   'Profile' => :release,
   'Release' => :release,
