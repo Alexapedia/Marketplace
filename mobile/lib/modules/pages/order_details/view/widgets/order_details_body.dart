@@ -73,6 +73,7 @@ class OrderDetailsBody extends StatelessWidget {
               status: order.status,
               steps: _flow,
               labelOf: statusLabel,
+              reached: order.timeline,
             ),
           ),
           const SizedBox(height: 20),
