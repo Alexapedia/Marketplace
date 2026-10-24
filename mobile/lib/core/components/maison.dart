@@ -409,3 +409,48 @@ class GlassCircleButton extends StatelessWidget {
     );
   }
 }
+
+/// Status chip: tinted pill with a dot. Red for rejected/cancelled, green for
+/// delivered/completed, accent-ink otherwise.
+class StatusPill extends StatelessWidget {
+  const StatusPill({super.key, required this.status, required this.label});
+
+  final String status;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = context.maison;
+    final bad = status == 'rejected' || status == 'cancelled';
+    final good = status == 'delivered' || status == 'completed';
+    final color = bad ? m.danger : (good ? m.success : m.accentInk);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

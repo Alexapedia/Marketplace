@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../core/components/adaptive_page.dart';
 import '../../../../../core/components/app_button.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/components/circle_back_button.dart';
 import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
@@ -22,52 +24,58 @@ class AddressesBody extends StatelessWidget {
         leading: const CircleBackButton(),
         title: Text('my_addresses'.tr()),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final ok = await context.pushNamed(AppRouterKeys.addressForm);
           if (ok == true && context.mounted) {
             context.read<AddressesCubit>().load();
           }
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add_rounded),
+        label: Text('add_address'.tr()),
       ),
       body: SafeArea(
-        child: BlocBuilder<AddressesCubit, AddressesState>(
-          builder: (context, state) {
-            if (state.status == RequestStatus.failed) {
-              return FailedShape(
-                msg: state.error,
-                onTapRefresh: () => context.read<AddressesCubit>().load(),
-              );
-            }
-            if (state.status != RequestStatus.loaded) {
-              return const SkeletonList(itemHeight: 110);
-            }
-            if (state.items.isEmpty) {
-              return EmptyState(
-                title: 'no_addresses'.tr(),
-                subtitle: 'no_addresses_hint'.tr(),
-                icon: Icons.location_on_outlined,
-                action: AppButton(
-                  onTap: () => context.pushNamed(AppRouterKeys.addressForm),
-                  title: 'add_address'.tr(),
-                  size: const Size(220, 48),
+        child: AdaptivePage(
+          maxWidth: 720,
+          child: BlocBuilder<AddressesCubit, AddressesState>(
+            builder: (context, state) {
+              if (state.status == RequestStatus.failed) {
+                return FailedShape(
+                  msg: state.error,
+                  onTapRefresh: () => context.read<AddressesCubit>().load(),
+                );
+              }
+              if (state.status != RequestStatus.loaded) {
+                return const SkeletonList(itemHeight: 110);
+              }
+              if (state.items.isEmpty) {
+                return EmptyState(
+                  title: 'no_addresses'.tr(),
+                  subtitle: 'no_addresses_hint'.tr(),
+                  icon: Icons.location_on_outlined,
+                  action: AppButton(
+                    onTap: () => context.pushNamed(AppRouterKeys.addressForm),
+                    title: 'add_address'.tr(),
+                    size: const Size(240, 52),
+                  ),
+                );
+              }
+              final cubit = context.read<AddressesCubit>();
+              return RefreshIndicator(
+                onRefresh: () => cubit.load(),
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
+                  itemCount: state.items.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, i) => Reveal(
+                    index: i,
+                    child: AddressCard(address: state.items[i], cubit: cubit),
+                  ),
                 ),
               );
-            }
-            final cubit = context.read<AddressesCubit>();
-            return RefreshIndicator(
-              onRefresh: () => cubit.load(),
-              child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
-                itemCount: state.items.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (context, i) =>
-                    AddressCard(address: state.items[i], cubit: cubit),
-              ),
-            );
-          },
+            },
+          ),
         ),
       ),
     );

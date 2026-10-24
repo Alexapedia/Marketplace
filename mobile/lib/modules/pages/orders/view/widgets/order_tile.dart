@@ -104,7 +104,10 @@ class OrderTile extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 8),
-                _StatusPill(status: order.status),
+                StatusPill(
+                  status: order.status,
+                  label: statusLabel(order.status),
+                ),
               ],
             ),
           ),
@@ -114,47 +117,6 @@ class OrderTile extends StatelessWidget {
             style: text.titleSmall
                 ?.copyWith(color: m.accentInk, fontWeight: FontWeight.w700)
                 .tabular,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.status});
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final m = context.maison;
-    final bad = status == 'rejected' || status == 'cancelled';
-    final good = status == 'delivered' || status == 'completed';
-    final color = bad ? m.danger : (good ? m.success : m.accentInk);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              statusLabel(status),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.labelMedium?.copyWith(color: color),
-            ),
           ),
         ],
       ),

@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routing/app_router_keys.dart';
 import '../../../../../core/models/app_models.dart';
-import '../../../../../core/models/color_model.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../core/components/maison.dart';
 import '../../controller/notifications_cubit.dart';
 
 class NotificationTile extends StatelessWidget {
@@ -14,47 +15,81 @@ class NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<AppColors>()!.gold;
-    return ListTile(
+    final m = context.maison;
+    final text = Theme.of(context).textTheme;
+    final custom = (item.type ?? '').contains('custom');
+    return SurfaceCard(
+      elevated: false,
+      color: item.isRead ? m.surface : m.accentSoft,
+      padding: const EdgeInsets.all(14),
       onTap: () {
         context.read<NotificationsCubit>().markRead(item.id);
         final orderId = '${item.data['orderId'] ?? ''}';
         final customId = '${item.data['customOrderId'] ?? ''}';
-        if ((item.type ?? '').contains('custom') && customId.isNotEmpty) {
+        if (custom && customId.isNotEmpty) {
           context.pushNamed(AppRouterKeys.customOrderDetails, extra: customId);
         } else if (orderId.isNotEmpty) {
           context.pushNamed(AppRouterKeys.orderDetails, extra: orderId);
         }
       },
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: Icon(
-          item.isRead
-              ? Icons.notifications_none
-              : Icons.local_shipping_outlined,
-          color: gold,
-          size: 20,
-        ),
-      ),
-      title: Text(
-        item.title,
-        style: TextStyle(
-          fontWeight: item.isRead ? FontWeight.w500 : FontWeight.w800,
-        ),
-      ),
-      subtitle: Text(
-        item.body,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: item.isRead
-          ? null
-          : Container(
-              width: 7,
-              height: 7,
-              decoration: BoxDecoration(color: gold, shape: BoxShape.circle),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: item.isRead ? m.surface2 : m.accent,
+              shape: BoxShape.circle,
             ),
+            child: Icon(
+              custom
+                  ? Icons.auto_awesome_outlined
+                  : (item.isRead
+                        ? Icons.notifications_none_rounded
+                        : Icons.local_shipping_outlined),
+              color: item.isRead ? m.inkMuted : m.onAccent,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.titleSmall?.copyWith(
+                    color: m.ink,
+                    fontWeight: item.isRead ? FontWeight.w500 : FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.body,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodySmall?.copyWith(color: m.inkMuted),
+                ),
+              ],
+            ),
+          ),
+          if (!item.isRead)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8, top: 6),
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: m.accentInk,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

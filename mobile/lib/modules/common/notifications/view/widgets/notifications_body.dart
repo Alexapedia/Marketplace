@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/maison.dart';
+import '../../../../../core/models/app_models.dart';
 import '../../../../../core/components/infinite_scroll.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../controller/notifications_cubit.dart';
@@ -45,14 +47,19 @@ class NotificationsBody extends StatelessWidget {
             onLoadMore: cubit.loadMore,
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: loading ? 6 : state.items.length + (state.loadingMore ? 1 : 0),
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              itemCount: loading
+                  ? 6
+                  : state.items.length + (state.loadingMore ? 1 : 0),
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
                 if (loading) {
-                  return ListTile(
-                    title: Text('notifications'.tr()),
-                    subtitle: Text('loading'.tr()),
+                  return NotificationTile(
+                    item: NotificationModel(
+                      title: 'Notification title',
+                      body: 'Notification body text goes here',
+                      isRead: true,
+                    ),
                   );
                 }
                 if (i >= state.items.length) return const LoadMoreFooter();
@@ -65,7 +72,7 @@ class NotificationsBody extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.only(end: 20),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(
                       Icons.delete_outline,
@@ -74,7 +81,10 @@ class NotificationsBody extends StatelessWidget {
                     ),
                   ),
                   onDismissed: (_) => cubit.remove(item),
-                  child: NotificationTile(item: item),
+                  child: Reveal(
+                    index: i,
+                    child: NotificationTile(item: item),
+                  ),
                 );
               },
             ),
