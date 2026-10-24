@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../core/components/maison.dart';
 import '../../../../../core/components/review_card.dart';
 import '../../../../../core/utils/functions/require_auth.dart';
 import '../../controller/profile_cubit.dart';
@@ -19,104 +21,89 @@ class ProfileMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final arrow = Icon(
-      Icons.arrow_forward_ios,
-      size: 16,
-      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+      Icons.arrow_forward_ios_rounded,
+      size: 14,
+      color: context.maison.inkMuted,
     );
+    ProfileTile tile(IconData icon, String title, VoidCallback onTap) =>
+        ProfileTile(icon: icon, title: title, trailing: arrow, onTap: onTap);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _navTile(
-          context,
-          icon: Icons.person_outline,
-          title: 'edit_profile'.tr(),
-          trailing: arrow,
-          onTap: () => context.pushNamed(AppRouterKeys.editProfile),
+        MaisonSectionHeader(
+          title: 'your_account'.tr(),
+          padding: const EdgeInsetsDirectional.only(top: 28, bottom: 14),
         ),
-        _navTile(
-          context,
-          icon: Icons.favorite_border,
-          title: 'favorites'.tr(),
-          trailing: arrow,
-          onTap: () => requireAuth(
-            context,
-            () => context.pushNamed(AppRouterKeys.favorites),
-          ),
-        ),
-        _navTile(
-          context,
-          icon: Icons.location_on_outlined,
-          title: 'my_addresses'.tr(),
-          trailing: arrow,
-          onTap: () => requireAuth(
-            context,
-            () => context.pushNamed(AppRouterKeys.addresses),
-          ),
-        ),
-        if (state.supportPhone.isNotEmpty || state.supportEmail.isNotEmpty)
-          _navTile(
-            context,
-            icon: Icons.support_agent,
-            title: 'support'.tr(),
-            trailing: arrow,
-            onTap: () => SupportSheet.show(
-              context,
-              phone: state.supportPhone,
-              email: state.supportEmail,
+        ProfileGroup(
+          children: [
+            tile(
+              Icons.person_outline_rounded,
+              'edit_profile'.tr(),
+              () => context.pushNamed(AppRouterKeys.editProfile),
             ),
-          ),
-        _navTile(
-          context,
-          icon: Icons.star_rate_rounded,
-          title: 'rate_app'.tr(),
-          trailing: arrow,
-          onTap: () => showRateSheet(
-            context: context,
-            title: 'rate_app'.tr(),
-            onSubmit: (rating, comment) =>
-                context.read<ProfileCubit>().rateApp(rating, comment),
-          ),
+            tile(
+              Icons.receipt_long_outlined,
+              'my_orders'.tr(),
+              () => context.pushNamed(AppRouterKeys.myOrdersScreen),
+            ),
+            tile(
+              Icons.favorite_border_rounded,
+              'favorites'.tr(),
+              () => requireAuth(
+                context,
+                () => context.pushNamed(AppRouterKeys.favorites),
+              ),
+            ),
+            tile(
+              Icons.location_on_outlined,
+              'my_addresses'.tr(),
+              () => requireAuth(
+                context,
+                () => context.pushNamed(AppRouterKeys.addresses),
+              ),
+            ),
+            tile(
+              Icons.auto_awesome_outlined,
+              'my_custom_orders'.tr(),
+              () => requireAuth(
+                context,
+                () => context.pushNamed(AppRouterKeys.myCustomOrders),
+              ),
+            ),
+            tile(
+              Icons.notifications_none_rounded,
+              'notifications'.tr(),
+              () => context.pushNamed(AppRouterKeys.notificationScreen),
+            ),
+          ],
         ),
-        _navTile(
-          context,
-          icon: Icons.receipt_long_outlined,
-          title: 'my_orders'.tr(),
-          trailing: arrow,
-          onTap: () => context.pushNamed(AppRouterKeys.myOrdersScreen),
-        ),
-        _navTile(
-          context,
-          icon: Icons.auto_awesome,
-          title: 'my_custom_orders'.tr(),
-          trailing: arrow,
-          onTap: () => requireAuth(
-            context,
-            () => context.pushNamed(AppRouterKeys.myCustomOrders),
-          ),
-        ),
-        _navTile(
-          context,
-          icon: Icons.notifications_none,
-          title: 'notifications'.tr(),
-          trailing: arrow,
-          onTap: () => context.pushNamed(AppRouterKeys.notificationScreen),
+        const SizedBox(height: 16),
+        ProfileGroup(
+          children: [
+            if (state.supportPhone.isNotEmpty || state.supportEmail.isNotEmpty)
+              tile(
+                Icons.support_agent_rounded,
+                'support'.tr(),
+                () => SupportSheet.show(
+                  context,
+                  phone: state.supportPhone,
+                  email: state.supportEmail,
+                ),
+              ),
+            tile(
+              Icons.star_outline_rounded,
+              'rate_app'.tr(),
+              () => showRateSheet(
+                context: context,
+                title: 'rate_app'.tr(),
+                onSubmit: (rating, comment) =>
+                    context.read<ProfileCubit>().rateApp(rating, comment),
+              ),
+            ),
+          ],
         ),
       ],
-    );
-  }
-
-  Widget _navTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required Widget trailing,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: InkWell(
-        onTap: onTap,
-        child: ProfileTile(icon: icon, title: title, trailing: trailing),
-      ),
     );
   }
 }
