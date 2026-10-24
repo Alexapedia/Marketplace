@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../config/app_controller/app_controller_cubit.dart';
 import '../connection/concept/end_points.dart';
 import '../utils/constant/app_string.dart';
+import '../utils/functions/store_name.dart';
 
 /// The store's logo: the tenant logo from the app config when one is set
 /// (`logoDark` on dark surfaces when present, else `logo`), otherwise — or
@@ -56,7 +56,7 @@ class AppLogo extends StatelessWidget {
       width: width,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
-      semanticLabel: 'app_name'.tr(),
+      semanticLabel: storeName(context),
     );
     final url = networkFor(
       darkSurface: dark,
@@ -66,7 +66,7 @@ class AppLogo extends StatelessWidget {
     if (url.isEmpty) return asset;
     return Semantics(
       image: true,
-      label: 'app_name'.tr(),
+      label: storeName(context),
       child: ExcludeSemantics(
         child: CachedNetworkImage(
           key: ValueKey('app-logo-$url'),

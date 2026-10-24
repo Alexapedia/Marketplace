@@ -6,6 +6,7 @@ import '../../../../../config/theme/maison.dart';
 import '../../../../../core/components/app_button.dart';
 import '../../../../../core/components/failed_shape.dart';
 import '../../controller/force_upgrade_cubit.dart';
+import '../../../../../core/utils/functions/store_name.dart';
 
 class ForceUpgradeBody extends StatelessWidget {
   const ForceUpgradeBody({super.key});
@@ -19,7 +20,7 @@ class ForceUpgradeBody extends StatelessWidget {
       title: 'force_upgrade_title'.tr(),
       subtitle: version.message.isNotEmpty
           ? version.message
-          : 'force_upgrade_body'.tr(),
+          : 'force_upgrade_body'.tr(namedArgs: {'store': storeName(context)}),
       action: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/routing/app_router_keys.dart';
 import '../../../../core/components/auth_bg.dart';
 import 'widgets/register_form.dart';
+import '../../../../core/utils/functions/store_name.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -13,7 +14,9 @@ class RegisterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AuthBg(
       title: 'register'.tr(),
-      subtitle: 'register_subtitle'.tr(),
+      subtitle: 'register_subtitle'.tr(
+        namedArgs: {'store': storeName(context)},
+      ),
       belowSheet: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
