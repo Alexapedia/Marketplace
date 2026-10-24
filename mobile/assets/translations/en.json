@@ -325,5 +325,7 @@
   "secure_checkout": "Secure checkout",
   "delivery_fee": "Delivery",
   "order_number": "Order {}",
-  "track_order": "Order journey"
+  "track_order": "Order journey",
+  "delivery_code": "Delivery code",
+  "delivery_code_hint": "Give this code to the courier only when you receive your order."
 }

@@ -325,5 +325,7 @@
   "secure_checkout": "دفع آمن",
   "delivery_fee": "التوصيل",
   "order_number": "طلب {}",
-  "track_order": "رحلة الطلب"
+  "track_order": "رحلة الطلب",
+  "delivery_code": "كود الاستلام",
+  "delivery_code_hint": "أعطِ هذا الكود للمندوب فقط عند استلام طلبك."
 }

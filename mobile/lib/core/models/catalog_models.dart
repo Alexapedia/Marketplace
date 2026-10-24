@@ -372,6 +372,10 @@ class OrderModel {
   final double rating;
   final String ratingComment;
 
+  /// Given to the courier on delivery (`deliveryCode`); only the customer
+  /// receives it.
+  final String deliveryCode;
+
   const OrderModel({
     this.id = '',
     this.status = 'pending',
@@ -386,6 +390,7 @@ class OrderModel {
     this.timeline = const [],
     this.rating = 0,
     this.ratingComment = '',
+    this.deliveryCode = '',
   });
 
   bool get canRate =>
@@ -409,6 +414,7 @@ class OrderModel {
       createdAt: DateTime.tryParse(asString(map['createdAt'])),
       rating: asDouble(map['rating']),
       ratingComment: asString(map['ratingComment']),
+      deliveryCode: asString(map['deliveryCode']),
       timeline: history.map((e) {
         if (e is String) return e;
         return asString(asMap(e)['status'] ?? asMap(e)['name']);
