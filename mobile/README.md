@@ -1,6 +1,6 @@
 # placemarket_mobile
 
-PlaceMarket customer mobile app
+Zezo Store customer mobile app
 
 ## Getting Started
 

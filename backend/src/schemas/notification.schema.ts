@@ -20,8 +20,14 @@ export class Notification {
   @Prop({ type: SchemaTypes.Mixed })
   data?: Record<string, unknown>;
 
+  @Prop({ index: true })
+  batchId?: string;
+
   @Prop()
   readAt?: Date;
+
+  @Prop({ required: true, index: true })
+  tenantId?: string;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

@@ -2,34 +2,54 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AppConfig, AppConfigDocument } from '../schemas/app-config.schema';
+import { TenantContext } from '../tenant/tenant.context';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class AppConfigService {
   constructor(
     @InjectModel(AppConfig.name)
     private readonly configModel: Model<AppConfigDocument>,
+    private readonly tenants: TenantService,
   ) {}
 
   async getGlobal() {
-    const doc = await this.configModel.findOne({ key: 'global' });
+    const doc = await this.configModel.findOne({ key: 'global' }).lean();
     if (!doc) {
-      return this.configModel.create({
+      const created = await this.configModel.create({
         key: 'global',
         banners: [],
         onboarding: [],
         version: {},
-        settings: { deliveryFee: 0 },
+        settings: {
+          deliveryFee: 0,
+          currency: 'SAR',
+          supportPhone: '',
+          supportEmail: '',
+        },
       });
+      return created.toObject();
     }
     return doc;
   }
 
   async getPublic() {
     const doc = await this.getGlobal();
+    const banners = (doc.banners ?? []).filter((item) => {
+      const banner = item as Record<string, unknown>;
+      return banner['active'] !== false;
+    });
+    const tenantId = TenantContext.tenantId();
+    const tenantDoc = tenantId ? await this.tenants.findById(tenantId) : null;
+    const tenant = tenantDoc ? this.tenants.publicView(tenantDoc) : undefined;
     return {
-      banners: doc.banners,
+      banners,
       onboarding: doc.onboarding,
-      settings: doc.settings,
+      settings: {
+        ...(doc.settings ?? {}),
+        ...(tenant ? { currency: tenant.currency } : {}),
+      },
+      tenant,
     };
   }
 
@@ -46,15 +66,23 @@ export class AppConfigService {
   }
 
   async update(patch: Record<string, unknown>) {
+    const current = await this.getGlobal();
+    const set: Record<string, unknown> = { ...patch };
+    if (patch.settings && typeof patch.settings === 'object') {
+      set.settings = {
+        ...(current.settings ?? {}),
+        ...(patch.settings as Record<string, unknown>),
+      };
+    }
     const doc = await this.configModel.findOneAndUpdate(
       { key: 'global' },
-      { $set: patch },
+      { $set: set },
       { new: true, upsert: true },
     );
     if (!doc) {
       throw new NotFoundException('App config not found');
     }
-    return doc;
+    return doc.toObject();
   }
 
   async deliveryFee(): Promise<number> {

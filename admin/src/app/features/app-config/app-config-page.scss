@@ -1,5 +1,181 @@
-.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.stack { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
-.block { margin-top: 16px; }
-.row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 8px; }
-@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.support-card {
+  margin-top: 16px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.block {
+  margin-top: 20px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.section-head h3 {
+  margin: 0;
+  font-family: var(--m-font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 4px 0 12px;
+  font-size: 14px;
+  color: var(--m-ink-muted);
+}
+
+.warn {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--m-accent) 30%, transparent);
+  color: var(--m-accent-ink);
+  font-size: 13px;
+}
+
+.preview {
+  border: 1px dashed color-mix(in srgb, var(--m-accent) 70%, transparent);
+  border-radius: var(--m-r-md);
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--m-accent) 6%, var(--m-surface));
+}
+
+.preview span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--m-accent-ink);
+}
+:host-context([dir='rtl']) .preview span {
+  letter-spacing: 0;
+}
+
+.preview p {
+  margin: 6px 0 0;
+  font-weight: 600;
+}
+
+.upload {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--m-r-pill);
+  border: 1px solid var(--m-line);
+  background: var(--m-surface);
+  color: var(--m-ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color var(--m-dur-fast) var(--m-ease-out);
+}
+.upload:hover {
+  border-color: var(--m-accent);
+}
+.upload:focus-within {
+  outline: 2px solid var(--m-accent);
+  outline-offset: 2px;
+}
+
+.upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.upload.wide {
+  justify-self: start;
+}
+
+.ad-card {
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.lbl {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--m-accent-ink);
+  margin-bottom: 10px;
+}
+:host-context([dir='rtl']) .lbl {
+  letter-spacing: 0;
+}
+
+.ad-grid {
+  padding: 20px;
+}
+
+.ad-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.ad-fields .wide {
+  grid-column: 1 / -1;
+}
+
+.ad-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  grid-column: 1 / -1;
+  padding-top: 4px;
+}
+
+.empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--m-ink-muted);
+}
+
+// Glass save bar that stays in reach while editing.
+.save-bar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 3;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding: 12px;
+  border-radius: var(--m-r-pill);
+  background: var(--m-glass);
+  border: 1px solid var(--m-line);
+  box-shadow: var(--m-shadow-1);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+@media (max-width: 900px) {
+  .cols,
+  .ad-grid,
+  .ad-fields {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,40 @@
+<div class="w narrow page">
+  <app-page-bar [title]="('addresses' | t)" />
+  <div class="list-tools">
+    <a class="btn" routerLink="/address"><m-icon name="plus" />{{ 'addAddress' | t }}</a>
+  </div>
+  <app-async-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!addresses().length"
+    emptyKey="noAddresses"
+    icon="pin"
+    (retry)="load()"
+  />
+  @if (!loading()) {
+    <div class="rows">
+      @for (a of addresses(); track aid(a); let n = $index) {
+        <div class="order-card addr-card" [class.is-default]="a.isDefault" [mReveal]="n % 8">
+          <span class="row-ico"><m-icon name="pin" /></span>
+          <div class="row-main">
+            <strong>
+              {{ a.label || ('addresses' | t) }}
+              @if (a.isDefault) {
+                <span class="tag">{{ 'defaultAddress' | t }}</span>
+              }
+            </strong>
+            <div class="muted">{{ a.fullName }} · <span class="m-num" dir="ltr">{{ a.phone }}</span></div>
+            <div class="addr-line">{{ a.street }} · {{ a.city }}</div>
+          </div>
+          <div class="row-actions">
+            <a class="icon-btn" [routerLink]="['/address', aid(a)]" [attr.aria-label]="'editAddress' | t" [title]="'editAddress' | t"><m-icon name="edit" /></a>
+            @if (!a.isDefault) {
+              <button class="btn ghost-btn sm" type="button" (click)="setDefault(aid(a))">{{ 'setDefault' | t }}</button>
+            }
+            <button class="icon-btn danger" type="button" (click)="remove(aid(a))" [attr.aria-label]="'delete' | t" [title]="'delete' | t"><m-icon name="trash" /></button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

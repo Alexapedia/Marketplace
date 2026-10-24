@@ -1,0 +1,165 @@
+<div class="hd-page">
+  <header class="hd-head">
+    <div [mReveal]="0">
+      <p class="hd-kicker">{{ 'nav.insights' | t }}</p>
+      <h1 class="hd-h">{{ 'reports.title' | t }}</h1>
+      <p class="hd-lead">{{ 'reports.lead' | t }}</p>
+      <span class="m-rule" [mReveal]="1"></span>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="hd-card failed" role="alert">
+      <mat-icon aria-hidden="true">cloud_off</mat-icon>
+      <span class="hd-err">{{ error() }}</span>
+    </div>
+  } @else if (data(); as r) {
+    <div class="kpis">
+      <article class="hd-card hd-kpi m-lift" [mReveal]="0">
+        <span class="kpi-top">{{ 'reports.orders' | t }} · 14d<mat-icon aria-hidden="true">receipt_long</mat-icon></span>
+        <strong [mCountUp]="totals().orders"></strong>
+      </article>
+      <article class="hd-card hd-kpi m-lift feature" [mReveal]="1">
+        <span class="kpi-top">{{ 'reports.revenue' | t }} · 14d<mat-icon aria-hidden="true">payments</mat-icon></span>
+        <strong [mCountUp]="totals().revenue" [mCountUpFormat]="whole"></strong>
+      </article>
+      <article class="hd-card hd-kpi m-lift" [mReveal]="2">
+        <span class="kpi-top">{{ 'reports.visits' | t }} · 14d<mat-icon aria-hidden="true">travel_explore</mat-icon></span>
+        <strong [mCountUp]="totals().visits"></strong>
+      </article>
+      <article class="hd-card hd-kpi m-lift" [mReveal]="3">
+        <span class="kpi-top">{{ 'reports.crashes' | t }} · 14d<mat-icon aria-hidden="true">report_gmailerrorred</mat-icon></span>
+        <strong [mCountUp]="totals().crashes"></strong>
+      </article>
+    </div>
+
+    <div class="grid">
+      <article class="hd-card" [mReveal]="4">
+        <div class="chart-h">
+          <span class="m-eyebrow">{{ 'reports.orders' | t }}</span>
+          <strong class="m-num" [mCountUp]="totals().orders"></strong>
+        </div>
+        <hd-area-chart [values]="orderValues()" [dates]="days()" tone="accent" [height]="160" [label]="'reports.orders' | t" />
+      </article>
+      <article class="hd-card" [mReveal]="5">
+        <div class="chart-h">
+          <span class="m-eyebrow">{{ 'reports.revenue' | t }}</span>
+          <strong class="m-num" [mCountUp]="totals().revenue" [mCountUpFormat]="whole"></strong>
+        </div>
+        <hd-area-chart [values]="revenueValues()" [dates]="days()" tone="primary" [height]="160" [label]="'reports.revenue' | t" />
+      </article>
+    </div>
+
+    <div class="grid">
+      <article class="hd-card" [mReveal]="6">
+        <h2 class="hd-card-title">{{ 'reports.visits' | t }}</h2>
+        <hd-area-chart [values]="visitValues()" tone="accent" [height]="80" [label]="'reports.visits' | t" />
+        <div class="bars">
+          @for (row of r.visitsByPlatform; track row.platform) {
+            <div class="bar-row">
+              <span class="name">{{ row.platform || '—' }}</span>
+              <div class="hd-track"><i [style.width.%]="pct(row.count, visitMax())"></i></div>
+              <b class="m-num">{{ row.count | number }}</b>
+            </div>
+          } @empty {
+            <p class="hd-muted">{{ 'common.empty' | t }}</p>
+          }
+        </div>
+      </article>
+      <article class="hd-card" [mReveal]="7">
+        <h2 class="hd-card-title">
+          {{ 'reports.crashes' | t }}
+          <a routerLink="/issues">{{ 'nav.issues' | t }}</a>
+        </h2>
+        <hd-area-chart [values]="crashValues()" tone="danger" [height]="80" [label]="'reports.crashes' | t" />
+        <div class="bars danger">
+          @for (row of r.issuesByChannel; track row.channel) {
+            <div class="bar-row">
+              <span class="name">{{ row.channel }}</span>
+              <div class="hd-track"><i [style.width.%]="pct(row.count, issueMax())"></i></div>
+              <b class="m-num">{{ row.count }}</b>
+            </div>
+          } @empty {
+            <p class="hd-muted">{{ 'issues.none' | t }}</p>
+          }
+        </div>
+      </article>
+    </div>
+
+    <div class="grid">
+      <article class="hd-card" [mReveal]="7">
+        <h2 class="hd-card-title">{{ 'reports.status' | t }}</h2>
+        <div class="bars">
+          @for (row of r.ordersByStatus; track row.status) {
+            <div class="bar-row">
+              <span class="name"><span [class]="'st-chip st-' + row.status">{{ row.status }}</span></span>
+              <div class="hd-track"><i [style.width.%]="pct(row.count, statusMax())"></i></div>
+              <b class="m-num">{{ row.count | number }}</b>
+            </div>
+          } @empty {
+            <p class="hd-muted">{{ 'common.empty' | t }}</p>
+          }
+        </div>
+      </article>
+      <article class="hd-card" [mReveal]="7">
+        <h2 class="hd-card-title">{{ 'reports.ranking' | t }}</h2>
+        @for (row of r.revenueByTenant; track row.id; let i = $index) {
+          <div class="rank">
+            <span class="pos m-num">{{ i + 1 }}</span>
+            <div class="who">
+              <strong>{{ row.name }}</strong>
+              <small>{{ row.orders }} {{ 'reports.orders' | t }}</small>
+            </div>
+            <div class="rank-bar">
+              <div class="hd-track"><i [style.width.%]="pct(row.revenue, revMax())"></i></div>
+              <b class="m-num">{{ row.revenue | number: '1.0-0' }}</b>
+            </div>
+          </div>
+        } @empty {
+          <p class="hd-muted">{{ 'common.empty' | t }}</p>
+        }
+      </article>
+    </div>
+
+    <article class="hd-card matrix" [mReveal]="7">
+      <h2 class="hd-card-title">{{ 'reports.matrix' | t }}</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'tenants.name' | t }}</th>
+              <th>{{ 'tenants.website' | t }}</th>
+              <th>{{ 'tenants.admin' | t }}</th>
+              <th>{{ 'tenants.mobile' | t }}</th>
+              <th><span class="sr">{{ 'common.open' | t }}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of r.channelMatrix; track row.id; let i = $index) {
+              <tr class="m-enter" [style.animation-delay.ms]="i < 12 ? i * 30 : 360">
+                <td>
+                  <strong>{{ row.name }}</strong>
+                  <span class="hd-pill" [class.on]="row.status === 'active'" [class.off]="row.status !== 'active'">{{ row.status }}</span>
+                </td>
+                <td><span class="hd-pill" [class.on]="row.channels.website" [class.off]="!row.channels.website">{{ row.channels.website ? ('common.enabled' | t) : ('common.disabled' | t) }}</span></td>
+                <td><span class="hd-pill" [class.on]="row.channels.admin" [class.off]="!row.channels.admin">{{ row.channels.admin ? ('common.enabled' | t) : ('common.disabled' | t) }}</span></td>
+                <td><span class="hd-pill" [class.on]="row.channels.mobile" [class.off]="!row.channels.mobile">{{ row.channels.mobile ? ('common.enabled' | t) : ('common.disabled' | t) }}</span></td>
+                <td class="end"><a class="hd-link" [routerLink]="['/tenants', row.id]">{{ 'common.open' | t }}</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+  } @else {
+    <div class="kpis" aria-busy="true">
+      @for (i of skeleton; track i) {
+        <div class="hd-card"><span class="hd-sk" style="height: 64px"></span></div>
+      }
+    </div>
+    <div class="grid">
+      <div class="hd-card"><span class="hd-sk" style="height: 200px"></span></div>
+      <div class="hd-card"><span class="hd-sk" style="height: 200px"></span></div>
+    </div>
+  }
+</div>

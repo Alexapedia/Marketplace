@@ -1,48 +1,46 @@
-@use '@angular/material' as mat;
+@use './styles/maison';
+@use './styles/material';
+@use './styles/admin';
 
-html {
-  height: 100%;
-  @include mat.theme((
-    color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
-}
-
-html, body {
+html,
+body {
   height: 100%;
 }
 
 body {
-  color-scheme: light;
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
   margin: 0;
+  background: var(--m-canvas);
+  color: var(--m-ink);
+  font-family: var(--m-font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body.dark-theme {
-  color-scheme: dark;
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--m-font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--m-ink);
 }
 
-body.light-theme {
-  color-scheme: light;
+:lang(ar) h1,
+:lang(ar) h2,
+:lang(ar) h3,
+:lang(ar) h4 {
+  letter-spacing: 0;
 }
 
-:root {
-  --pm-gold: #c6a667;
-  --pm-ink: #1c1a17;
-  --pm-sidebar: color-mix(in srgb, var(--mat-sys-surface-container) 92%, #c6a667 8%);
+a {
+  color: var(--m-accent-ink);
 }
 
-.snack-ok {
-  --mat-snackbar-container-color: #1c1a17;
-  --mat-snackbar-supporting-text-color: #e8d5a3;
-}
-
-html[lang='ar'] body {
-  font-family: Cairo, Roboto, sans-serif;
+::selection {
+  background: color-mix(in srgb, var(--m-accent) 32%, transparent);
+  color: var(--m-ink);
 }

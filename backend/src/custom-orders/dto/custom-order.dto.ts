@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsIn,
   IsInt,
@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   Min,
+  ValidateNested,
 } from 'class-validator';
 import { OrderAddressDto } from '../../orders/dto/order.dto';
 
@@ -19,6 +20,16 @@ export class CreateCustomOrderDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value) as Record<string, unknown>;
+      } catch {
+        return {};
+      }
+    }
+    return value;
+  })
   @IsObject()
   fields?: Record<string, unknown>;
 
@@ -40,7 +51,14 @@ export class ConfirmProposalDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderAddressDto)
   address?: OrderAddressDto;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsMongoId()
+  addressId?: string;
 }
 
 export class RejectProposalDto {

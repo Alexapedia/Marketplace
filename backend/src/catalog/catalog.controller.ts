@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { IsBooleanString, IsMongoId, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBooleanString, IsMongoId, IsOptional, IsString, Min } from 'class-validator';
 import { Public } from '../common/decorators/public.decorator';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { CategoriesService } from './categories.service';
@@ -35,6 +36,16 @@ class ProductListQuery extends PaginationDto {
   @IsOptional()
   @IsString()
   sort?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  minPrice?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  maxPrice?: number;
 }
 
 class CustomFieldQuery {

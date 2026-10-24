@@ -2,9 +2,14 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { join } from 'path';
 import { randomUUID } from 'crypto';
-import { ALLOWED_UPLOAD_MIMES, MAX_UPLOAD_BYTES } from '../common/constants';
+import {
+  ALLOWED_UPLOAD_MIMES,
+  MAX_UPLOAD_BYTES,
+  MIME_EXTENSIONS,
+} from '../common/constants';
+import { uploadPath } from '../common/utils/upload-url';
 
 @Injectable()
 export class UploadsService {
@@ -21,7 +26,7 @@ export class UploadsService {
   }
 
   toUrl(filename: string) {
-    return `/uploads/${filename}`;
+    return uploadPath(filename);
   }
 }
 
@@ -37,7 +42,9 @@ export function multerOptions(dest: string) {
         file: Express.Multer.File,
         cb: (error: Error | null, filename: string) => void,
       ) => {
-        cb(null, `${randomUUID()}${extname(file.originalname).toLowerCase()}`);
+        // The extension comes from the validated MIME type, so a client cannot
+        // store e.g. an .html or .js file that the server would then execute.
+        cb(null, `${randomUUID()}${MIME_EXTENSIONS[file.mimetype] ?? '.bin'}`);
       },
     }),
     limits: { fileSize: MAX_UPLOAD_BYTES },

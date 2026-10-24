@@ -1,0 +1,194 @@
+<section class="hero" [class.has-media]="!!heroImage()">
+  <div class="hero-media" aria-hidden="true">
+    @if (heroImage()) {
+      <img class="m-kenburns" [src]="heroImage()" alt="" />
+    } @else {
+      <div class="hero-art m-kenburns">
+        <i></i><i></i><i></i>
+      </div>
+    }
+  </div>
+  <div class="hero-scrim" aria-hidden="true"></div>
+  <div class="w hero-inner">
+    <div class="hero-copy">
+      <p class="m-eyebrow hero-eyebrow stage" style="--i: 0">{{ store.brandName() || ('brand' | t) }}</p>
+      <h1 class="stage" style="--i: 1">{{ heroTitle() }}</h1>
+      <span class="m-rule hero-rule" aria-hidden="true"></span>
+      <p class="hero-body stage" style="--i: 2">{{ heroBody() }}</p>
+      <div class="hero-ctas stage" style="--i: 3">
+        <a class="btn hero-btn" routerLink="/shop">
+          {{ 'shopNow' | t }}
+          <m-icon name="arrow" class="m-flip" />
+        </a>
+        <a class="btn o hero-ghost" routerLink="/shop" [queryParams]="{ newArrival: true }">{{ 'newArrivals' | t }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trust" aria-label="trust">
+  <div class="w trust-row">
+    <div class="trust-item" [mReveal]="0">
+      <span class="trust-ico"><m-icon name="cash" /></span>
+      <div><b>{{ 'trustCod' | t }}</b><small>{{ 'trustCodSub' | t }}</small></div>
+    </div>
+    <div class="trust-item" [mReveal]="1">
+      <span class="trust-ico"><m-icon name="truck" /></span>
+      <div><b>{{ 'trustShip' | t }}</b><small>{{ 'trustShipSub' | t }}</small></div>
+    </div>
+    <div class="trust-item" [mReveal]="2">
+      <span class="trust-ico"><m-icon name="spark" /></span>
+      <div><b>{{ 'trustCustom' | t }}</b><small>{{ 'trustCustomSub' | t }}</small></div>
+    </div>
+  </div>
+</section>
+
+<div class="w home">
+  @if (loading() || error()) {
+    <div class="home-state">
+      <app-async-state [loading]="loading()" [error]="error()" kind="grid" (retry)="load()" />
+    </div>
+  }
+
+  @if (flatCats().length) {
+    <div class="sec" mReveal>
+      <div class="sec-text">
+        <span class="m-eyebrow">{{ 'mExplore' | t }}</span>
+        <h2>{{ 'categories' | t }}</h2>
+        <span class="m-rule" aria-hidden="true"></span>
+      </div>
+      <a class="sec-link" routerLink="/shop">{{ 'seeAll' | t }} <m-icon name="arrow" /></a>
+    </div>
+    <div class="cats">
+      @for (c of flatCats(); track c._id || c.id; let i = $index) {
+        <a class="cat m-press" [mReveal]="i" [routerLink]="['/shop']" [queryParams]="{ category: c._id || c.id }">
+          <span class="cat-pic m-zoom">
+            @if (c.image) {
+              <img [src]="media(c.image)" alt="" loading="lazy" />
+            } @else {
+              <span class="cat-ph" aria-hidden="true">{{ ((c.names || c.name) | loc).charAt(0) }}</span>
+            }
+          </span>
+          <span class="cat-name">{{ (c.names || c.name) | loc }}</span>
+        </a>
+      }
+    </div>
+  }
+
+  @if (ads().length) {
+    <div class="ads-row">
+      @for (ad of ads(); track ad._id || $index; let i = $index) {
+        @if (adRoute(ad).external) {
+          <a class="ad-tile m-zoom m-lift" [mReveal]="i" [href]="adRoute(ad).path" target="_blank" rel="noopener">
+            @if (ad.image) {
+              <img [src]="media(ad.image)" alt="" loading="lazy" />
+            }
+          </a>
+        } @else {
+          <a class="ad-tile m-zoom m-lift" [mReveal]="i" [routerLink]="adRoute(ad).path" [queryParams]="adRoute(ad).query">
+            @if (ad.image) {
+              <img [src]="media(ad.image)" alt="" loading="lazy" />
+            }
+          </a>
+        }
+      }
+    </div>
+  }
+
+  @if (featured().length) {
+    <div class="sec" mReveal>
+      <div class="sec-text">
+        <span class="m-eyebrow">{{ 'mCollection' | t }}</span>
+        <h2>{{ 'featured' | t }}</h2>
+        <span class="m-rule" aria-hidden="true"></span>
+      </div>
+      <a class="sec-link" routerLink="/shop" [queryParams]="{ featured: true }">{{ 'seeAll' | t }} <m-icon name="arrow" /></a>
+    </div>
+    <div class="grid">
+      @for (p of featured(); track p._id || p.id; let i = $index) {
+        <app-product-card [mReveal]="i" [product]="p" />
+      }
+    </div>
+  }
+
+  @if (arrivals().length) {
+    <div class="sec" mReveal>
+      <div class="sec-text">
+        <span class="m-eyebrow">{{ 'newArrivals' | t }}</span>
+        <h2>{{ 'arrivals' | t }}</h2>
+        <span class="m-rule" aria-hidden="true"></span>
+      </div>
+      <a class="sec-link" routerLink="/shop" [queryParams]="{ newArrival: true }">{{ 'seeAll' | t }} <m-icon name="arrow" /></a>
+    </div>
+    <div class="grid">
+      @for (p of arrivals(); track p._id || p.id; let i = $index) {
+        <app-product-card [mReveal]="i" [product]="p" />
+      }
+    </div>
+  }
+
+  @if (bestsellers().length) {
+    <div class="sec" mReveal>
+      <div class="sec-text">
+        <span class="m-eyebrow">{{ 'mCollection' | t }}</span>
+        <h2>{{ 'bestsellers' | t }}</h2>
+        <span class="m-rule" aria-hidden="true"></span>
+      </div>
+      <a class="sec-link" routerLink="/shop" [queryParams]="{ bestSeller: true }">{{ 'seeAll' | t }} <m-icon name="arrow" /></a>
+    </div>
+    <div class="grid">
+      @for (p of bestsellers(); track p._id || p.id; let i = $index) {
+        <app-product-card [mReveal]="i" [product]="p" />
+      }
+    </div>
+  }
+
+  @if (highlights().length || auth.user()) {
+    <div class="sec" mReveal>
+      <div class="sec-text">
+        <span class="m-eyebrow">{{ 'reviews' | t }}</span>
+        <h2>{{ 'customerReviews' | t }}</h2>
+        <span class="m-rule" aria-hidden="true"></span>
+      </div>
+    </div>
+  }
+  @if (highlights().length) {
+    <div class="quotes">
+      @for (r of highlights(); track r._id || r.id; let i = $index) {
+        <article class="quote" [mReveal]="i">
+          <div class="qh">
+            <strong>{{ r.userName || ('customer' | t) }}</strong>
+            <app-stars [value]="r.rating" />
+          </div>
+          <p>{{ r.comment || '' }}</p>
+        </article>
+      }
+    </div>
+  }
+
+  @if (auth.user()) {
+    <form class="rate-box" mReveal (submit)="submitSiteRating($event)">
+      <b>{{ 'rateSite' | t }}</b>
+      <select [(ngModel)]="siteRating" name="rating" [attr.aria-label]="'rateSite' | t">
+        @for (n of [5, 4.5, 4, 3.5, 3, 2, 1]; track n) {
+          <option [value]="n">{{ n }}</option>
+        }
+      </select>
+      <input [(ngModel)]="siteComment" name="comment" [placeholder]="'comment' | t" [attr.aria-label]="'comment' | t" />
+      <button class="btn" type="submit">{{ 'submitRating' | t }}</button>
+    </form>
+  }
+
+  <section class="cta" mReveal>
+    <span class="cta-rule" aria-hidden="true"></span>
+    <div class="cta-copy">
+      <span class="m-eyebrow">{{ 'customOrders' | t }}</span>
+      <h2>{{ 'customCtaTitle' | t }}</h2>
+      <p>{{ 'customCtaBody' | t }}</p>
+    </div>
+    <a class="btn" [routerLink]="auth.user() ? '/custom/new' : '/login'">
+      {{ 'startCustom' | t }}
+      <m-icon name="arrow" class="m-flip" />
+    </a>
+  </section>
+</div>

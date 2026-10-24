@@ -1,18 +1,21 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
 import { NotificationsApi } from '../../core/api/notifications.api';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { LocPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
-import { AppNotification } from '../../core/models/models';
+import { loc, AppNotification, PageMeta } from '../../core/models/models';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { AsyncState } from '../../shared/async-state';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+
+const PAGE = 20;
 
 @Component({
   selector: 'app-notifications-page',
@@ -24,9 +27,8 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatTableModule,
+    MatIconModule,
     TranslatePipe,
-    LocPipe,
     AsyncState,
   ],
   templateUrl: './notifications-page.html',
@@ -36,14 +38,19 @@ export class NotificationsPage implements OnInit {
   private readonly api = inject(NotificationsApi);
   private readonly fb = inject(FormBuilder);
   private readonly ui = inject(UiService);
+  private readonly router = inject(Router);
   readonly i18n = inject(I18nService);
 
   readonly sending = signal(false);
   readonly historyLoading = signal(false);
   readonly historyError = signal<string | null>(null);
   readonly history = signal<AppNotification[]>([]);
-  readonly showHistory = signal(false);
-  readonly cols = ['title', 'createdAt'];
+  readonly inboxLoading = signal(false);
+  readonly inboxError = signal<string | null>(null);
+  readonly inbox = signal<AppNotification[]>([]);
+  readonly inboxMeta = signal<PageMeta | null>(null);
+  readonly historyMeta = signal<PageMeta | null>(null);
+  readonly loadingMore = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     titleEn: ['', Validators.required],
@@ -55,24 +62,104 @@ export class NotificationsPage implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadInbox();
     this.loadHistory();
   }
 
-  loadHistory(): void {
-    this.historyLoading.set(true);
-    this.historyError.set(null);
-    this.api.history({ limit: 50 }).subscribe({
+  loadInbox(page = 1): void {
+    if (page === 1) {
+      this.inboxLoading.set(true);
+      this.inboxError.set(null);
+    } else {
+      this.loadingMore.set(true);
+    }
+    this.api.inbox({ page, limit: PAGE }).subscribe({
       next: (res) => {
-        this.history.set(asList(res.data));
-        this.showHistory.set(true);
-        this.historyLoading.set(false);
+        const rows = asList(res.data);
+        this.inbox.set(page === 1 ? rows : [...this.inbox(), ...rows]);
+        this.inboxMeta.set(res.meta ?? null);
+        this.inboxLoading.set(false);
+        this.loadingMore.set(false);
       },
-      error: () => {
-        this.showHistory.set(false);
-        this.historyLoading.set(false);
-        this.historyError.set(null);
+      error: (err: unknown) => {
+        this.inboxLoading.set(false);
+        this.loadingMore.set(false);
+        if (page === 1) this.inboxError.set(errMessage(err));
+        else this.ui.error(errMessage(err));
       },
     });
+  }
+
+  hasMore(meta: PageMeta | null): boolean {
+    return !!meta && meta.page < meta.totalPages;
+  }
+
+  hasUnread(): boolean {
+    return this.inbox().some((n) => !n.readAt);
+  }
+
+  markAllRead(): void {
+    this.api.markAllRead().subscribe({
+      next: () => {
+        const now = new Date().toISOString();
+        this.inbox.update((list) => list.map((n) => (n.readAt ? n : { ...n, readAt: now })));
+      },
+      error: (err: unknown) => this.ui.error(errMessage(err)),
+    });
+  }
+
+  loadHistory(page = 1): void {
+    if (page === 1) {
+      this.historyLoading.set(true);
+      this.historyError.set(null);
+    } else {
+      this.loadingMore.set(true);
+    }
+    this.api.history({ page, limit: PAGE }).subscribe({
+      next: (res) => {
+        const rows = asList(res.data);
+        this.history.set(page === 1 ? rows : [...this.history(), ...rows]);
+        this.historyMeta.set(res.meta ?? null);
+        this.historyLoading.set(false);
+        this.loadingMore.set(false);
+      },
+      error: (err: unknown) => {
+        this.historyLoading.set(false);
+        this.loadingMore.set(false);
+        if (page === 1) this.historyError.set(errMessage(err));
+        else this.ui.error(errMessage(err));
+      },
+    });
+  }
+
+  titleOf(item: AppNotification): string {
+    return loc(item.title, this.i18n.lang()) || item.type || '';
+  }
+
+  bodyOf(item: AppNotification): string {
+    return loc(item.body, this.i18n.lang());
+  }
+
+  openItem(item: AppNotification): void {
+    const id = item._id ?? item.id ?? '';
+    if (id) {
+      this.api.markRead(id).subscribe({
+        next: () =>
+          this.inbox.update((list) =>
+            list.map((n) =>
+              (n._id ?? n.id) === id ? { ...n, readAt: new Date().toISOString() } : n,
+            ),
+          ),
+        error: () => undefined,
+      });
+    }
+    if (item.type === 'new_custom_order') {
+      void this.router.navigate(['/custom-orders']);
+      return;
+    }
+    if (item.type === 'new_order' || item.data?.['orderId']) {
+      void this.router.navigate(['/orders']);
+    }
   }
 
   send(): void {
@@ -97,6 +184,14 @@ export class NotificationsPage implements OnInit {
         next: () => {
           this.sending.set(false);
           this.ui.success(this.i18n.t('notifications.sent'));
+          this.form.reset({
+            titleEn: '',
+            titleAr: '',
+            bodyEn: '',
+            bodyAr: '',
+            target: 'all',
+            userIds: '',
+          });
           this.loadHistory();
         },
         error: (err: unknown) => {

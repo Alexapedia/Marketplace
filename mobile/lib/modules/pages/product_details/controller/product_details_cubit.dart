@@ -4,17 +4,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/connection/concept/end_points.dart';
 import '../../../../core/connection/interfaces/api_consumer.dart';
 import '../../../../core/models/catalog_models.dart';
+import '../../../../core/models/review_models.dart';
 import '../../../../core/utils/constant/app_enum.dart';
+import '../../../../core/utils/functions/app_toast.dart';
 import '../../../../core/utils/functions/json_helpers.dart';
 import '../../../../core/utils/functions/service_locator.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'product_details_state.dart';
 
-class ProductDetailsCubit extends Cubit<ProductDetailsState> {
+class ProductDetailsCubit extends Cubit<ProductDetailsState> with SafeEmitMixin<ProductDetailsState> {
   ProductDetailsCubit() : super(const ProductDetailsState());
 
   Future<void> load(String id) async {
-    emit(state.copyWith(status: RequestStatus.loading));
+    emit(state.copyWith(status: RequestStatus.loading, productId: id));
     final response = await sl.get<ApiConsumer>().get(EndPoints.product(id));
     response.fold(
       (l) => emit(state.copyWith(status: RequestStatus.failed, error: l)),
@@ -26,14 +29,57 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
             product: product,
             quantity: 1,
             selectedSize: product.sizes.isNotEmpty ? product.sizes.first : null,
+            selectedVariant: _defaultVariant(product),
           ),
         );
+        loadReviews(id);
       },
     );
   }
 
+  Future<void> loadReviews(String id) async {
+    final response = await sl.get<ApiConsumer>().get(
+      EndPoints.reviews,
+      queryParameters: {'targetType': 'product', 'targetId': id, 'limit': 20},
+    );
+    response.fold((_) {}, (s) {
+      emit(state.copyWith(reviews: ReviewsPayload.fromJson(s.response)));
+    });
+  }
+
+  Future<void> submitReview(double rating, String comment) async {
+    final p = state.product;
+    if (p == null) return;
+    final response = await sl.get<ApiConsumer>().post(
+      EndPoints.reviews,
+      body: {
+        'targetType': 'product',
+        'targetId': p.id,
+        'rating': rating,
+        'comment': comment,
+      },
+    );
+    response.fold((l) => AppToast(l, isError: true), (_) {
+      AppToast('rating_thanks');
+      load(p.id);
+    });
+  }
+
+  String? _defaultVariant(ProductModel product) {
+    if (product.variants.isEmpty) return null;
+    final inStock = product.variants.where((v) => v.inStock);
+    return (inStock.isNotEmpty ? inStock.first : product.variants.first).key;
+  }
+
   void setSize(String size) => emit(state.copyWith(selectedSize: size));
-  void setQty(int q) => emit(state.copyWith(quantity: q.clamp(1, 99)));
+
+  void setVariant(String key) => emit(state.copyWith(selectedVariant: key, quantity: 1));
+
+  void setQty(int q) {
+    final stock = state.product?.stockFor(state.selectedVariant) ?? 99;
+    final max = stock > 0 ? stock.clamp(1, 99) : 1;
+    emit(state.copyWith(quantity: q.clamp(1, max)));
+  }
 
   Future<void> toggleFav() async {
     final p = state.product;
@@ -43,7 +89,10 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
     if (isFav) {
       await sl.get<ApiConsumer>().delete(EndPoints.favorite(p.id));
     } else {
-      await sl.get<ApiConsumer>().post(EndPoints.favorite(p.id), body: {});
+      await sl.get<ApiConsumer>().post(
+        EndPoints.favorites,
+        body: {'productId': p.id},
+      );
     }
   }
 }

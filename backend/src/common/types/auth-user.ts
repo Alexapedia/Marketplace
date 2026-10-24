@@ -6,4 +6,5 @@ export interface AuthUser {
   type: 'customer' | 'staff';
   status: string;
   permissions: string[];
+  tenantId: string;
 }

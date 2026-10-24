@@ -8,6 +8,7 @@ import '../../modules/auth/login/controller/login_cubit.dart';
 import '../../modules/auth/login/view/login_screen.dart';
 import '../../modules/auth/register/controller/register_cubit.dart';
 import '../../modules/auth/register/view/register_screen.dart';
+import '../../modules/common/channel_disabled/view/channel_disabled_screen.dart';
 import '../../modules/common/force_upgrade/view/force_upgrade_screen.dart';
 import '../../modules/common/navigation_bar/controller/navigation_bar_cubit.dart';
 import '../../modules/common/navigation_bar/view/navigation_bar_screen.dart';
@@ -18,14 +19,20 @@ import '../../modules/common/splash/view/splash_screen.dart';
 import '../../modules/pages/cart/view/cart_screen.dart';
 import '../../modules/pages/chat/view/chat_screen.dart';
 import '../../modules/pages/checkout/view/checkout_screen.dart';
-import '../../modules/pages/custom_order/view/custom_order_details_screen.dart';
 import '../../modules/pages/custom_order/view/custom_order_screen.dart';
-import '../../modules/pages/orders/view/order_details_screen.dart';
+import '../../modules/pages/custom_order_details/view/custom_order_details_screen.dart';
+import '../../modules/pages/custom_orders_list/view/custom_orders_list_screen.dart';
+import '../../modules/pages/favorites/view/favorites_screen.dart';
+import '../../modules/pages/order_details/view/order_details_screen.dart';
 import '../../modules/pages/orders/view/orders_screen.dart';
 import '../../modules/pages/product_details/view/product_details_screen.dart';
 import '../../modules/pages/products/view/products_screen.dart';
+import '../../modules/pages/address_form/view/address_form_screen.dart';
+import '../../modules/pages/addresses/view/addresses_screen.dart';
+import '../../modules/pages/edit_profile/view/edit_profile_screen.dart';
 import '../../placemarket_app.dart';
 import '../app_controller/app_controller_cubit.dart';
+import '../../core/models/address_models.dart';
 import '../../core/models/app_models.dart';
 import '../../core/utils/functions/service_locator.dart';
 import 'app_router_keys.dart';
@@ -47,6 +54,13 @@ final GoRouter appRouter = GoRouter(
       final extra = state.extra;
       final version = extra is AppVersionModel ? extra : const AppVersionModel();
       return ForceUpgradeScreen(version: version);
+    }),
+    getRouteInstance(AppRouterKeys.channelDisabled, (state) {
+      final extra = state.extra;
+      final key = extra is String && extra.isNotEmpty
+          ? extra
+          : 'channel_disabled_mobile';
+      return ChannelDisabledScreen(messageKey: key);
     }),
     getRouteInstance(
       AppRouterKeys.forgetPassword,
@@ -100,7 +114,7 @@ final GoRouter appRouter = GoRouter(
       );
     }),
     getRouteInstance(AppRouterKeys.search, (state) {
-      return const ProductsScreen();
+      return const ProductsScreen(autofocus: true);
     }),
     getRouteInstance(AppRouterKeys.notificationScreen, (_) => const NotificationScreen()),
     getRouteInstance(AppRouterKeys.cart, (_) => const CartScreen()),
@@ -111,12 +125,21 @@ final GoRouter appRouter = GoRouter(
       return OrderDetailsScreen(orderId: id);
     }),
     getRouteInstance(AppRouterKeys.customOrder, (_) => const CustomOrderScreen()),
+    getRouteInstance(AppRouterKeys.myCustomOrders, (_) => const CustomOrdersListScreen()),
     getRouteInstance(AppRouterKeys.customOrderDetails, (state) {
       return CustomOrderDetailsScreen(orderId: state.extra?.toString() ?? '');
     }),
     getRouteInstance(AppRouterKeys.chat, (state) {
       return ChatScreen(orderId: state.extra?.toString() ?? '');
     }),
+    getRouteInstance(AppRouterKeys.editProfile, (_) => const EditProfileScreen()),
+    getRouteInstance(AppRouterKeys.addresses, (_) => const AddressesScreen()),
+    getRouteInstance(AppRouterKeys.addressForm, (state) {
+      return AddressFormScreen(
+        initial: state.extra is AddressModel ? state.extra as AddressModel : null,
+      );
+    }),
+    getRouteInstance(AppRouterKeys.favorites, (_) => const FavoritesScreen()),
   ],
 );
 

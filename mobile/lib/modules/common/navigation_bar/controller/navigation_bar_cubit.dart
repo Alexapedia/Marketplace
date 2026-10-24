@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../pages/categories/view/categories_screen.dart';
-import '../../../pages/favorites/view/favorites_screen.dart';
 import '../../../pages/home/view/home_screen.dart';
 import '../../../pages/orders/view/orders_screen.dart';
 import '../../../pages/profile/view/profile_screen.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'navigation_bar_state.dart';
 
@@ -21,7 +21,7 @@ class NavItemData {
   final String label;
 }
 
-class NavigationBarCubit extends Cubit<NavigationBarState> {
+class NavigationBarCubit extends Cubit<NavigationBarState> with SafeEmitMixin<NavigationBarState> {
   NavigationBarCubit() : super(const NavigationBarState());
 
   final List<NavItemData> navItems = const [
@@ -34,11 +34,6 @@ class NavigationBarCubit extends Cubit<NavigationBarState> {
       icon: Icons.grid_view_outlined,
       activeIcon: Icons.grid_view_rounded,
       label: 'categories',
-    ),
-    NavItemData(
-      icon: Icons.favorite_border_rounded,
-      activeIcon: Icons.favorite_rounded,
-      label: 'favorites',
     ),
     NavItemData(
       icon: Icons.receipt_long_outlined,
@@ -55,7 +50,6 @@ class NavigationBarCubit extends Cubit<NavigationBarState> {
   final List<Widget> screens = const [
     HomeScreen(),
     CategoriesScreen(),
-    FavoritesScreen(),
     OrdersScreen(),
     ProfileScreen(),
   ];

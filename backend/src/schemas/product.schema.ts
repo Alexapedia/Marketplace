@@ -46,6 +46,12 @@ export class Product {
   @Prop({ default: 0 })
   stock: number;
 
+  @Prop({ default: 0 })
+  ratingAvg: number;
+
+  @Prop({ default: 0 })
+  ratingCount: number;
+
   @Prop({ type: [ProductVariantSchema], default: [] })
   variants: ProductVariant[];
 

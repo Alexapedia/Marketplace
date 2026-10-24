@@ -1,0 +1,48 @@
+.lead {
+  margin: 0 0 24px;
+  max-width: 640px;
+  color: var(--m-ink-muted);
+  font-size: 15px;
+}
+
+// Segmented tab bar (pill track, accent active pill).
+.tabs {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 28px;
+  padding: 4px;
+  border-radius: var(--m-r-pill);
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+.tabs button {
+  flex: none;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--m-r-pill);
+  background: transparent;
+  color: var(--m-ink-muted);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--m-dur-fast) var(--m-ease-out),
+    color var(--m-dur-fast) var(--m-ease-out);
+}
+.tabs button:hover {
+  color: var(--m-ink);
+}
+.tabs button.on {
+  background: var(--m-accent);
+  color: var(--m-on-accent);
+  box-shadow: 0 8px 18px -12px color-mix(in srgb, var(--m-accent) 90%, transparent);
+}

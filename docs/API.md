@@ -18,7 +18,9 @@ Error:
 
 Auth: `Authorization: Bearer <jwt>`
 
-JWT payload: `{ sub, email, role, type }` where `type` is `customer` or `staff`.
+JWT payload: `{ sub, email, role, type, tenantId, aud }` where `type` is `customer` or `staff` and `aud` is `tenant`.
+
+Sessions: login/register/firebase/2FA responses return `{ user, accessToken, refreshToken }`. Access tokens are short-lived (`JWT_EXPIRES_IN`, default `15m`). On a 401, call `POST /auth/refresh` with the refresh token; each refresh token is single-use and is rotated (valid `REFRESH_TOKEN_DAYS`, default 30). Resetting the password revokes all refresh tokens.
 
 Roles: `customer`, `super_admin`, `admin`, `support_agent`, `order_manager`, `product_manager`, `marketing_manager`
 
@@ -34,12 +36,13 @@ Permissions are stored on roles and checked via `@Permissions('orders.write')`.
 |---|---|---|
 | POST | `/auth/register` | `{ name, email, password, phone? }` |
 | POST | `/auth/login` | `{ email, password }` |
-| POST | `/auth/forgot-password` | `{ email }` |
+| POST | `/auth/refresh` | `{ refreshToken }` → new `{ user, accessToken, refreshToken }` |
+| POST | `/auth/forgot-password` | `{ email }` — emails a reset link (`<website>/reset?token=…`) and code via SMTP (`SMTP_*` env); logged to console when SMTP is unset |
 | POST | `/auth/reset-password` | `{ token, password }` |
 | POST | `/auth/firebase` | `{ idToken }` |
 | GET | `/auth/me` | auth |
 | PATCH | `/auth/me` | `{ name?, phone?, language?, theme?, avatar?, fcmToken? }` |
-| POST | `/auth/logout` | auth |
+| POST | `/auth/logout` | auth, `{ refreshToken? }` revokes that refresh token |
 
 ## Public catalog
 
@@ -49,7 +52,7 @@ Permissions are stored on roles and checked via `@Permissions('orders.write')`.
 | GET | `/app/version?platform=ios\|android` | force upgrade |
 | GET | `/categories` | tree |
 | GET | `/categories/:id` | |
-| GET | `/products` | query: categoryId, search, featured, newArrival, bestSeller, gender, page, limit, sort |
+| GET | `/products` | query: categoryId, search, featured, newArrival, bestSeller, gender, minPrice, maxPrice, page, limit, sort (`price`, `-price`, `-createdAt`, `-ratingAvg`; prefix `-` for desc) |
 | GET | `/products/:id` | |
 | GET | `/custom-fields?categoryId=` | fields for custom orders |
 
@@ -76,6 +79,8 @@ Permissions are stored on roles and checked via `@Permissions('orders.write')`.
 | POST | `/custom-orders/:id/messages` `{ text?, type }` + files |
 | GET | `/notifications` |
 | PATCH | `/notifications/:id/read` |
+| PATCH | `/notifications/read-all` |
+| DELETE | `/notifications/:id` |
 | POST | `/uploads` | multipart `file` |
 
 Order statuses: `pending`, `accepted`, `rejected`, `preparing`, `ready`, `out_for_delivery`, `delivered`, `completed`, `cancelled`

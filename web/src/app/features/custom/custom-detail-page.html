@@ -1,0 +1,86 @@
+<div class="w narrow page">
+  @if (order(); as o) {
+    <app-page-bar [title]="title(o)" />
+    <section class="panel m-enter">
+      <div class="panel-head">
+        <span class="status-pill" [attr.data-s]="o.status">{{ ('cstatus_' + o.status) | t }}</span>
+      </div>
+      <p class="co-desc">{{ o.description || '' }}</p>
+
+      @if (o.attachments?.length) {
+        <div class="thumbs">
+          @for (src of o.attachments; track src) {
+            <a class="thumb on" [href]="media(src)" target="_blank" rel="noopener"><img [src]="media(src)" alt="" /></a>
+          }
+        </div>
+      }
+    </section>
+
+    @for (p of o.proposals || []; track p._id; let n = $index) {
+      <section class="panel proposal" [mReveal]="n">
+        <span class="proposal-rule" aria-hidden="true"></span>
+        <div class="proposal-head">
+          <div>
+            <span class="m-eyebrow">{{ 'quote' | t }}</span>
+            <h2 class="panel-title">{{ p.productName || ('quote' | t) }}</h2>
+          </div>
+          <span class="proposal-price price">{{ p.price ?? 0 }} <small>{{ 'currency' | t }}</small></span>
+        </div>
+        @if (p.notes) {
+          <p class="co-desc">{{ p.notes }}</p>
+        }
+        <span class="status-pill" [attr.data-s]="p.status || 'sent'">{{ ('pstatus_' + (p.status || 'sent')) | t }}</span>
+        @if (!p.status || p.status === 'sent') {
+          <div class="field proposal-field">
+            <label [attr.for]="'pa-' + p._id">{{ 'selectAddress' | t }}</label>
+            <select [id]="'pa-' + p._id" [(ngModel)]="confirmAddressId" name="confirmAddress">
+              @for (a of addresses(); track a._id || a.id) {
+                <option [value]="a._id || a.id">
+                  {{ a.label || a.city }} — {{ a.street }}
+                </option>
+              }
+            </select>
+          </div>
+          <div class="proposal-actions">
+            <button class="btn" type="button" [disabled]="busy()" (click)="confirm(p._id!)"><m-icon name="check" />{{ 'confirmQuote' | t }}</button>
+            <button class="btn outline" type="button" (click)="reject(p._id!)">{{ 'rejectQuote' | t }}</button>
+          </div>
+        }
+      </section>
+    }
+
+    <section class="panel chat" [mReveal]="1">
+      <h2 class="panel-title">{{ 'chat' | t }}</h2>
+      <span class="m-rule" aria-hidden="true"></span>
+      <div class="chat-log" aria-live="polite">
+        @for (m of messages(); track m._id || m.id) {
+          <div class="msg m-enter" [class.mine]="isMine(m)">
+            {{ m.text || '' }}
+            @if (m.attachments?.length) {
+              <div class="msg-files">
+                @for (src of m.attachments; track src) {
+                  <a [href]="media(src)" target="_blank" rel="noopener">
+                    <img [src]="media(src)" alt="" />
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        } @empty {
+          <p class="muted chat-empty"><m-icon name="chat" />{{ 'chat' | t }}</p>
+        }
+      </div>
+      <form class="composer" (submit)="sendChat($event)">
+        <label class="composer-file" [title]="'attachments' | t">
+          <m-icon name="clip" />
+          <span class="sr-only">{{ 'attachments' | t }}</span>
+          <input type="file" multiple (change)="onChatFiles($event)" />
+        </label>
+        <input class="composer-input" [(ngModel)]="text" name="text" [placeholder]="'chat' | t" [attr.aria-label]="'chat' | t" />
+        <button class="composer-send" type="submit" [attr.aria-label]="'send' | t" [title]="'send' | t">
+          <m-icon name="send" class="m-flip" />
+        </button>
+      </form>
+    </section>
+  }
+</div>

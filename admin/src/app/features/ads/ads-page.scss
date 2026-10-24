@@ -1,0 +1,29 @@
+.hint {
+  margin: -8px 0 20px;
+  max-width: 640px;
+  color: var(--m-ink-muted);
+  font-size: 14px;
+}
+
+.full {
+  width: 100%;
+}
+
+td .thumb {
+  width: 72px;
+  height: 44px;
+  margin: 0;
+}
+
+.thumb.empty {
+  display: block;
+}
+
+.langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--m-ink-muted);
+}

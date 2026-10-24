@@ -45,6 +45,8 @@ class BannerModel {
   final String? link;
   final String? productId;
   final String? categoryId;
+  final bool active;
+  final String placement;
 
   const BannerModel({
     this.id = '',
@@ -54,7 +56,17 @@ class BannerModel {
     this.link,
     this.productId,
     this.categoryId,
+    this.active = true,
+    this.placement = AdPlacement.home,
   });
+
+  bool get isHome =>
+      active &&
+      (placement == AdPlacement.home || placement == AdPlacement.both);
+
+  bool get isProducts =>
+      active &&
+      (placement == AdPlacement.products || placement == AdPlacement.both);
 
   factory BannerModel.fromJson(dynamic json) {
     final map = asMap(json);
@@ -66,7 +78,22 @@ class BannerModel {
       link: map['link']?.toString(),
       productId: map['productId']?.toString(),
       categoryId: map['categoryId']?.toString(),
+      active: asBool(map['active'], true),
+      placement: AdPlacement.normalize(map['placement']?.toString()),
     );
+  }
+}
+
+class AdPlacement {
+  static const String home = 'home';
+  static const String products = 'products';
+  static const String both = 'both';
+
+  static String normalize(String? raw) {
+    return switch (raw) {
+      products || both => raw!,
+      _ => home,
+    };
   }
 }
 
@@ -94,16 +121,67 @@ class OnboardingSlide {
   }
 }
 
+class TenantPublic {
+  final String status;
+  final bool mobileEnabled;
+  final String brandName;
+  final String primary;
+  final String accent;
+
+  /// Store logo URLs (`branding.logo` / `branding.logoDark`); empty = none.
+  final String logo;
+  final String logoDark;
+
+  /// Full-screen splash image URL (`branding.splash`); empty = built-in splash.
+  final String splash;
+
+  const TenantPublic({
+    this.status = 'active',
+    this.mobileEnabled = true,
+    this.brandName = '',
+    this.primary = '',
+    this.accent = '',
+    this.logo = '',
+    this.logoDark = '',
+    this.splash = '',
+  });
+
+  factory TenantPublic.fromJson(dynamic json) {
+    final map = asMap(json);
+    final channels = asMap(map['channels']);
+    final branding = asMap(map['branding']);
+    return TenantPublic(
+      status: asString(map['status'], 'active'),
+      mobileEnabled: !channels.containsKey('mobile') || asBool(channels['mobile'], true),
+      brandName: asString(branding['name'], asString(map['name'])),
+      primary: asString(branding['primary']),
+      accent: asString(branding['accent']),
+      logo: asString(branding['logo']),
+      logoDark: asString(branding['logoDark']),
+      splash: asString(branding['splash']),
+    );
+  }
+
+  bool get blocked => status == 'suspended' || !mobileEnabled;
+}
+
 class AppConfigModel {
   final List<BannerModel> banners;
   final List<OnboardingSlide> onboarding;
   final Map<String, dynamic> settings;
+  final TenantPublic? tenant;
 
   const AppConfigModel({
     this.banners = const [],
     this.onboarding = const [],
     this.settings = const {},
+    this.tenant,
   });
+
+  List<BannerModel> get homeAds => banners.where((b) => b.isHome).toList();
+
+  List<BannerModel> get productAds =>
+      banners.where((b) => b.isProducts).toList();
 
   factory AppConfigModel.fromJson(dynamic json) {
     final map = asMap(unwrapData(json));
@@ -113,6 +191,7 @@ class AppConfigModel {
         map['onboarding'],
       ).map(OnboardingSlide.fromJson).toList(),
       settings: asMap(map['settings']),
+      tenant: map['tenant'] == null ? null : TenantPublic.fromJson(map['tenant']),
     );
   }
 }
@@ -160,6 +239,7 @@ class NotificationModel {
   final DateTime? createdAt;
   final String? type;
   final String? referenceId;
+  final Map<String, dynamic> data;
 
   const NotificationModel({
     this.id = '',
@@ -169,18 +249,38 @@ class NotificationModel {
     this.createdAt,
     this.type,
     this.referenceId,
+    this.data = const {},
   });
+
+  NotificationModel markedRead() => NotificationModel(
+        id: id,
+        title: title,
+        body: body,
+        isRead: true,
+        createdAt: createdAt,
+        type: type,
+        referenceId: referenceId,
+        data: data,
+      );
 
   factory NotificationModel.fromJson(dynamic json) {
     final map = asMap(json);
+    final data = asMap(map['data']);
     return NotificationModel(
       id: asString(map['_id'] ?? map['id']),
       title: localized(map['title']),
       body: localized(map['body'] ?? map['message']),
-      isRead: asBool(map['isRead'] ?? map['read']),
+      isRead: asBool(map['isRead'] ?? map['read']) ||
+          asString(map['readAt']).isNotEmpty,
       createdAt: DateTime.tryParse(asString(map['createdAt'])),
       type: map['type']?.toString(),
-      referenceId: (map['referenceId'] ?? map['orderId'])?.toString(),
+      referenceId: asString(
+        data['orderId'] ??
+            data['customOrderId'] ??
+            map['referenceId'] ??
+            map['orderId'],
+      ),
+      data: data,
     );
   }
 }

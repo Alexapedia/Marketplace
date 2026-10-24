@@ -1,0 +1,103 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../../config/routing/app_router_keys.dart';
+import '../../../../../config/theme/maison.dart';
+import '../../../../../core/components/app_button.dart';
+import '../../../../../core/components/maison.dart';
+import '../../../../../core/models/catalog_models.dart';
+import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/utils/constant/app_enum.dart';
+import '../../../../../core/utils/functions/responsive.dart';
+import '../../controller/cart_cubit.dart';
+import 'cart_item_tile.dart';
+import 'cart_summary.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
+
+class CartBody extends StatelessWidget {
+  const CartBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CartCubit, CartState>(
+      builder: (context, state) {
+        if (state.status == RequestStatus.failed) {
+          return FailedShape(
+            msg: state.error,
+            onTapRefresh: () => context.read<CartCubit>().load(),
+          );
+        }
+        final loading = state.status != RequestStatus.loaded;
+        final items = state.cart.items;
+        if (!loading && items.isEmpty) {
+          return EmptyState(
+            title: 'empty_cart'.tr(),
+            subtitle: 'empty_cart_hint'.tr(),
+            icon: Icons.shopping_bag_outlined,
+            action: AppButton(
+              onTap: () => context.goNamed(AppRouterKeys.navigatorBarScreen),
+              title: 'continue_shopping'.tr(),
+              size: const Size(240, 52),
+            ),
+          );
+        }
+        final split = context.isTablet || context.isDesktop;
+        final list = Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => context.read<CartCubit>().load(),
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              itemCount: loading ? 3 : items.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              itemBuilder: (context, i) {
+                if (loading) {
+                  return const CartItemTile(
+                    item: CartItemModel(id: '', productId: ''),
+                  );
+                }
+                return Reveal(
+                  index: i,
+                  child: CartItemTile(item: items[i]),
+                );
+              },
+            ),
+          ),
+        );
+        final summary = CartSummary(
+          total: state.cart.total,
+          canCheckout: items.isNotEmpty,
+          expand: split,
+        );
+        return MaisonSkeleton(
+          enabled: loading,
+          child: split
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    list,
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: context.maison.surface,
+                        border: BorderDirectional(
+                          start: BorderSide(color: context.maison.line),
+                        ),
+                      ),
+                      child: SizedBox(
+                        width: (context.responsive.width * 0.38).clamp(
+                          280,
+                          420,
+                        ),
+                        child: summary,
+                      ),
+                    ),
+                  ],
+                )
+              : Column(children: [list, summary]),
+        );
+      },
+    );
+  }
+}

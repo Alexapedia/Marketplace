@@ -1,32 +1,100 @@
-<h2>{{ 'roles.title' | t }}</h2>
-<app-async-state [loading]="loading()" [error]="error()" [empty]="!loading() && !error() && roles().length === 0" (retry)="load()" />
-@if (!loading() && !error()) {
-  <div class="grid">
-    @for (role of roles(); track entityId(role)) {
-      <mat-card appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>{{ role.name }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-chip-set>
-            @for (p of role.permissions; track p) {
-              <mat-chip>{{ p }}</mat-chip>
+<p class="hint">{{ 'roles.hint' | t }}</p>
+<app-async-state
+  [loading]="loading()"
+  [error]="error()"
+  [empty]="!loading() && !error() && roles().length === 0"
+  (retry)="load()"
+/>
+
+@if (!loading() && !error() && roles().length) {
+  <div class="layout">
+    <aside class="rail">
+      <div class="rail-h">{{ 'roles.title' | t }}</div>
+      @for (role of roles(); track entityId(role)) {
+        <button
+          type="button"
+          class="role-btn"
+          [class.on]="selectedId() === entityId(role)"
+          (click)="selectRole(role)"
+        >
+          <span class="role-name">{{ roleLabel(role.name) }}</span>
+          <span class="role-meta">
+            @if (role.name === 'super_admin' || role.name === 'customer') {
+              <span class="lock">{{ 'roles.locked' | t }}</span>
+            } @else {
+              {{ count(role) }}/{{ catalog.length }}
             }
-          </mat-chip-set>
-          <mat-form-field appearance="outline" class="full">
-            <mat-label>{{ 'roles.permissions' | t }}</mat-label>
-            <textarea
-              matInput
-              rows="3"
-              [ngModel]="drafts()[entityId(role)]"
-              (ngModelChange)="setDraft(entityId(role), $event)"
-            ></textarea>
-          </mat-form-field>
-          <button mat-flat-button (click)="save(role)" [disabled]="role.isSystem && role.name === 'super_admin'">
-            {{ 'roles.save' | t }}
-          </button>
-        </mat-card-content>
-      </mat-card>
+          </span>
+        </button>
+      }
+    </aside>
+
+    @if (selectedRole(); as role) {
+      <section class="editor">
+        <header class="editor-h">
+          <div>
+            <h3>{{ roleLabel(role.name) }}</h3>
+            <p>
+              {{ selected().size }}/{{ catalog.length }} {{ 'roles.enabled' | t }}
+            </p>
+          </div>
+          <div class="actions">
+            @if (!locked()) {
+              <button mat-button type="button" (click)="selectAll(selected().size !== catalog.length)">
+                {{ selected().size === catalog.length ? ('roles.clear' | t) : ('roles.selectAll' | t) }}
+              </button>
+              <button mat-button type="button" [disabled]="!dirty()" (click)="reset()">
+                {{ 'common.cancel' | t }}
+              </button>
+              <button mat-flat-button type="button" [disabled]="!dirty() || saving()" (click)="save()">
+                {{ 'roles.save' | t }}
+              </button>
+            }
+          </div>
+        </header>
+
+        @if (locked()) {
+          <div class="banner">{{ lockHint(role.name) }}</div>
+        }
+
+        <mat-form-field appearance="outline" class="search">
+          <mat-label>{{ 'roles.searchPerms' | t }}</mat-label>
+          <input matInput [ngModel]="query()" (ngModelChange)="query.set($event)" />
+        </mat-form-field>
+
+        <div class="groups" [class.dim]="locked()">
+          @for (group of visibleGroups(); track group.key) {
+            <article class="group">
+              <div class="group-h">
+                <mat-checkbox
+                  [checked]="groupState(group.items) === 'all'"
+                  [indeterminate]="groupState(group.items) === 'some'"
+                  [disabled]="locked()"
+                  (change)="toggleGroup(group.items, $event.checked)"
+                >
+                  {{ groupLabel(group.key) }}
+                </mat-checkbox>
+              </div>
+              <div class="perms">
+                @for (perm of group.items; track perm) {
+                  <div class="perm" [class.on]="has(perm)">
+                    <mat-checkbox
+                      [checked]="has(perm)"
+                      [disabled]="locked()"
+                      (change)="onCheck(perm, $event)"
+                    >
+                      <span class="perm-copy">
+                        <strong>{{ permLabel(perm) }}</strong>
+                        <small>{{ perm }}</small>
+                      </span>
+                    </mat-checkbox>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      </section>
     }
   </div>
 }

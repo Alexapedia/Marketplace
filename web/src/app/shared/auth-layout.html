@@ -1,0 +1,63 @@
+<div class="auth-screen">
+  <aside class="auth-brand">
+    <div class="auth-glow" aria-hidden="true"></div>
+    <div class="auth-rings" aria-hidden="true"><i></i><i></i></div>
+    <div class="auth-brand-inner">
+      <a class="auth-logo stage" style="--i: 0" routerLink="/">
+        @if (logo()) {
+          <img [src]="logo()" [alt]="store.brandName() || ('brand' | t)" />
+        } @else {
+          <span class="wordmark">{{ store.brandName() || ('brand' | t) }}</span>
+        }
+      </a>
+      <p class="m-eyebrow auth-kicker stage" style="--i: 1">{{ store.brandName() || ('brand' | t) }}</p>
+      <h1 class="stage" style="--i: 2">{{ 'heroTitle' | t }}</h1>
+      <span class="m-rule auth-rule" aria-hidden="true"></span>
+      <p class="auth-line stage" style="--i: 3">{{ 'authLine' | t }}</p>
+      <ul class="auth-points stage" style="--i: 4">
+        <li><m-icon name="cash" />{{ 'trustCod' | t }}</li>
+        <li><m-icon name="truck" />{{ 'deliveryEta' | t }}</li>
+        <li><m-icon name="returns" />{{ 'returns14' | t }}</li>
+      </ul>
+    </div>
+  </aside>
+
+  <section class="auth-stage">
+    <div class="auth-tools">
+      <a class="auth-ghost" routerLink="/"><m-icon name="back" class="m-flip" />{{ 'browseStore' | t }}</a>
+      <div class="auth-tools-end">
+        <button class="auth-chip" type="button" (click)="i18n.toggle()">
+          <m-icon name="globe" />
+          {{ i18n.lang() === 'en' ? 'العربية' : 'English' }}
+        </button>
+        <button class="auth-chip icon" type="button" (click)="theme.toggle()" [attr.aria-label]="'mTheme' | t" [title]="'mTheme' | t">
+          <m-icon [name]="theme.mode() === 'dark' ? 'sun' : 'moon'" />
+        </button>
+      </div>
+    </div>
+
+    <div class="auth-sheet m-enter">
+      @if (mode === 'login' || mode === 'register') {
+        <div class="auth-tabs">
+          <a routerLink="/login" routerLinkActive="on">{{ 'login' | t }}</a>
+          <a routerLink="/register" routerLinkActive="on">{{ 'register' | t }}</a>
+        </div>
+      }
+      <h2>{{ titleKey | t }}</h2>
+      <span class="m-rule auth-sheet-rule" aria-hidden="true"></span>
+      <p class="auth-lead">{{ leadKey | t }}</p>
+      <ng-content />
+      <p class="auth-switch">
+        @if (mode === 'login') {
+          {{ 'noAccount' | t }}
+          <a routerLink="/register">{{ 'register' | t }}</a>
+        } @else if (mode === 'register') {
+          {{ 'haveAccount' | t }}
+          <a routerLink="/login">{{ 'login' | t }}</a>
+        } @else {
+          <a routerLink="/login">{{ 'login' | t }}</a>
+        }
+      </p>
+    </div>
+  </section>
+</div>

@@ -17,6 +17,9 @@ export class Conversation {
   @Prop()
   lastMessageAt?: Date;
 
+  @Prop({ default: '' })
+  lastMessage?: string;
+
   @Prop({ default: 0 })
   unreadByCustomer: number;
 

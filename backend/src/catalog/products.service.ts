@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { paginationMeta } from '../common/dto/pagination.dto';
-import { toObjectId } from '../common/utils/mongo';
+import { toObjectId, searchRegex } from '../common/utils/mongo';
 import { Product, ProductDocument } from '../schemas/product.schema';
 import { CreateProductDto, UpdateProductDto } from './dto/catalog.dto';
 
@@ -17,7 +17,16 @@ export interface ProductQuery {
   page?: number;
   limit?: number;
   sort?: string;
+  minPrice?: number;
+  maxPrice?: number;
 }
+
+export type StockLine = {
+  productId?: { toString(): string } | string;
+  variant?: string;
+  quantity: number;
+  name?: string;
+};
 
 @Injectable()
 export class ProductsService {
@@ -36,7 +45,7 @@ export class ProductsService {
 
   private async list(query: ProductQuery, publicOnly: boolean) {
     const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 20;
+    const limit = Math.min(Number(query.limit) || 20, 100);
     const filter: Record<string, unknown> = {};
 
     if (publicOnly) {
@@ -61,8 +70,22 @@ export class ProductsService {
       filter['flags.bestSeller'] = true;
     }
     if (query.search) {
-      const rx = new RegExp(query.search, 'i');
+      const rx = searchRegex(query.search);
       filter.$or = [{ 'names.en': rx }, { 'names.ar': rx }];
+    }
+
+    const minPrice = Number(query.minPrice);
+    const maxPrice = Number(query.maxPrice);
+    if (Number.isFinite(minPrice) || Number.isFinite(maxPrice)) {
+      const effective = {
+        $cond: [{ $gt: [{ $ifNull: ['$salePrice', 0] }, 0] }, '$salePrice', '$price'],
+      };
+      filter.$expr = {
+        $and: [
+          ...(Number.isFinite(minPrice) ? [{ $gte: [effective, minPrice] }] : []),
+          ...(Number.isFinite(maxPrice) ? [{ $lte: [effective, maxPrice] }] : []),
+        ],
+      };
     }
 
     const sort = this.parseSort(query.sort);
@@ -170,6 +193,86 @@ export class ProductsService {
     return product.stock ?? 0;
   }
 
+  /**
+   * Atomically takes stock for every line. A line only decrements when enough
+   * stock remains, so concurrent checkouts cannot oversell. If any line is
+   * short, lines already taken are put back and the call throws.
+   */
+  async reserveStock(items: StockLine[]): Promise<void> {
+    const taken: StockLine[] = [];
+    for (const item of items) {
+      const qty = Math.abs(Number(item.quantity) || 0);
+      if (!item.productId || !qty) {
+        continue;
+      }
+      const ok = await this.takeStock(item, qty);
+      if (!ok) {
+        await this.releaseStock(taken);
+        throw new BadRequestException(
+          `Product ${item.name ?? ''} is out of stock`.replace('  ', ' '),
+        );
+      }
+      taken.push(item);
+    }
+  }
+
+  /** Atomically returns stock for every line (no read-modify-write). */
+  async releaseStock(items: StockLine[]): Promise<void> {
+    for (const item of items) {
+      const qty = Math.abs(Number(item.quantity) || 0);
+      if (!item.productId || !qty) {
+        continue;
+      }
+      const _id = toObjectId(String(item.productId));
+      if (item.variant) {
+        const res = await this.productModel.updateOne(
+          { _id, variants: { $elemMatch: this.variantMatch(item.variant) } },
+          { $inc: { 'variants.$.stock': qty } },
+        );
+        if (res.matchedCount) {
+          continue;
+        }
+      }
+      await this.productModel.updateOne({ _id }, { $inc: { stock: qty } });
+    }
+  }
+
+  /** Kept for existing callers: +1 releases, -1 reserves. */
+  async applyStockDelta(items: StockLine[], direction: 1 | -1) {
+    return direction === 1 ? this.releaseStock(items) : this.reserveStock(items);
+  }
+
+  private async takeStock(item: StockLine, qty: number): Promise<boolean> {
+    const _id = toObjectId(String(item.productId));
+    if (item.variant) {
+      const hasVariant = await this.productModel.exists({
+        _id,
+        variants: { $elemMatch: this.variantMatch(item.variant) },
+      });
+      if (hasVariant) {
+        const res = await this.productModel.updateOne(
+          {
+            _id,
+            variants: {
+              $elemMatch: { ...this.variantMatch(item.variant), stock: { $gte: qty } },
+            },
+          },
+          { $inc: { 'variants.$.stock': -qty } },
+        );
+        return res.modifiedCount === 1;
+      }
+    }
+    const res = await this.productModel.updateOne(
+      { _id, stock: { $gte: qty } },
+      { $inc: { stock: -qty } },
+    );
+    return res.modifiedCount === 1;
+  }
+
+  private variantMatch(variant: string) {
+    return { $or: [{ name: variant }, { sku: variant }] };
+  }
+
   private isTrue(value: unknown) {
     return value === true || value === 'true' || value === '1';
   }
@@ -180,7 +283,7 @@ export class ProductsService {
     }
     const dir = sort.startsWith('-') ? -1 : 1;
     const field = sort.replace(/^-/, '');
-    const allowed = ['price', 'createdAt', 'sortOrder', 'stock', 'salePrice'];
+    const allowed = ['price', 'createdAt', 'sortOrder', 'stock', 'salePrice', 'ratingAvg'];
     if (!allowed.includes(field)) {
       return { sortOrder: 1, createdAt: -1 } as const;
     }

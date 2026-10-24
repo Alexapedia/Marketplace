@@ -15,10 +15,11 @@ import '../../../../core/utils/functions/shared_preferance_utils.dart';
 import '../../../../core/utils/constant/storage_key.dart';
 import '../../../../config/app_controller/app_controller_cubit.dart';
 import '../../../../core/models/app_models.dart';
+import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'register_state.dart';
 
-class RegisterCubit extends Cubit<RegisterState> {
+class RegisterCubit extends Cubit<RegisterState> with SafeEmitMixin<RegisterState> {
   RegisterCubit() : super(const RegisterState());
 
   static RegisterCubit get(context) => BlocProvider.of(context);
@@ -61,6 +62,13 @@ class RegisterCubit extends Cubit<RegisterState> {
             data: token,
             keyType: LocalEnumKey.accessToken,
           );
+          final refresh = extractRefreshToken(r.response);
+          if (refresh.isNotEmpty) {
+            await sl.get<HandleMultiCallLocal>().saveLocalData(
+              data: refresh,
+              keyType: LocalEnumKey.refreshToken,
+            );
+          }
           await PreferenceUtils.setString(StorageKey.userFullName, user.name);
           await sl.get<AppControllerCubit>().exitGuestMode();
         }

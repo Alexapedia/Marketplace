@@ -1,0 +1,186 @@
+<div class="w page">
+  @if (product(); as p) {
+    <app-page-bar [title]="name(p)" />
+    <section class="detail">
+      <div class="gallery-col m-enter">
+        <div class="gallery">
+          @if (images(p)[gallery()]; as src) {
+            <img [src]="src" [alt]="name(p)" />
+          } @else {
+            <span class="gallery-ph" aria-hidden="true">{{ name(p).charAt(0) }}</span>
+          }
+          @if (showsSale(p)) {
+            <span class="sale">{{ 'sale' | t }}</span>
+          }
+        </div>
+        @if (images(p).length > 1) {
+          <div class="thumbs" role="list">
+            @for (src of images(p); track src; let i = $index) {
+              <button
+                class="thumb"
+                type="button"
+                role="listitem"
+                [class.on]="gallery() === i"
+                [attr.aria-current]="gallery() === i"
+                [attr.aria-label]="('mGallery' | t) + ' ' + (i + 1)"
+                (click)="gallery.set(i)"
+              >
+                <img [src]="src" alt="" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <aside class="buy-box" [mReveal]="1">
+        <div class="buy-head">
+          <h1>{{ name(p) }}</h1>
+          <div class="buy-rating">
+            <app-stars [value]="p.ratingAvg ?? 0" />
+            <span class="muted">({{ p.ratingCount ?? 0 }})</span>
+          </div>
+        </div>
+
+        <div class="buy-price">
+          <span class="price">{{ unitPrice(p) }} <small>{{ 'currency' | t }}</small></span>
+          @if (showsSale(p)) {
+            <span class="old">{{ p.price }}</span>
+          }
+          <span class="stock" [class.out]="!inStock(p)">{{ inStock(p) ? ('stock' | t) : ('out' | t) }}</span>
+        </div>
+
+        <p class="buy-desc">{{ desc(p) || '—' }}</p>
+
+        <hr />
+
+        @if (p.variants?.length) {
+          <div class="opt-group" role="radiogroup" [attr.aria-label]="'options' | t">
+            <span class="field-label">{{ 'options' | t }}</span>
+            <div class="chips">
+              @for (v of p.variants; track v._id || variantKey(v)) {
+                <button
+                  class="chip"
+                  type="button"
+                  role="radio"
+                  [class.on]="variant() && variantKey(variant()!) === variantKey(v)"
+                  [attr.aria-checked]="!!variant() && variantKey(variant()!) === variantKey(v)"
+                  [disabled]="(v.stock ?? 0) <= 0"
+                  (click)="pickVariant(variantKey(v))"
+                >
+                  {{ variantKey(v) }}
+                  @if (v.price != null) {
+                    <small>{{ v.price }} {{ 'currency' | t }}</small>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (p.sizes?.length) {
+          <div class="opt-group" role="radiogroup" [attr.aria-label]="'sizes' | t">
+            <span class="field-label">{{ 'sizes' | t }}</span>
+            <div class="chips">
+              @for (s of p.sizes; track s) {
+                <button
+                  class="chip"
+                  type="button"
+                  role="radio"
+                  [class.on]="size === s"
+                  [attr.aria-checked]="size === s"
+                  (click)="size = s"
+                >
+                  {{ s }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="qty-row">
+          <label id="qty-label">{{ 'qty' | t }}</label>
+          <div class="stepper" role="group" aria-labelledby="qty-label">
+            <button type="button" (click)="decQty()" aria-label="−"><m-icon name="minus" /></button>
+            <span aria-live="polite">{{ qty }}</span>
+            <button type="button" (click)="incQty()" aria-label="+"><m-icon name="plus" /></button>
+          </div>
+        </div>
+
+        @if (auth.user()) {
+          <button class="btn wide" type="button" [disabled]="!inStock(p) || adding()" (click)="addToCart()">
+            <m-icon name="bagPlus" />
+            {{ 'addToCart' | t }}
+          </button>
+        } @else {
+          <p class="muted guest-hint">{{ 'guestHint' | t }}</p>
+          <a class="btn wide" routerLink="/login">{{ 'login' | t }}</a>
+        }
+
+        <div class="info">
+          <div><m-icon name="truck" />{{ 'deliveryEta' | t }}</div>
+          <div><m-icon name="cash" />{{ 'cod' | t }}</div>
+          <div><m-icon name="returns" />{{ 'returns14' | t }}</div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="sec" mReveal>
+      <div class="sec-text">
+        <span class="m-eyebrow">{{ p.ratingCount ?? 0 }} · {{ 'reviews' | t }}</span>
+        <h2>{{ 'reviews' | t }}</h2>
+        <span class="m-rule" aria-hidden="true"></span>
+      </div>
+    </div>
+    @if (auth.user() && reviews().canRate !== false && !reviews().myReview) {
+      <form class="rate-box" (submit)="submitReview($event)">
+        <b>{{ 'rateProduct' | t }}</b>
+        <select [(ngModel)]="rating" name="rating" [attr.aria-label]="'rateProduct' | t">
+          @for (n of [5, 4.5, 4, 3.5, 3, 2, 1]; track n) {
+            <option [value]="n">{{ n }}</option>
+          }
+        </select>
+        <input [(ngModel)]="comment" name="comment" [placeholder]="'comment' | t" [attr.aria-label]="'comment' | t" />
+        <button class="btn" type="submit">{{ 'submitRating' | t }}</button>
+      </form>
+    } @else if (!auth.user()) {
+      <p class="muted review-login"><a class="text-link" routerLink="/login">{{ 'login' | t }}</a> — {{ 'addRating' | t }}</p>
+    }
+
+    @if (reviews().items?.length) {
+      <div class="quotes">
+        @for (r of reviews().items; track r._id || r.id; let i = $index) {
+          <article class="quote" [mReveal]="i">
+            <div class="qh">
+              <strong>{{ r.userName || ('customer' | t) }}</strong>
+              <app-stars [value]="r.rating" />
+            </div>
+            <p>{{ r.comment || '' }}</p>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty compact">
+        <span class="empty-mark"><m-icon name="chat" /></span>
+        <p>{{ 'noReviews' | t }}</p>
+      </div>
+    }
+  } @else {
+    <app-page-bar [title]="('allProducts' | t)" />
+    @if (loading()) {
+      <div class="detail" aria-hidden="true">
+        <div class="sk gallery"></div>
+        <div class="buy-box">
+          <div class="sk sk-line" style="height: 36px"></div>
+          <div class="sk sk-line short"></div>
+          <div class="sk sk-line" style="height: 30px; width: 40%"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk" style="height: 52px; border-radius: 999px"></div>
+        </div>
+      </div>
+    }
+    <div class="pd-state">
+      <app-async-state [loading]="loading()" [error]="error()" [empty]="!loading()" emptyKey="noProducts" (retry)="load()" />
+    </div>
+  }
+</div>

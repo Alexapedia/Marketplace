@@ -21,20 +21,51 @@ export class CartService {
   ) {}
 
   async getOrCreate(userId: string) {
-    let cart = await this.cartModel.findOne({
-      userId: new Types.ObjectId(userId),
-    });
-    if (!cart) {
-      cart = await this.cartModel.create({
-        userId: new Types.ObjectId(userId),
-        items: [],
-      });
+    const filter = { userId: new Types.ObjectId(userId) };
+    // Atomic upsert: concurrent first loads (e.g. app start fetching the cart
+    // badge and the cart screen together) all get the same cart instead of
+    // racing on the unique tenantId+userId index.
+    try {
+      return await this.cartModel.findOneAndUpdate(
+        filter,
+        { $setOnInsert: { items: [] } },
+        { upsert: true, new: true },
+      );
+    } catch (err) {
+      if ((err as { code?: number }).code !== 11000) throw err;
+      const cart = await this.cartModel.findOne(filter);
+      if (!cart) throw err;
+      return cart;
     }
-    return cart;
   }
 
+  /** Returns the cart priced at current product prices (what checkout charges). */
   async get(userId: string) {
-    return this.getOrCreate(userId);
+    const cart = await this.getOrCreate(userId);
+    if (!cart.items.length) {
+      return cart;
+    }
+    const products = await this.productModel.find({
+      _id: { $in: cart.items.map((i) => i.productId) },
+    });
+    const byId = new Map(products.map((p) => [String(p._id), p]));
+    let changed = false;
+    for (const item of cart.items) {
+      const product = byId.get(String(item.productId));
+      if (!product) {
+        continue;
+      }
+      const price = this.products.effectivePrice(product, item.variant);
+      if (item.unitPrice !== price) {
+        item.unitPrice = price;
+        changed = true;
+      }
+    }
+    if (changed) {
+      cart.markModified('items');
+      await cart.save();
+    }
+    return cart;
   }
 
   async addItem(userId: string, dto: AddCartItemDto) {
@@ -44,10 +75,16 @@ export class CartService {
     if (!product || product.status !== 'published') {
       throw new BadRequestException('Product is unavailable');
     }
-    const stock = this.products.stockFor(product, dto.variant);
-    if (stock < dto.quantity) {
-      throw new BadRequestException('Insufficient stock');
+    if (
+      dto.variant &&
+      product.variants?.length &&
+      !product.variants.some(
+        (v) => v.name === dto.variant || v.sku === dto.variant,
+      )
+    ) {
+      throw new BadRequestException('Unknown variant');
     }
+    const stock = this.products.stockFor(product, dto.variant);
     const unitPrice = this.products.effectivePrice(product, dto.variant);
     const cart = await this.getOrCreate(userId);
     const existing = cart.items.find(
@@ -56,6 +93,9 @@ export class CartService {
         (item.variant || '') === (dto.variant || '') &&
         (item.size || '') === (dto.size || ''),
     );
+    if (stock < (existing?.quantity ?? 0) + dto.quantity) {
+      throw new BadRequestException('Insufficient stock');
+    }
     if (existing) {
       existing.quantity += dto.quantity;
       existing.unitPrice = unitPrice;
@@ -88,6 +128,13 @@ export class CartService {
         (i) => String((i as { _id?: Types.ObjectId })._id) !== itemId,
       ) as typeof cart.items;
     } else {
+      const product = await this.productModel.findById(item.productId);
+      if (
+        !product ||
+        dto.quantity > this.products.stockFor(product, item.variant)
+      ) {
+        throw new BadRequestException('Insufficient stock');
+      }
       item.quantity = dto.quantity;
     }
     cart.markModified('items');

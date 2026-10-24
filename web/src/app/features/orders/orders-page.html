@@ -1,0 +1,30 @@
+<div class="w narrow page">
+  <app-page-bar [title]="('orders' | t)" />
+  @if (!list.loading()) {
+    <div class="rows">
+      @for (o of list.items(); track o._id; let n = $index) {
+        <a class="order-card m-press" [mReveal]="n % 8" [routerLink]="['/orders', o._id]">
+          <span class="row-ico"><m-icon name="box" /></span>
+          <div class="row-main">
+            <strong class="m-num">#{{ o.orderNumber || (o._id || '').slice(-8) }}</strong>
+            <div class="muted">
+              <span class="price">{{ o.grandTotal ?? o.total ?? 0 }} {{ 'currency' | t }}</span>
+              @if (o.createdAt) { · {{ o.createdAt | date: 'mediumDate' : undefined : i18n.lang() }} }
+            </div>
+          </div>
+          <span class="status-pill" [attr.data-s]="o.orderStatus || o.status">{{ statusLabel(o.orderStatus || o.status || '') }}</span>
+          <m-icon name="chevron" class="row-chev m-flip" />
+        </a>
+      }
+    </div>
+    <app-load-more [show]="list.hasMore()" [busy]="list.loadingMore()" (more)="list.more()" />
+  }
+  <app-async-state
+    [loading]="list.loading()"
+    [error]="list.error()"
+    [empty]="!list.items().length"
+    emptyKey="emptyOrders"
+    icon="box"
+    (retry)="list.reload()"
+  />
+</div>

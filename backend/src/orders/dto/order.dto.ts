@@ -1,6 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsIn,
+  IsMongoId,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MinLength,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 
 export class OrderAddressDto {
   @ApiProperty()
@@ -23,13 +34,35 @@ export class OrderAddressDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  lat?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  lng?: number;
 }
 
 export class CreateOrderDto {
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @ValidateNested()
   @Type(() => OrderAddressDto)
-  address: OrderAddressDto;
+  address?: OrderAddressDto;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsMongoId()
+  addressId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -39,6 +72,11 @@ export class CreateOrderDto {
   @ApiProperty({ enum: ['COD'] })
   @IsIn(['COD'])
   paymentMethod: 'COD';
+
+  @ApiPropertyOptional({ enum: ['mobile', 'website'] })
+  @IsOptional()
+  @IsIn(['mobile', 'website'])
+  channel?: 'mobile' | 'website';
 }
 
 export class ChangeOrderStatusDto {
@@ -47,8 +85,9 @@ export class ChangeOrderStatusDto {
   status: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
+  @ValidateIf((dto: ChangeOrderStatusDto) => dto.status === 'rejected')
   @IsString()
+  @MinLength(3)
   rejectionReason?: string;
 }
 

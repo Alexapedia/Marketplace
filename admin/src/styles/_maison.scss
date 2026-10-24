@@ -1,0 +1,292 @@
+// Maison design system — the same file ships in web, admin and holder.
+// Spec: docs/superpowers/specs/2026-10-23-maison-redesign-design.md
+// Brand inputs (--brand-primary, --brand-accent, --brand-on-*) are set at
+// runtime from the tenant config by shared/maison/brand.ts.
+
+@mixin derived {
+  --m-primary: var(--brand-primary, #071345);
+  --m-accent: var(--brand-accent, #c9a45c);
+  --m-on-primary: var(--brand-on-primary, #ffffff);
+  --m-on-accent: var(--brand-on-accent, #16130f);
+  --m-glass: color-mix(in srgb, var(--m-surface) 72%, transparent);
+  --m-accent-soft: color-mix(in srgb, var(--m-accent) 14%, var(--m-surface));
+  --m-primary-soft: color-mix(in srgb, var(--m-primary) 8%, var(--m-surface));
+  --m-focus: 0 0 0 3px color-mix(in srgb, var(--m-accent) 45%, transparent);
+  --m-rule: linear-gradient(90deg, var(--m-accent), transparent);
+}
+
+@mixin light {
+  --m-canvas: #f7f4ee;
+  --m-surface: #ffffff;
+  --m-surface-2: #f1ece3;
+  --m-line: #e5ded2;
+  --m-ink: #16130f;
+  --m-ink-muted: #5e574d;
+  --m-danger: #b4232f;
+  --m-success: #2f6b4f;
+  --m-shadow-1: 0 1px 2px rgb(22 19 15 / 0.05), 0 8px 24px -12px rgb(22 19 15 / 0.12);
+  --m-shadow-2: 0 28px 56px -28px rgb(22 19 15 / 0.35);
+  --m-highlight: inset 0 0 0 0 transparent;
+  color-scheme: light;
+  @include derived;
+  --m-accent-ink: color-mix(in oklab, var(--m-accent) 62%, black);
+}
+
+@mixin dark {
+  --m-canvas: #0c0b09;
+  --m-surface: #15130f;
+  --m-surface-2: #1e1b16;
+  --m-line: #2c2821;
+  --m-ink: #f5f0e6;
+  --m-ink-muted: #a79f92;
+  --m-danger: #f07178;
+  --m-success: #7bc8a0;
+  --m-shadow-1: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 30px -14px rgb(0 0 0 / 0.6);
+  --m-shadow-2: 0 32px 64px -28px rgb(0 0 0 / 0.75);
+  --m-highlight: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  color-scheme: dark;
+  @include derived;
+  --m-accent-ink: var(--m-accent);
+}
+
+:root {
+  @include light;
+
+  --m-font-display: "Playfair Display", "El Messiri", Georgia, serif;
+  --m-font-body: "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --m-r-xs: 8px;
+  --m-r-sm: 12px;
+  --m-r-md: 16px;
+  --m-r-lg: 24px;
+  --m-r-xl: 32px;
+  --m-r-pill: 999px;
+
+  --m-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --m-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --m-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --m-dur-instant: 120ms;
+  --m-dur-fast: 200ms;
+  --m-dur-base: 320ms;
+  --m-dur-slow: 560ms;
+  --m-dur-lavish: 900ms;
+}
+
+// Web uses data-theme on <html>; the dashboards use classes on <body>.
+:root[data-theme='dark'],
+body.dark-theme {
+  @include dark;
+}
+body.light-theme {
+  @include light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --m-dur-instant: 1ms;
+    --m-dur-fast: 1ms;
+    --m-dur-base: 1ms;
+    --m-dur-slow: 1ms;
+    --m-dur-lavish: 1ms;
+  }
+}
+
+// ---- Typography helpers -------------------------------------------------
+
+.m-display {
+  font-family: var(--m-font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.m-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--m-accent-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+[dir='rtl'] .m-eyebrow,
+:lang(ar) .m-eyebrow {
+  letter-spacing: 0;
+}
+.m-num {
+  font-variant-numeric: tabular-nums;
+}
+.m-rule {
+  display: block;
+  height: 1px;
+  border: 0;
+  background: var(--m-rule);
+}
+[dir='rtl'] .m-rule {
+  background: linear-gradient(270deg, var(--m-accent), transparent);
+}
+
+// ---- Motion: entrances (driven by shared/maison/reveal.directive.ts) ----
+
+.m-reveal {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  filter: blur(6px);
+  transition:
+    opacity var(--m-dur-slow) var(--m-ease-out),
+    transform var(--m-dur-slow) var(--m-ease-out),
+    filter var(--m-dur-slow) var(--m-ease-out);
+  transition-delay: var(--m-delay, 0ms);
+}
+.m-reveal.is-in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+// Gold rule that draws in when revealed.
+.m-rule.m-reveal {
+  transform-origin: left center;
+  transform: scaleX(0);
+  filter: none;
+}
+[dir='rtl'] .m-rule.m-reveal {
+  transform-origin: right center;
+}
+.m-rule.m-reveal.is-in {
+  transform: none;
+}
+
+// ---- Motion: interaction -----------------------------------------------
+
+.m-press {
+  transition: transform var(--m-dur-instant) var(--m-ease-out);
+}
+.m-press:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .m-lift {
+    transition:
+      transform var(--m-dur-base) var(--m-ease-out),
+      box-shadow var(--m-dur-base) var(--m-ease-out);
+  }
+  .m-lift:hover {
+    transform: translate3d(0, -4px, 0);
+    box-shadow: var(--m-shadow-2);
+  }
+  .m-zoom img {
+    transition: transform var(--m-dur-lavish) var(--m-ease-out);
+  }
+  .m-zoom:hover img {
+    transform: scale(1.06);
+  }
+}
+
+// Soft light sweep across a primary button on hover.
+.m-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.m-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .m-sheen:hover::after {
+    transform: translateX(120%);
+    transition: transform var(--m-dur-lavish) var(--m-ease-out);
+  }
+}
+
+// Badge count bump; re-trigger by toggling the class (see BumpDirective).
+@keyframes m-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.m-bump {
+  animation: m-bump var(--m-dur-slow) var(--m-ease-spring);
+}
+
+@keyframes m-kenburns {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); }
+}
+.m-kenburns {
+  animation: m-kenburns 18s var(--m-ease-in-out) infinite alternate;
+}
+
+@keyframes m-shimmer {
+  to { background-position: -200% 0; }
+}
+.m-skeleton {
+  border-radius: var(--m-r-sm);
+  background: linear-gradient(
+    90deg,
+    var(--m-surface-2) 25%,
+    color-mix(in srgb, var(--m-accent) 10%, var(--m-surface-2)) 50%,
+    var(--m-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: m-shimmer 1.4s linear infinite;
+}
+
+@keyframes m-fade-up {
+  from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.m-enter {
+  animation: m-fade-up var(--m-dur-base) var(--m-ease-out) both;
+}
+
+// ---- Route cross-fade (router: withViewTransitions) ---------------------
+
+::view-transition-old(root) {
+  animation: m-vt-out var(--m-dur-fast) var(--m-ease-in-out) both;
+}
+::view-transition-new(root) {
+  animation: m-vt-in var(--m-dur-base) var(--m-ease-out) both;
+}
+@keyframes m-vt-out {
+  to { opacity: 0; }
+}
+@keyframes m-vt-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-reveal,
+  .m-rule.m-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .m-kenburns,
+  .m-skeleton,
+  .m-bump,
+  .m-enter {
+    animation: none;
+  }
+  .m-sheen::after {
+    display: none;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--m-accent);
+  outline-offset: 2px;
+}

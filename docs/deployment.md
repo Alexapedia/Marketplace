@@ -37,6 +37,11 @@ mongodump --uri="$MONGODB_URI" --out=/backups/placemarket
 
 ## HTTPS / reverse proxy
 
+The API trusts `X-Forwarded-For` only from private-network hops by default
+(`TRUST_PROXY=loopback, linklocal, uniquelocal`), so rate limits apply per
+real client. If your proxy runs on a public IP, set `TRUST_PROXY` to the
+number of proxy hops (e.g. `1`).
+
 Terminate TLS on nginx/Caddy and proxy to `127.0.0.1:3000`.
 
 ```

@@ -1,0 +1,141 @@
+<div class="hd-page">
+  <header class="hd-head">
+    <div mReveal>
+      <p class="hd-kicker">{{ 'brand' | t }}</p>
+      <h1 class="hd-h">{{ 'overview.title' | t }}</h1>
+      <p class="hd-lead">{{ 'overview.lead' | t }}</p>
+      <span class="m-rule" [mReveal]="2"></span>
+    </div>
+    @if (stats(); as s) {
+      <div class="health" [mReveal]="1">
+        <span class="hd-pill" [class.on]="s.db === 'up'" [class.off]="s.db !== 'up'">{{ 'overview.api' | t }} · {{ s.db }}</span>
+        <a class="hd-pill warn m-press" routerLink="/issues">
+          <mat-icon aria-hidden="true">error_outline</mat-icon>{{ s.openIssues }} {{ 'overview.issues' | t }}
+        </a>
+      </div>
+    }
+  </header>
+
+  @if (error()) {
+    <div class="hd-card failed" role="alert">
+      <mat-icon aria-hidden="true">cloud_off</mat-icon>
+      <span class="hd-err">{{ error() }}</span>
+    </div>
+  } @else if (stats(); as s) {
+    <div class="kpis">
+      <article class="hd-card hd-kpi kpi m-lift" [mReveal]="0">
+        <span class="kpi-top">{{ 'overview.tenants' | t }}<mat-icon aria-hidden="true">storefront</mat-icon></span>
+        <strong [mCountUp]="s.tenantCount"></strong>
+        <small>{{ s.active }} {{ 'overview.active' | t }}</small>
+      </article>
+      <article class="hd-card hd-kpi kpi feature m-lift" [mReveal]="1">
+        <span class="kpi-top">{{ 'overview.revenue' | t }}<mat-icon aria-hidden="true">payments</mat-icon></span>
+        <strong [mCountUp]="s.revenue" [mCountUpFormat]="whole"></strong>
+        <small>{{ s.revenue7d | number: '1.0-0' }} {{ 'overview.week' | t }}</small>
+      </article>
+      <article class="hd-card hd-kpi kpi m-lift" [mReveal]="2">
+        <span class="kpi-top">{{ 'overview.orders' | t }}<mat-icon aria-hidden="true">receipt_long</mat-icon></span>
+        <strong [mCountUp]="s.orders"></strong>
+        <small>{{ s.ordersOpen }} {{ 'overview.openOrders' | t }}</small>
+      </article>
+      <article class="hd-card hd-kpi kpi m-lift" [mReveal]="3">
+        <span class="kpi-top">{{ 'overview.customers' | t }}<mat-icon aria-hidden="true">group</mat-icon></span>
+        <strong [mCountUp]="s.customers"></strong>
+        <small>{{ s.staff }} {{ 'overview.staff' | t }}</small>
+      </article>
+      <article class="hd-card hd-kpi kpi m-lift" [mReveal]="4">
+        <span class="kpi-top">{{ 'overview.visits' | t }}<mat-icon aria-hidden="true">travel_explore</mat-icon></span>
+        <strong [mCountUp]="s.visitsWebsite + s.visitsMobile"></strong>
+        <small>{{ s.visitsWebsite }} web · {{ s.visitsMobile }} app</small>
+      </article>
+      <article class="hd-card hd-kpi kpi m-lift" [mReveal]="5">
+        <span class="kpi-top">{{ 'overview.crashes' | t }}<mat-icon aria-hidden="true">report_gmailerrorred</mat-icon></span>
+        <strong [mCountUp]="s.crashes24h"></strong>
+        <small>{{ s.channelsOff.website + s.channelsOff.admin + s.channelsOff.mobile }} {{ 'overview.channelsOff' | t }}</small>
+      </article>
+    </div>
+
+    <div class="grid">
+      <article class="hd-card chart" [mReveal]="6">
+        <div class="chart-h">
+          <span class="m-eyebrow">{{ 'overview.trend' | t }}</span>
+          <strong class="m-num" [mCountUp]="s.orders7d"></strong>
+        </div>
+        <hd-area-chart
+          [values]="orderValues()"
+          [dates]="days()"
+          tone="accent"
+          [height]="150"
+          [label]="'overview.trend' | t"
+        />
+      </article>
+      <article class="hd-card chart" [mReveal]="7">
+        <div class="chart-h">
+          <span class="m-eyebrow">{{ 'overview.revenue' | t }} · {{ 'overview.week' | t }}</span>
+          <strong class="m-num" [mCountUp]="s.revenue7d" [mCountUpFormat]="whole"></strong>
+        </div>
+        <hd-area-chart
+          [values]="revenueValues()"
+          [dates]="days()"
+          tone="primary"
+          [height]="150"
+          [label]="'overview.revenue' | t"
+        />
+      </article>
+    </div>
+
+    <div class="grid two">
+      <article class="hd-card" [mReveal]="8">
+        <h2 class="hd-card-title">
+          {{ 'overview.top' | t }}
+          <a routerLink="/reports">{{ 'nav.reports' | t }}</a>
+        </h2>
+        @for (row of s.topTenants; track row.id; let i = $index) {
+          <a class="rank" [routerLink]="['/tenants', row.id]">
+            <span class="pos m-num">{{ i + 1 }}</span>
+            <span class="who">
+              <strong>{{ row.name }}</strong>
+              <small>{{ row.orders }} {{ 'overview.orders' | t }}</small>
+            </span>
+            <b class="m-num">{{ row.revenue | number: '1.0-0' }}</b>
+          </a>
+        } @empty {
+          <p class="hd-muted empty">{{ 'common.empty' | t }}</p>
+        }
+      </article>
+      <article class="hd-card" [mReveal]="8">
+        <h2 class="hd-card-title">
+          {{ 'overview.recent' | t }}
+          <a routerLink="/issues">{{ 'nav.issues' | t }}</a>
+        </h2>
+        @for (item of s.recentIssues; track item.id || item.message) {
+          <a class="incident" routerLink="/issues">
+            <span class="kind" [class]="'kind k-' + item.kind" aria-hidden="true">
+              <mat-icon>{{ item.kind === 'crash' ? 'bolt' : item.kind === 'error' ? 'error_outline' : 'flag' }}</mat-icon>
+            </span>
+            <span class="who">
+              <strong>{{ item.message }}</strong>
+              <small>{{ item.kind }} · {{ item.channel }} · {{ item.count }} · {{ item.lastSeen | date: 'short' }}</small>
+            </span>
+          </a>
+        } @empty {
+          <p class="hd-muted empty">{{ 'issues.none' | t }}</p>
+        }
+      </article>
+    </div>
+  } @else {
+    <div class="kpis" aria-busy="true">
+      @for (i of skeleton; track i) {
+        <div class="hd-card hd-kpi kpi">
+          <span class="hd-sk" style="height: 12px; width: 50%"></span>
+          <span class="hd-sk" style="height: 32px; width: 70%; margin-top: 8px"></span>
+          <span class="hd-sk" style="height: 10px; width: 40%; margin-top: 6px"></span>
+        </div>
+      }
+    </div>
+    <div class="grid">
+      <div class="hd-card"><span class="hd-sk" style="height: 190px"></span></div>
+      <div class="hd-card"><span class="hd-sk" style="height: 190px"></span></div>
+    </div>
+  }
+</div>

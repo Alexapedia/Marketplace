@@ -1,0 +1,74 @@
+<div class="hd-page">
+  <header class="hd-head">
+    <div [mReveal]="0">
+      <p class="hd-kicker">{{ 'nav.insights' | t }}</p>
+      <h1 class="hd-h">{{ 'issues.title' | t }}</h1>
+      <p class="hd-lead">{{ 'issues.lead' | t }}</p>
+      <span class="m-rule" [mReveal]="1"></span>
+    </div>
+  </header>
+
+  <div class="filters" [mReveal]="2">
+    <div class="seg" role="group" [attr.aria-label]="'common.status' | t">
+      <button type="button" class="chip m-press" [class.on]="status() === 'open'" [attr.aria-pressed]="status() === 'open'" (click)="setStatus('open')">{{ 'common.open' | t }}</button>
+      <button type="button" class="chip m-press" [class.on]="status() === 'resolved'" [attr.aria-pressed]="status() === 'resolved'" (click)="setStatus('resolved')">{{ 'common.resolved' | t }}</button>
+      <button type="button" class="chip m-press" [class.on]="status() === ''" [attr.aria-pressed]="status() === ''" (click)="setStatus('')">{{ 'common.all' | t }}</button>
+    </div>
+    <div class="seg" role="group" [attr.aria-label]="'issues.channel' | t">
+      @for (ch of channels; track ch) {
+        <button type="button" class="chip m-press" [class.on]="channel() === ch" [attr.aria-pressed]="channel() === ch" (click)="setChannel(ch)">
+          {{ ch || ('common.all' | t) }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (!loading()) {
+    <div class="list">
+      @for (item of rows(); track idOf(item) || item.message; let i = $index) {
+        <article
+          class="hd-card incident"
+          [class.open]="expanded() === idOf(item)"
+          [class.done]="item.status === 'resolved'"
+          [mReveal]="i"
+          role="button"
+          tabindex="0"
+          [attr.aria-expanded]="expanded() === idOf(item)"
+          (click)="toggle(item)"
+          (keydown.enter)="toggle(item)"
+        >
+          <span class="kind" [class]="'kind k-' + item.kind" aria-hidden="true">
+            <mat-icon>{{ item.kind === 'crash' ? 'bolt' : item.kind === 'error' ? 'error_outline' : 'flag' }}</mat-icon>
+          </span>
+          <div class="body">
+            <div class="top">
+              <span class="hd-pill" [class.off]="item.kind === 'crash'" [class.warn]="item.kind !== 'crash'">{{ item.kind }}</span>
+              <span class="hd-pill">{{ item.channel }}</span>
+              <span class="hd-pill" [class.on]="item.status === 'resolved'">{{ (item.status === 'resolved' ? 'common.resolved' : 'common.open') | t }}</span>
+              <span class="count m-num">{{ item.count }} {{ 'issues.count' | t }}</span>
+            </div>
+            <strong class="msg">{{ item.message }}</strong>
+            <small>{{ item.url || '—' }} · {{ 'issues.last' | t }} {{ item.lastSeen | date: 'short' }}</small>
+            @if (expanded() === idOf(item) && item.stack) {
+              <pre class="m-enter" dir="ltr">{{ item.stack }}</pre>
+            }
+          </div>
+          <div class="side">
+            @if (item.status !== 'resolved') {
+              <button mat-stroked-button type="button" class="resolve" [disabled]="busy() === idOf(item)" (click)="resolve(item, $event)">
+                <mat-icon>check</mat-icon>{{ 'common.resolve' | t }}
+              </button>
+            }
+            <mat-icon class="chev" [class.none]="!item.stack" aria-hidden="true">expand_more</mat-icon>
+          </div>
+        </article>
+      }
+    </div>
+    @if (hasMore()) {
+      <button mat-stroked-button type="button" class="more" [disabled]="loadingMore()" (click)="reload(meta()!.page + 1)">
+        {{ 'common.loadMore' | t }}
+      </button>
+    }
+  }
+  <hd-state [loading]="loading()" [error]="error()" [empty]="!rows().length" emptyKey="issues.none" icon="verified" (retry)="reload()" />
+</div>

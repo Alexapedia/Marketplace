@@ -1,0 +1,33 @@
+<app-auth-layout mode="reset">
+  <form class="auth-form" (submit)="submit($event)">
+    @if (error()) {
+      <div class="auth-error">{{ error() }}</div>
+    }
+    <div class="auth-field">
+      <label for="auth-token">{{ 'resetToken' | t }}</label>
+      <input id="auth-token" name="token" [(ngModel)]="token" required />
+    </div>
+    <div class="auth-field">
+      <label for="auth-password">{{ 'newPassword' | t }}</label>
+      <div class="auth-pass">
+        <input
+          id="auth-password"
+          [type]="hide() ? 'password' : 'text'"
+          name="password"
+          autocomplete="new-password"
+          [(ngModel)]="password"
+          required
+          minlength="8"
+        />
+        <app-auth-eye [masked]="hide()" (toggle)="hide.set(!hide())" />
+      </div>
+    </div>
+    <button class="auth-btn" type="submit" [disabled]="loading()">
+      @if (loading()) {
+        <span class="auth-spin"></span>
+      } @else {
+        {{ 'resetPassword' | t }}
+      }
+    </button>
+  </form>
+</app-auth-layout>

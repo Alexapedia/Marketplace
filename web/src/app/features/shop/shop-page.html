@@ -1,0 +1,97 @@
+<div class="w page">
+  <app-page-bar [title]="(titleKey() | t)" />
+
+  <div class="shop-head">
+    <p class="muted result-count" aria-live="polite">
+      @if (meta() && !loading()) {
+        {{ meta()!.total }} {{ 'results' | t }}
+      }
+    </p>
+    <button
+      class="btn outline sm filters-toggle"
+      type="button"
+      (click)="filtersOpen.set(true)"
+      [attr.aria-expanded]="filtersOpen()"
+      aria-controls="shop-filters"
+    >
+      <m-icon name="filter" />
+      {{ 'mFilters' | t }}
+      @if (hasFilters()) {
+        <span class="dot" aria-hidden="true"></span>
+      }
+    </button>
+  </div>
+
+  @if (filtersOpen()) {
+    <div class="filters-scrim" (click)="filtersOpen.set(false)" aria-hidden="true"></div>
+  }
+  <form
+    id="shop-filters"
+    class="filters"
+    [class.open]="filtersOpen()"
+    (submit)="$event.preventDefault(); apply(); filtersOpen.set(false)"
+    (keydown.escape)="filtersOpen.set(false)"
+  >
+    <div class="filters-head">
+      <h2>{{ 'mFilters' | t }}</h2>
+      <button class="icon-btn" type="button" (click)="filtersOpen.set(false)" [attr.aria-label]="'cancel' | t">
+        <m-icon name="close" />
+      </button>
+    </div>
+    <div class="field">
+      <label for="f-cat">{{ 'categories' | t }}</label>
+      <select id="f-cat" name="category" [(ngModel)]="category" (ngModelChange)="apply()">
+        <option value="">{{ 'allCategories' | t }}</option>
+        @for (c of categories(); track c._id || c.id) {
+          <option [value]="c._id || c.id">{{ (c.names || c.name) | loc }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-sort">{{ 'sortBy' | t }}</label>
+      <select id="f-sort" name="sort" [(ngModel)]="sort" (ngModelChange)="apply()">
+        @for (s of sorts; track s.value) {
+          <option [value]="s.value">{{ s.key | t }}</option>
+        }
+      </select>
+    </div>
+    <div class="field price">
+      <label for="f-min">{{ 'priceRange' | t }}</label>
+      <div class="price-inputs">
+        <input id="f-min" type="number" min="0" name="minPrice" [(ngModel)]="minPrice" [placeholder]="'min' | t" />
+        <span aria-hidden="true">–</span>
+        <input type="number" min="0" name="maxPrice" [(ngModel)]="maxPrice" [placeholder]="'max' | t" [attr.aria-label]="'max' | t" />
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn navy" type="submit">{{ 'apply' | t }}</button>
+      @if (hasFilters()) {
+        <button class="btn ghost-btn" type="button" (click)="clear()">{{ 'clearFilters' | t }}</button>
+      }
+    </div>
+  </form>
+
+  @if (products().length && !loading()) {
+    <div class="grid">
+      @for (p of products(); track p._id || p.id; let i = $index) {
+        <app-product-card [mReveal]="i % 8" [product]="p" />
+      }
+    </div>
+    @if (hasMore()) {
+      <div class="load-more">
+        <button class="btn outline" type="button" [disabled]="loadingMore()" (click)="loadMore()">
+          {{ (loadingMore() ? 'loading' : 'loadMore') | t }}
+        </button>
+      </div>
+    }
+  }
+  <app-async-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!products().length"
+    emptyKey="noProducts"
+    kind="grid"
+    icon="search"
+    (retry)="fetch(1)"
+  />
+</div>

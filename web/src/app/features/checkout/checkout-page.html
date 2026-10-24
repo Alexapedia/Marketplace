@@ -1,0 +1,80 @@
+<div class="w page">
+  <app-page-bar [title]="('checkout' | t)" />
+  <div class="checkout-grid">
+    <form class="panel" (submit)="submit($event)">
+      @if (error) {
+        <div class="error" role="alert">{{ error }}</div>
+      }
+      <div class="panel-head">
+        <h2 class="panel-title">{{ 'shippingTo' | t }}</h2>
+        <a class="sec-link" routerLink="/addresses">{{ 'manageAddresses' | t }}</a>
+      </div>
+      @if (!loadingAddresses() && addresses().length) {
+        <div class="addr-list" role="radiogroup" [attr.aria-label]="'shippingTo' | t">
+          @for (a of addresses(); track a._id || a.id; let n = $index) {
+            <label class="addr" [class.on]="addressId === (a._id || a.id)" [mReveal]="n">
+              <input type="radio" name="addressId" [value]="a._id || a.id" [(ngModel)]="addressId" />
+              <span class="addr-ico"><m-icon name="pin" /></span>
+              <div>
+                <strong>{{ a.label || ('addresses' | t) }}</strong>
+                <div class="muted">{{ a.fullName }} · {{ a.city }} · {{ a.street }}</div>
+              </div>
+            </label>
+          }
+        </div>
+      } @else if (!loadingAddresses() && !addressError()) {
+        <div class="addr-empty">
+          <span class="empty-mark"><m-icon name="pin" /></span>
+          <p class="muted">{{ 'noAddresses' | t }}</p>
+          <a class="btn outline sm" routerLink="/address">
+            <m-icon name="plus" />
+            {{ 'addAddress' | t }}
+          </a>
+        </div>
+      }
+      <app-async-state [loading]="loadingAddresses()" [error]="addressError()" (retry)="loadAddresses()" />
+      <div class="field notes-field">
+        <label for="co-notes">{{ 'notes' | t }}</label>
+        <input id="co-notes" [(ngModel)]="notes" name="notes" />
+      </div>
+      <div class="cod"><m-icon name="cash" />{{ 'cod' | t }}</div>
+      <button class="btn wide" type="submit" [disabled]="submitting() || !cart.items().length">
+        @if (!submitting()) {
+          <m-icon name="shield" />
+        }
+        {{ (submitting() ? 'placingOrder' : 'placeOrder') | t }}
+      </button>
+    </form>
+
+    <aside class="panel summary-card">
+      <h2 class="panel-title">{{ 'orderSummary' | t }}</h2>
+      <span class="m-rule" aria-hidden="true"></span>
+      <div class="mini-items">
+        @for (i of cart.items(); track i._id) {
+          <div class="item-row">
+            <span class="item-pic">
+              @if (i.image) {
+                <img [src]="media(i.image)" alt="" />
+              } @else {
+                <span class="cart-ph"></span>
+              }
+              <span class="item-qty m-num">{{ i.quantity }}</span>
+            </span>
+            <div>
+              <strong>{{ i.nameSnapshot }}</strong>
+              <div class="muted">
+                <span class="m-num">{{ i.unitPrice }} × {{ i.quantity }}</span>
+                @if (i.variant) { · {{ i.variant }} }
+                @if (i.size) { · {{ i.size }} }
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <p class="muted">{{ 'emptyCart' | t }}</p>
+        }
+      </div>
+      <app-price-summary [subtotal]="subtotal()" [deliveryFee]="store.deliveryFee()" [total]="total()" />
+      <p class="secure muted"><m-icon name="shield" />{{ 'mSecure' | t }}</p>
+    </aside>
+  </div>
+</div>

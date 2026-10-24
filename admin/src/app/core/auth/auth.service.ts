@@ -1,13 +1,20 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
+import { computed, inject, Injectable, Injector, signal } from '@angular/core';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import { AuthApi } from '../api/auth.api';
-import { STAFF_ROLES, StaffRole, User } from '../models/models';
+import { FirebasePushService } from '../firebase/firebase-push.service';
+import { AuthPayload, STAFF_ROLES, StaffRole, User } from '../models/models';
 
-const TOKEN_KEY = 'pm_token';
+import { REFRESH_KEY, TOKEN_KEY } from './token-refresher';
+
+export type LoginOutcome =
+  | { kind: 'ok'; user: User; backupCodes?: string[] }
+  | { kind: '2fa'; challengeToken: string }
+  | { kind: 'setup'; challengeToken: string; qr?: string; otpauthUrl?: string };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(AuthApi);
+  private readonly injector = inject(Injector);
 
   readonly token = signal<string | null>(this.readToken());
   readonly user = signal<User | null>(null);
@@ -15,13 +22,16 @@ export class AuthService {
 
   readonly isStaff = computed(() => this.hasStaffRole(this.user()));
 
-  login(email: string, password: string): Observable<User> {
-    return this.api.login(email, password).pipe(
-      tap((res) => this.persistToken(res.data.accessToken)),
-      switchMap(() => this.api.me()),
-      tap((res) => this.user.set(res.data)),
-      map((res) => res.data),
-    );
+  login(email: string, password: string): Observable<LoginOutcome> {
+    return this.api.login(email, password).pipe(map((res) => this.toOutcome(res.data)));
+  }
+
+  verify2fa(challengeToken: string, code: string): Observable<LoginOutcome> {
+    return this.api.verify2fa(challengeToken, code).pipe(map((res) => this.toOutcome(res.data)));
+  }
+
+  setup2fa(challengeToken: string, code: string): Observable<LoginOutcome> {
+    return this.api.setup2fa(challengeToken, code).pipe(map((res) => this.toOutcome(res.data)));
   }
 
   restoreSession(): Observable<boolean> {
@@ -37,12 +47,17 @@ export class AuthService {
         return of(false);
       }),
       tap(() => this.ready.set(true)),
+      tap((ok) => {
+        if (ok) void this.injector.get(FirebasePushService).start();
+      }),
     );
   }
 
   logout(callApi = true): void {
     if (callApi && this.token()) {
-      this.api.logout().subscribe({ error: () => undefined });
+      this.api
+        .logout(localStorage.getItem(REFRESH_KEY) || undefined)
+        .subscribe({ error: () => undefined });
     }
     this.clearSession();
   }
@@ -83,12 +98,34 @@ export class AuthService {
     return true;
   }
 
+  private toOutcome(data: AuthPayload): LoginOutcome {
+    if (data?.accessToken && data.user) {
+      this.persistToken(data.accessToken, data.refreshToken);
+      this.user.set(data.user);
+      void this.injector.get(FirebasePushService).start();
+      return { kind: 'ok', user: data.user, backupCodes: data.backupCodes };
+    }
+    if (data?.requires2faSetup && data.challengeToken) {
+      return {
+        kind: 'setup',
+        challengeToken: data.challengeToken,
+        qr: data.qr,
+        otpauthUrl: data.otpauthUrl,
+      };
+    }
+    if (data?.requires2fa && data.challengeToken) {
+      return { kind: '2fa', challengeToken: data.challengeToken };
+    }
+    throw new Error('Invalid login response');
+  }
+
   private hasStaffRole(user: User | null): boolean {
     return !!user && user.role !== 'customer' && (STAFF_ROLES as string[]).includes(user.role);
   }
 
-  private persistToken(token: string): void {
+  private persistToken(token: string, refreshToken?: string): void {
     localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
     this.token.set(token);
   }
 
@@ -98,6 +135,7 @@ export class AuthService {
 
   private clearSession(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
     this.token.set(null);
     this.user.set(null);
     this.ready.set(true);

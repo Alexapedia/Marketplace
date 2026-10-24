@@ -1,0 +1,49 @@
+<app-auth-layout mode="register">
+  <form class="auth-form" (submit)="submit($event)">
+    @if (error()) {
+      <div class="auth-error">{{ error() }}</div>
+    }
+    <div class="auth-field">
+      <label for="auth-name">{{ 'name' | t }}</label>
+      <input id="auth-name" name="name" autocomplete="name" [(ngModel)]="name" required />
+    </div>
+    <div class="auth-field">
+      <label for="auth-email">{{ 'email' | t }}</label>
+      <input
+        id="auth-email"
+        type="email"
+        name="email"
+        autocomplete="email"
+        [(ngModel)]="email"
+        required
+      />
+    </div>
+    <div class="auth-field">
+      <label for="auth-phone">{{ 'phone' | t }}</label>
+      <input id="auth-phone" type="tel" name="phone" autocomplete="tel" [(ngModel)]="phone" />
+    </div>
+    <div class="auth-field">
+      <label for="auth-password">{{ 'password' | t }}</label>
+      <div class="auth-pass">
+        <input
+          id="auth-password"
+          [type]="hide() ? 'password' : 'text'"
+          name="password"
+          autocomplete="new-password"
+          [(ngModel)]="password"
+          required
+          minlength="8"
+        />
+        <app-auth-eye [masked]="hide()" (toggle)="hide.set(!hide())" />
+      </div>
+    </div>
+    <p class="auth-hint">{{ 'passwordMin' | t }}</p>
+    <button class="auth-btn" type="submit" [disabled]="loading()">
+      @if (loading()) {
+        <span class="auth-spin"></span>
+      } @else {
+        {{ 'register' | t }}
+      }
+    </button>
+  </form>
+</app-auth-layout>

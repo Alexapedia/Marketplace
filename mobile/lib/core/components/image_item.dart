@@ -1,6 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import '../connection/concept/end_points.dart';
+import '../utils/functions/motion.dart';
 
 class ImageItem extends StatelessWidget {
   const ImageItem(
@@ -11,6 +16,7 @@ class ImageItem extends StatelessWidget {
     this.fit,
     this.borderRadius,
     this.heroTag,
+    this.semanticLabel,
   });
 
   final String img;
@@ -20,11 +26,15 @@ class ImageItem extends StatelessWidget {
   final BorderRadius? borderRadius;
   final Object? heroTag;
 
-  bool get _isEmpty => img.trim().isEmpty;
-  bool get _isSvg => img.toLowerCase().endsWith('.svg');
+  /// Accessible description; when null the image is treated as decorative.
+  final String? semanticLabel;
+
+  String get _src => EndPoints.media(img);
+  bool get _isEmpty => _src.trim().isEmpty;
+  bool get _isSvg => _src.toLowerCase().endsWith('.svg');
   bool get _isNetwork =>
-      img.startsWith('http://') || img.startsWith('https://');
-  bool get _isAsset => img.startsWith('assets/');
+      _src.startsWith('http://') || _src.startsWith('https://');
+  bool get _isAsset => _src.startsWith('assets/');
 
   @override
   Widget build(BuildContext context) {
@@ -35,20 +45,37 @@ class ImageItem extends StatelessWidget {
     if (heroTag != null) {
       child = Hero(tag: heroTag!, child: child);
     }
-    return child;
+    final label = semanticLabel;
+    if (label == null) return ExcludeSemantics(child: child);
+    return Semantics(
+      label: label,
+      image: true,
+      child: ExcludeSemantics(child: child),
+    );
   }
 
   Widget _build(BuildContext context) {
     if (_isEmpty) return _fallback(context);
     if (_isAsset) {
       return _isSvg
-          ? SvgPicture.asset(img, width: width, height: height, fit: fit ?? BoxFit.contain)
-          : Image.asset(img, width: width, height: height, fit: fit, errorBuilder: (_, _, _) => _fallback(context));
+          ? SvgPicture.asset(
+              _src,
+              width: width,
+              height: height,
+              fit: fit ?? BoxFit.contain,
+            )
+          : Image.asset(
+              _src,
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: (_, _, _) => _fallback(context),
+            );
     }
     if (_isNetwork) {
       if (_isSvg) {
         return SvgPicture.network(
-          img,
+          _src,
           width: width,
           height: height,
           fit: fit ?? BoxFit.contain,
@@ -56,10 +83,13 @@ class ImageItem extends StatelessWidget {
         );
       }
       return CachedNetworkImage(
-        imageUrl: img,
+        imageUrl: _src,
         width: width,
         height: height,
         fit: fit,
+        memCacheWidth: (width != null && width!.isFinite)
+            ? (width! * MediaQuery.devicePixelRatioOf(context)).round()
+            : null,
         placeholder: (_, _) => _shimmer(context),
         errorWidget: (_, _, _) => _fallback(context),
       );
@@ -67,10 +97,14 @@ class ImageItem extends StatelessWidget {
     return _fallback(context);
   }
 
-  Widget _shimmer(BuildContext context) => ColoredBox(
-    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
-    child: SizedBox(width: width, height: height),
-  );
+  Widget _shimmer(BuildContext context) =>
+      ImageShimmer(width: width, height: height);
+
+  double get _fallbackSize {
+    final w = width, h = height;
+    if (w == null || h == null || !w.isFinite || !h.isFinite) return 32;
+    return (math.min(w, h) * 0.35).clamp(20.0, 48.0);
+  }
 
   Widget _fallback(BuildContext context) {
     return Container(
@@ -80,8 +114,70 @@ class ImageItem extends StatelessWidget {
       child: Icon(
         Icons.storefront_outlined,
         color: Theme.of(context).colorScheme.secondary,
-        size: 32,
+        size: _fallbackSize,
       ),
+    );
+  }
+}
+
+/// Looping loading placeholder; static under reduce-motion.
+@visibleForTesting
+class ImageShimmer extends StatefulWidget {
+  const ImageShimmer({super.key, this.width, this.height});
+
+  final double? width;
+  final double? height;
+
+  @override
+  State<ImageShimmer> createState() => ImageShimmerState();
+}
+
+class ImageShimmerState extends State<ImageShimmer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  );
+  bool _reduce = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduce = context.reduceMotion;
+    if (_reduce) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final base = scheme.surfaceContainerHighest;
+    final hi = scheme.surface;
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final t = _reduce ? 0.0 : _c.value;
+        return DecoratedBox(
+          key: const ValueKey('image-shimmer'),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment(-1.5 + 3 * t, 0),
+              end: Alignment(-0.5 + 3 * t, 0),
+              colors: [base, hi, base],
+            ),
+          ),
+          child: SizedBox(width: widget.width, height: widget.height),
+        );
+      },
     );
   }
 }

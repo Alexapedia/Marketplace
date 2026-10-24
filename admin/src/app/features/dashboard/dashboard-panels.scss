@@ -1,0 +1,260 @@
+// ---- Recent orders ------------------------------------------------------------
+
+.recent-wrap {
+  overflow-x: auto;
+  margin-inline: -24px;
+}
+.recent {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.recent td {
+  padding: 12px 24px;
+  border-top: 1px solid var(--m-line);
+  white-space: nowrap;
+}
+.recent tr {
+  transition: background-color var(--m-dur-fast) var(--m-ease-out);
+  animation: row-in var(--m-dur-slow) var(--m-ease-out) both;
+}
+@for $i from 1 through 6 {
+  .recent tr:nth-child(#{$i}) {
+    animation-delay: #{300 + ($i - 1) * 30}ms;
+  }
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+.recent tr:hover {
+  background: color-mix(in srgb, var(--m-accent) 7%, transparent);
+}
+.recent .num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.recent .end {
+  text-align: end;
+}
+.recent .who {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent .when {
+  color: var(--m-ink-muted);
+  text-align: end;
+}
+
+// ---- Rings -------------------------------------------------------------------
+
+.gauges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: center;
+  gap: 16px;
+}
+.gauge .panel-h {
+  margin-bottom: 10px;
+  min-height: 2.8em;
+  align-items: flex-start;
+}
+.ring-wrap {
+  position: relative;
+  width: min(140px, 100%);
+  aspect-ratio: 1;
+  margin: 6px auto 10px;
+}
+.ring-wrap svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ring-wrap circle {
+  fill: none;
+  stroke: var(--m-surface-2);
+  stroke-width: 9;
+}
+.ring-wrap circle.val {
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  animation: ring-in var(--m-dur-lavish) var(--m-ease-out) 200ms both;
+}
+.ring-wrap circle.accent {
+  stroke: var(--chart-1);
+}
+.ring-wrap circle.primary {
+  stroke: var(--chart-2);
+}
+@keyframes ring-in {
+  from {
+    transform: rotate(-120deg);
+    opacity: 0;
+  }
+}
+.ring-n {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.ring-n strong {
+  font-family: var(--m-font-display);
+  font-size: 28px;
+  font-weight: 600;
+}
+.foot {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--m-ink-muted);
+  text-align: center;
+}
+.split + .track + .foot {
+  text-align: start;
+}
+
+// ---- Misc panels -------------------------------------------------------------
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.key {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-inline-end: 6px;
+}
+.key.m,
+.stack .m {
+  background: var(--chart-1);
+}
+.key.w,
+.stack .w {
+  background: var(--chart-2);
+}
+.stack {
+  display: flex;
+  gap: 4px;
+  height: 8px;
+}
+.stack i {
+  display: block;
+  border-radius: var(--m-r-pill);
+  transform-origin: left center;
+  animation: grow-x var(--m-dur-lavish) var(--m-ease-out) both;
+}
+:host-context([dir='rtl']) .stack i {
+  transform-origin: right center;
+}
+
+.prod {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--m-line);
+  font-size: 14px;
+}
+.prod:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+.rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--m-accent-soft);
+  color: var(--m-accent-ink);
+}
+.pname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prod strong {
+  font-weight: 600;
+}
+.empty {
+  margin: 8px 0 0;
+  color: var(--m-ink-muted);
+  font-size: 14px;
+}
+
+// ---- Responsive ----------------------------------------------------------------
+
+@media (max-width: 1279px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .panel {
+    grid-column: span 6;
+  }
+  .area-chart,
+  .area-recent {
+    grid-column: span 12;
+  }
+}
+@media (max-width: 719px) {
+  .board {
+    gap: 16px;
+  }
+  .kpis,
+  .layout {
+    gap: 12px;
+  }
+  .kpi {
+    padding: 18px;
+  }
+  .kpi-n strong {
+    font-size: 30px;
+  }
+  .panel {
+    grid-column: span 12;
+    padding: 20px;
+  }
+  .recent-wrap {
+    margin-inline: -20px;
+  }
+  .recent td {
+    padding: 12px 20px;
+  }
+  .recent .when {
+    display: none;
+  }
+  .chart-stats {
+    gap: 24px;
+  }
+}
+@media (max-width: 480px) {
+  .recent .who {
+    display: none;
+  }
+}
+@media (max-width: 400px) {
+  .kpi .trend em {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grow,
+  .track i,
+  .stack i,
+  .ring-wrap circle.val,
+  .recent tr,
+  .live i::after {
+    animation: none;
+  }
+}

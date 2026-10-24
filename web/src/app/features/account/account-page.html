@@ -1,0 +1,68 @@
+<div class="w narrow page">
+  <app-page-bar [title]="('account' | t)" />
+  @if (auth.user(); as u) {
+    <section class="profile m-enter">
+      <span class="profile-rule" aria-hidden="true"></span>
+      @if (u.avatar) {
+        <img class="avatar" [src]="media(u.avatar)" alt="" />
+      } @else {
+        <span class="avatar ph" aria-hidden="true">{{ (u.name || u.email || '?').charAt(0) }}</span>
+      }
+      <div class="profile-text">
+        <span class="m-eyebrow">{{ 'mWelcome' | t }}</span>
+        <h2>{{ u.name }}</h2>
+        <p class="muted">{{ u.email }}</p>
+      </div>
+      <a class="btn outline sm" routerLink="/account/edit"><m-icon name="edit" />{{ 'editProfile' | t }}</a>
+    </section>
+
+    <nav class="menu panel" [attr.aria-label]="'mMenu' | t">
+      <a class="menu-row" routerLink="/orders" [mReveal]="0">
+        <span class="row-ico"><m-icon name="box" /></span><span>{{ 'orders' | t }}</span><m-icon name="chevron" class="row-chev m-flip" />
+      </a>
+      <a class="menu-row" routerLink="/custom" [mReveal]="1">
+        <span class="row-ico"><m-icon name="spark" /></span><span>{{ 'customOrders' | t }}</span><m-icon name="chevron" class="row-chev m-flip" />
+      </a>
+      <a class="menu-row" routerLink="/favorites" [mReveal]="2">
+        <span class="row-ico"><m-icon name="heart" /></span><span>{{ 'favorites' | t }}</span><m-icon name="chevron" class="row-chev m-flip" />
+      </a>
+      <a class="menu-row" routerLink="/addresses" [mReveal]="3">
+        <span class="row-ico"><m-icon name="pin" /></span><span>{{ 'addresses' | t }}</span><m-icon name="chevron" class="row-chev m-flip" />
+      </a>
+      <a class="menu-row" routerLink="/notifications" [mReveal]="4">
+        <span class="row-ico"><m-icon name="bell" /></span><span>{{ 'notifications' | t }}</span><m-icon name="chevron" class="row-chev m-flip" />
+      </a>
+      <a class="menu-row" routerLink="/account/edit" [mReveal]="5">
+        <span class="row-ico"><m-icon name="user" /></span><span>{{ 'editProfile' | t }}</span><m-icon name="chevron" class="row-chev m-flip" />
+      </a>
+    </nav>
+
+    @if (supportPhone() || supportEmail()) {
+      <section class="panel support-box" [mReveal]="2">
+        <h2 class="panel-title">{{ 'support' | t }}</h2>
+        <p class="muted">{{ 'supportHint' | t }}</p>
+        <div class="support-actions">
+          @if (supportPhone()) {
+            <button class="btn" type="button" (click)="callSupport()">
+              <m-icon name="phone" />
+              {{ 'callSupport' | t }} · <span class="m-num" dir="ltr">{{ supportPhone() }}</span>
+            </button>
+          }
+          @if (supportEmail()) {
+            <button class="btn outline" type="button" (click)="emailSupport()">
+              <m-icon name="mail" />
+              {{ 'emailSupport' | t }} · {{ supportEmail() }}
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <div class="danger-zone">
+      <button class="btn text-danger" type="button" (click)="deleteAccount()">
+        <m-icon name="trash" />
+        {{ 'deleteAccount' | t }}
+      </button>
+    </div>
+  }
+</div>

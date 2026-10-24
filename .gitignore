@@ -5,6 +5,7 @@ dist
 coverage
 .env
 .env.local
+.env.staging
 backend/uploads
 mobile/.dart_tool
 mobile/.flutter-plugins-dependencies
@@ -16,3 +17,5 @@ admin/.angular
 serviceAccount.json
 google-services.json
 GoogleService-Info.plist
+staging/bin/
+**/.angular

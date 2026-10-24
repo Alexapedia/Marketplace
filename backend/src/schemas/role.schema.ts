@@ -5,7 +5,7 @@ export type RoleDocument = HydratedDocument<Role>;
 
 @Schema({ timestamps: true })
 export class Role {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   name: string;
 
   @Prop({ type: [String], default: [] })

@@ -1,0 +1,70 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../../core/components/failed_shape.dart';
+import '../../../../../core/components/maison.dart';
+import '../../../../../core/models/catalog_models.dart';
+import '../../../../../core/utils/constant/app_enum.dart';
+import '../../../../../core/utils/functions/responsive.dart';
+import '../../controller/categories_cubit.dart';
+import 'category_tile.dart';
+import '../../../../../core/components/skeleton_placeholders.dart';
+
+class CategoriesBody extends StatelessWidget {
+  const CategoriesBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CategoriesCubit, CategoriesState>(
+      builder: (context, state) {
+        if (state.status == RequestStatus.failed) {
+          return FailedShape(
+            msg: state.error,
+            onTapRefresh: () => context.read<CategoriesCubit>().load(),
+          );
+        }
+        final loading = state.status != RequestStatus.loaded;
+        final items = loading
+            ? List.generate(8, (_) => const CategoryModel(name: 'Category'))
+            : state.items;
+        if (!loading && items.isEmpty) {
+          return EmptyState(
+            title: 'empty_categories'.tr(),
+            icon: Icons.category_outlined,
+          );
+        }
+        return MaisonSkeleton(
+          enabled: loading,
+          child: GridView.builder(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              16 + MediaQuery.paddingOf(context).bottom,
+            ),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: context.catalogColumns.clamp(2, 4),
+              mainAxisExtent: ResponsiveUtils.byDevice(
+                context: context,
+                mobileLandscape: 180,
+                mobile: 210,
+                tablet: 240,
+                desktop: 260,
+              ),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: items.length,
+            itemBuilder: (context, i) => loading
+                ? CategoryTile(category: items[i])
+                : Reveal(
+                    index: i,
+                    child: CategoryTile(category: items[i]),
+                  ),
+          ),
+        );
+      },
+    );
+  }
+}

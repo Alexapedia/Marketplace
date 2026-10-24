@@ -1,4 +1,5 @@
 import '../utils/functions/json_helpers.dart';
+import '../utils/functions/print_state.dart';
 
 class CustomFieldModel {
   final String id;
@@ -21,16 +22,19 @@ class CustomFieldModel {
 
   factory CustomFieldModel.fromJson(dynamic json) {
     final map = asMap(json);
+    final id = asString(map['_id'] ?? map['id']);
     return CustomFieldModel(
-      id: asString(map['_id'] ?? map['id']),
-      name: asString(map['name'] ?? map['key']),
-      label: localized(map['label'] ?? map['name']),
-      type: asString(map['type'], 'text'),
+      id: id,
+      name: asString(map['name'] ?? map['key'], id),
+      label: localized(map['label'] ?? map['labels'] ?? map['name']),
+      type: asString(map['type'] ?? map['fieldType'], 'text'),
       required: asBool(map['required']),
       options: asList(map['options']).map((e) => localized(e)).toList(),
       placeholder: localized(map['placeholder']),
     );
   }
+
+  String get key => id.isNotEmpty ? id : name;
 }
 
 class ProposalModel {
@@ -58,6 +62,8 @@ class ProposalModel {
       createdAt: DateTime.tryParse(asString(map['createdAt'])),
     );
   }
+
+  bool get canRespond => status.isEmpty || status == 'sent';
 }
 
 class ChatMessageModel {
@@ -83,23 +89,33 @@ class ChatMessageModel {
 
   factory ChatMessageModel.fromJson(dynamic json, {String? myId}) {
     final map = asMap(json);
-    final sender = map['sender'] is Map ? asMap(map['sender']) : map;
+    // final sender = map['sender'] is Map ? asMap(map['sender']) : map;
     final senderId = asString(
-      sender['_id'] ?? sender['id'] ?? map['senderId'] ?? map['userId'],
+      map['senderId'] ?? map['userId'],
+      // sender['_id'] ?? sender['id'] ?? map['senderId'] ?? map['userId'],
     );
     final files = asList(map['files'] ?? map['images'] ?? map['attachments']);
+    printState(
+      'ChatMessageModel.fromJson: senderId: $senderId, myId: $myId ${myId != null && myId.isNotEmpty && senderId == myId}',
+    );
     return ChatMessageModel(
       id: asString(map['_id'] ?? map['id']),
       text: asString(map['text'] ?? map['message'] ?? map['body']),
       type: asString(map['type'], 'text'),
       senderId: senderId,
-      senderRole: asString(sender['role'] ?? map['senderRole']),
-      images: files.map((e) {
-        if (e is String) return e;
-        return asString(asMap(e)['url'] ?? asMap(e)['path']);
-      }).where((e) => e.isNotEmpty).toList(),
+      senderRole: asString(map['senderRole']),
+      images: files
+          .map((e) {
+            if (e is String) return e;
+            return asString(asMap(e)['url'] ?? asMap(e)['path']);
+          })
+          .where((e) => e.isNotEmpty)
+          .toList(),
       createdAt: DateTime.tryParse(asString(map['createdAt'])),
-      isMine: myId != null && myId.isNotEmpty && senderId == myId,
+      isMine:
+          myId != null &&
+          myId.isNotEmpty &&
+          senderId.toString() == myId.toString(),
     );
   }
 }
@@ -130,21 +146,25 @@ class CustomOrderModel {
   factory CustomOrderModel.fromJson(dynamic json) {
     final map = asMap(unwrapData(json));
     final files = asList(map['images'] ?? map['files'] ?? map['attachments']);
+    final catRaw = map['categoryId'] ?? map['category'];
+    final catMap = catRaw is Map ? asMap(catRaw) : <String, dynamic>{};
     return CustomOrderModel(
       id: asString(map['_id'] ?? map['id']),
       status: asString(map['status'], 'submitted'),
-      categoryId: asString(
-        map['categoryId'] ??
-            (map['category'] is Map ? map['category']['_id'] : map['category']),
-      ),
-      categoryName: map['category'] is Map
-          ? localized(asMap(map['category'])['name'])
+      categoryId: catMap.isNotEmpty
+          ? asString(catMap['_id'] ?? catMap['id'])
+          : asString(catRaw),
+      categoryName: catMap.isNotEmpty
+          ? localized(catMap['names'] ?? catMap['name'])
           : asString(map['categoryName']),
       description: asString(map['description'] ?? map['notes']),
-      images: files.map((e) {
-        if (e is String) return e;
-        return asString(asMap(e)['url'] ?? asMap(e)['path']);
-      }).where((e) => e.isNotEmpty).toList(),
+      images: files
+          .map((e) {
+            if (e is String) return e;
+            return asString(asMap(e)['url'] ?? asMap(e)['path']);
+          })
+          .where((e) => e.isNotEmpty)
+          .toList(),
       fields: asMap(map['fields'] ?? map['customFields']),
       proposals: asList(map['proposals']).map(ProposalModel.fromJson).toList(),
       createdAt: DateTime.tryParse(asString(map['createdAt'])),

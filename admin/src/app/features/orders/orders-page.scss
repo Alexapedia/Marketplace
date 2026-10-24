@@ -1,6 +1,100 @@
-.wrap { min-height: calc(100vh - 120px); }
-.drawer { width: min(420px, 92vw); padding: 16px; }
-.drawer-h { display: flex; justify-content: space-between; align-items: center; }
-.full { width: 100%; }
-.item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--mat-sys-outline-variant); }
-h2 { margin-top: 0; }
+.wrap {
+  min-height: calc(100dvh - 180px);
+  background: transparent;
+  overflow: visible;
+  // Let the fixed drawer stack above the shell's glass top bar.
+  z-index: auto;
+}
+:host ::ng-deep .wrap > .mat-drawer-content {
+  overflow: visible;
+}
+
+// Order detail drawer
+.drawer {
+  width: min(440px, 92vw);
+  padding: 28px 28px 32px;
+  box-sizing: border-box;
+  background: var(--m-surface);
+  border-inline-start: 1px solid var(--m-line);
+  box-shadow: var(--m-shadow-2);
+}
+.drawer-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--m-line);
+}
+.drawer-h h3 {
+  margin: 0;
+  font-family: var(--m-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.drawer p {
+  margin: 0 0 10px;
+  color: var(--m-ink);
+  line-height: 1.6;
+}
+.drawer p strong {
+  color: var(--m-ink-muted);
+  font-weight: 500;
+}
+.drawer h4 {
+  margin: 24px 0 8px;
+  font-family: var(--m-font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--m-accent-ink);
+}
+:host-context([dir='rtl']) .drawer h4 {
+  letter-spacing: 0;
+}
+.drawer .mat-mdc-form-field {
+  margin-top: 12px;
+}
+.full {
+  width: 100%;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--m-line);
+  font-variant-numeric: tabular-nums;
+}
+.item > span:last-child {
+  color: var(--m-ink-muted);
+  white-space: nowrap;
+}
+.table-wrap {
+  margin-top: 4px;
+}
+
+// The detail drawer spans the viewport, above the glass top bar.
+.drawer.mat-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100dvh;
+  z-index: 20;
+  border-start-start-radius: var(--m-r-lg);
+  border-end-start-radius: var(--m-r-lg);
+}
+:host ::ng-deep .wrap > .mat-drawer-backdrop {
+  position: fixed;
+  z-index: 19;
+}
+
+// Order numbers and dates read as one token; let other columns wrap instead.
+.mat-column-orderNumber,
+.mat-column-createdAt {
+  white-space: nowrap;
+}

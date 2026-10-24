@@ -6,11 +6,13 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { AddressesService } from '../addresses/addresses.service';
 import { AuditService } from '../audit/audit.service';
+import { ChatRealtimeService } from '../chat/chat-realtime.service';
 import { CUSTOM_ORDER_STATUSES } from '../common/constants';
 import { paginationMeta } from '../common/dto/pagination.dto';
 import { AuthUser } from '../common/types/auth-user';
-import { toObjectId } from '../common/utils/mongo';
+import { searchRegex, toObjectId } from '../common/utils/mongo';
 import { NotificationsService } from '../notifications/notifications.service';
 import { OrdersService } from '../orders/orders.service';
 import {
@@ -44,8 +46,10 @@ export class CustomOrdersService {
     private readonly messageModel: Model<MessageDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly orders: OrdersService,
+    private readonly addresses: AddressesService,
     private readonly notifications: NotificationsService,
     private readonly audit: AuditService,
+    private readonly realtime: ChatRealtimeService,
   ) {}
 
   private parseMaybeJson(value: unknown) {
@@ -64,7 +68,7 @@ export class CustomOrdersService {
     dto: CreateCustomOrderDto,
     attachmentUrls: string[] = [],
   ) {
-    return this.customModel.create({
+    const doc = await this.customModel.create({
       userId: new Types.ObjectId(userId),
       categoryId: toObjectId(dto.categoryId, 'categoryId'),
       fields: this.parseMaybeJson(dto.fields) ?? {},
@@ -72,6 +76,23 @@ export class CustomOrdersService {
       attachments: attachmentUrls,
       status: dto.status === 'draft' ? 'draft' : 'submitted',
     });
+    if (doc.status === 'submitted') {
+      try {
+        await this.notifications.notifyRoles({
+          roles: ['super_admin', 'admin', 'order_manager', 'support_agent'],
+          title: { en: 'New custom order', ar: 'طلب خاص جديد' },
+          body: {
+            en: 'A customer submitted a custom order.',
+            ar: 'عميل أرسل طلب خاص جديد.',
+          },
+          type: 'new_custom_order',
+          data: { customOrderId: String(doc._id) },
+        });
+      } catch {
+        // Staff alerts should not fail submission.
+      }
+    }
+    return doc;
   }
 
   async listMine(userId: string, page: number, limit: number) {
@@ -81,17 +102,20 @@ export class CustomOrdersService {
         .find(filter)
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
-        .limit(limit),
+        .limit(limit)
+        .populate('categoryId', 'names'),
       this.customModel.countDocuments(filter),
     ]);
     return { data: items, meta: paginationMeta(total, page, limit) };
   }
 
   async findMine(userId: string, id: string) {
-    const doc = await this.customModel.findOne({
-      _id: toObjectId(id),
-      userId: new Types.ObjectId(userId),
-    });
+    const doc = await this.customModel
+      .findOne({
+        _id: toObjectId(id),
+        userId: new Types.ObjectId(userId),
+      })
+      .populate('categoryId', 'names');
     if (!doc) {
       throw new NotFoundException('Custom order not found');
     }
@@ -108,40 +132,63 @@ export class CustomOrdersService {
     return proposal;
   }
 
-  async confirm(userId: string, id: string, dto: ConfirmProposalDto) {
+  async confirm(userId: string, id: string, dto: ConfirmProposalDto, channel?: string) {
     const order = await this.findMine(userId, id);
     const proposal = this.findProposal(order, dto.proposalId);
-    if (proposal.status !== 'sent') {
+    const existingShopOrder = await this.orders.findByCustomOrderId(
+      String(order._id),
+    );
+    const awaiting =
+      !proposal.status ||
+      proposal.status === 'sent' ||
+      (proposal.status === 'confirmed' && !existingShopOrder);
+    if (!awaiting) {
+      if (proposal.status === 'confirmed' && existingShopOrder) {
+        return { customOrder: order, order: existingShopOrder };
+      }
       throw new BadRequestException('Proposal is not awaiting confirmation');
     }
+
+    const user = await this.userModel.findById(userId);
+    const address = await this.addresses.resolve(
+      userId,
+      dto.addressId,
+      dto.address,
+    );
+    const created =
+      existingShopOrder ??
+      (await this.orders.createFromProposal({
+        userId,
+        customOrderId: String(order._id),
+        productName: proposal.productName || order.description || 'Custom order',
+        image: proposal.images?.[0],
+        unitPrice: proposal.price,
+        quantity: proposal.quantity || 1,
+        address,
+        userName: user?.name,
+        userPhone: user?.phone,
+        channel,
+      }));
+
     proposal.status = 'confirmed';
     proposal.respondedAt = new Date();
     order.status = 'confirmed';
     await order.save();
 
-    const user = await this.userModel.findById(userId);
-    const created = await this.orders.createFromProposal({
-      userId,
-      customOrderId: String(order._id),
-      productName: proposal.productName,
-      image: proposal.images?.[0],
-      unitPrice: proposal.price,
-      quantity: proposal.quantity || 1,
-      address: dto.address,
-      userName: user?.name,
-      userPhone: user?.phone,
-    });
-
-    await this.notifications.createAndOptionallyPush({
-      userId,
-      title: { en: 'Custom order confirmed', ar: 'تم تأكيد الطلب الخاص' },
-      body: {
-        en: `Order ${created.orderNumber} was created from your quote`,
-        ar: `تم إنشاء الطلب ${created.orderNumber} من عرض السعر`,
-      },
-      type: 'custom_order_confirmed',
-      data: { customOrderId: String(order._id), orderId: String(created._id) },
-    });
+    try {
+      await this.notifications.createAndOptionallyPush({
+        userId,
+        title: { en: 'Custom order confirmed', ar: 'تم تأكيد الطلب الخاص' },
+        body: {
+          en: `Order ${created.orderNumber} was created from your quote`,
+          ar: `تم إنشاء الطلب ${created.orderNumber} من عرض السعر`,
+        },
+        type: 'custom_order_confirmed',
+        data: { customOrderId: String(order._id), orderId: String(created._id) },
+      });
+    } catch {
+      // Confirmation already persisted; skip a noisy notification failure.
+    }
 
     return { customOrder: order, order: created };
   }
@@ -176,6 +223,71 @@ export class CustomOrdersService {
     return convo;
   }
 
+  async resolveConversation(
+    user: AuthUser,
+    body: { customOrderId?: string; conversationId?: string },
+  ) {
+    if (body.customOrderId) {
+      const order =
+        user.type === 'staff'
+          ? await this.findAdmin(body.customOrderId)
+          : await this.findMine(user.userId, body.customOrderId);
+      return this.ensureConversation(order);
+    }
+    if (body.conversationId) {
+      const convo = await this.getChat(body.conversationId);
+      if (user.type !== 'staff') {
+        const ownerId = this.idOf(convo.userId);
+        if (ownerId !== user.userId) {
+          throw new ForbiddenException();
+        }
+      }
+      return convo;
+    }
+    throw new BadRequestException('customOrderId or conversationId required');
+  }
+
+  presentMessage(doc: MessageDocument) {
+    const json = (
+      typeof doc.toJSON === 'function' ? doc.toJSON() : doc
+    ) as unknown as Record<string, unknown>;
+    return {
+      _id: String(json._id ?? ''),
+      id: String(json._id ?? ''),
+      conversationId: this.idOf(json.conversationId),
+      senderId: this.idOf(json.senderId),
+      senderRole: String(json.senderRole ?? ''),
+      type: String(json.type ?? 'text'),
+      text: String(json.text ?? ''),
+      attachments: Array.isArray(json.attachments)
+        ? (json.attachments as string[])
+        : [],
+      images: Array.isArray(json.attachments)
+        ? (json.attachments as string[])
+        : [],
+      createdAt: json.createdAt as Date | undefined,
+    };
+  }
+
+  private idOf(value: unknown): string {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object' && value !== null) {
+      const rec = value as { _id?: unknown; id?: unknown };
+      if (rec._id) return String(rec._id);
+      if (rec.id) return String(rec.id);
+    }
+    return String(value);
+  }
+
+  private emitChat(convo: ConversationDocument, message: MessageDocument) {
+    this.realtime.emitMessage({
+      conversationId: String(convo._id),
+      customOrderId: this.idOf(convo.customOrderId),
+      message: this.presentMessage(message),
+    });
+  }
+
   async listMessages(user: AuthUser, customOrderId: string) {
     const order =
       user.type === 'staff'
@@ -186,17 +298,20 @@ export class CustomOrdersService {
       .find({ conversationId: convo._id })
       .sort({ createdAt: 1 });
 
-    if (user.type === 'staff') {
-      convo.unreadByStaff = 0;
-    } else {
-      convo.unreadByCustomer = 0;
-    }
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set:
+          user.type === 'staff'
+            ? { unreadByStaff: 0 }
+            : { unreadByCustomer: 0 },
+      },
+    );
     await this.messageModel.updateMany(
       { conversationId: convo._id, readAt: { $exists: false } },
       { readAt: new Date() },
     );
-    return messages;
+    return messages.map((m) => this.presentMessage(m));
   }
 
   async postMessage(
@@ -218,20 +333,29 @@ export class CustomOrdersService {
       text: dto.text,
       attachments: attachmentUrls,
     });
-    convo.lastMessageAt = new Date();
-    if (user.type === 'staff') {
-      convo.unreadByCustomer += 1;
-      convo.unreadByStaff = 0;
-    } else {
-      convo.unreadByStaff += 1;
-      convo.unreadByCustomer = 0;
-    }
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set: {
+          lastMessageAt: new Date(),
+          lastMessage: dto.text || (attachmentUrls.length ? '📷' : ''),
+          ...(user.type === 'staff'
+            ? { unreadByStaff: 0 }
+            : { unreadByCustomer: 0 }),
+        },
+        $inc:
+          user.type === 'staff'
+            ? { unreadByCustomer: 1 }
+            : { unreadByStaff: 1 },
+      },
+    );
+    this.emitChat(convo, message);
     return message;
   }
 
   async listAdmin(query: {
     status?: string;
+    search?: string;
     page?: number;
     limit?: number;
   }) {
@@ -240,6 +364,19 @@ export class CustomOrdersService {
     const filter: Record<string, unknown> = {};
     if (query.status) {
       filter.status = query.status;
+    }
+    if (query.search?.trim()) {
+      const rx = searchRegex(query.search);
+      const users = await this.userModel
+        .find({ $or: [{ name: rx }, { email: rx }, { phone: rx }] })
+        .select('_id')
+        .limit(200)
+        .lean();
+      filter.$or = [
+        { description: rx },
+        { 'proposals.productName': rx },
+        { userId: { $in: users.map((u) => u._id) } },
+      ];
     }
     const [items, total] = await Promise.all([
       this.customModel
@@ -308,16 +445,21 @@ export class CustomOrdersService {
     await order.save();
 
     const convo = await this.ensureConversation(order);
-    await this.messageModel.create({
+    const proposalMessage = await this.messageModel.create({
       conversationId: convo._id,
       senderId: new Types.ObjectId(actorId),
       senderRole: 'staff',
       type: 'proposal',
       text: `Proposal v${nextVersion}: ${dto.productName}`,
     });
-    convo.lastMessageAt = new Date();
-    convo.unreadByCustomer += 1;
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set: { lastMessageAt: new Date() },
+        $inc: { unreadByCustomer: 1 },
+      },
+    );
+    this.emitChat(convo, proposalMessage);
 
     const customerId = String(order.userId._id ?? order.userId);
     await this.notifications.createAndOptionallyPush({
@@ -342,16 +484,20 @@ export class CustomOrdersService {
     return order;
   }
 
-  async listChats(page: number, limit: number) {
+  async listChats(page: number, limit: number, customOrderId?: string) {
+    const filter: Record<string, unknown> = {};
+    if (customOrderId) {
+      filter.customOrderId = toObjectId(customOrderId);
+    }
     const [items, total] = await Promise.all([
       this.conversationModel
-        .find()
+        .find(filter)
         .sort({ lastMessageAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .populate('userId', 'name email')
         .populate('customOrderId'),
-      this.conversationModel.countDocuments(),
+      this.conversationModel.countDocuments(filter),
     ]);
     return { data: items, meta: paginationMeta(total, page, limit) };
   }
@@ -372,9 +518,11 @@ export class CustomOrdersService {
     const messages = await this.messageModel
       .find({ conversationId: convo._id })
       .sort({ createdAt: 1 });
-    convo.unreadByStaff = 0;
-    await convo.save();
-    return messages;
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      { $set: { unreadByStaff: 0 } },
+    );
+    return messages.map((m) => this.presentMessage(m));
   }
 
   async postChatMessage(
@@ -395,10 +543,18 @@ export class CustomOrdersService {
       text: dto.text,
       attachments: attachmentUrls,
     });
-    convo.lastMessageAt = new Date();
-    convo.unreadByCustomer += 1;
-    convo.unreadByStaff = 0;
-    await convo.save();
+    await this.conversationModel.updateOne(
+      { _id: convo._id },
+      {
+        $set: {
+          lastMessageAt: new Date(),
+          lastMessage: dto.text || (attachmentUrls.length ? '📷' : ''),
+          unreadByStaff: 0,
+        },
+        $inc: { unreadByCustomer: 1 },
+      },
+    );
+    this.emitChat(convo, message);
     return message;
   }
 }

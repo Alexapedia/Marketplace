@@ -12,6 +12,7 @@ abstract class ApisCalls {
     dynamic body,
     Map<String, dynamic>? queryParameters,
     bool formDataIsEnabled = false,
+    Map<String, dynamic>? headers,
   });
   Future<Either<String, ApiModel>> auth(
     String path, {

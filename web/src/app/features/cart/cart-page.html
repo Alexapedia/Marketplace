@@ -1,0 +1,64 @@
+<div class="w page">
+  <app-page-bar [title]="('cart' | t)" />
+  @if (!cart.items().length) {
+    <div class="empty m-enter">
+      <span class="empty-mark"><m-icon name="bag" /></span>
+      <p class="empty-title">{{ 'emptyCart' | t }}</p>
+      <a class="btn" routerLink="/shop">
+        {{ 'continue' | t }}
+        <m-icon name="arrow" class="m-flip" />
+      </a>
+    </div>
+  } @else {
+    <div class="bag-layout">
+      <section class="panel bag-items">
+        @for (i of cart.items(); track i._id; let n = $index) {
+          <div class="cart-row" [mReveal]="n">
+            <a class="cart-pic" [routerLink]="['/product', productId(i)]" tabindex="-1" aria-hidden="true">
+              @if (i.image) {
+                <img [src]="media(i.image)" alt="" />
+              } @else {
+                <span class="cart-ph"></span>
+              }
+            </a>
+            <div class="cart-info">
+              <a class="cart-name" [routerLink]="['/product', productId(i)]">{{ i.nameSnapshot }}</a>
+              <div class="muted cart-meta">
+                <span class="m-num">{{ i.unitPrice }} × {{ i.quantity }}</span>
+                @if (i.variant) {
+                  · {{ i.variant }}
+                }
+                @if (i.size) {
+                  · {{ i.size }}
+                }
+              </div>
+              <div class="stepper compact">
+                <button type="button" (click)="dec(i._id!, i.quantity)" aria-label="−"><m-icon name="minus" /></button>
+                <span>{{ i.quantity }}</span>
+                <button type="button" (click)="inc(i._id!, i.quantity)" aria-label="+"><m-icon name="plus" /></button>
+              </div>
+            </div>
+            <div class="cart-end">
+              <span class="price">{{ i.unitPrice * i.quantity }} <small>{{ 'currency' | t }}</small></span>
+              <button class="icon-btn danger" type="button" (click)="remove(i._id!)" [attr.aria-label]="'remove' | t" [title]="'remove' | t">
+                <m-icon name="trash" />
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <aside class="panel summary-card" [mReveal]="1">
+        <h2 class="panel-title">{{ 'orderSummary' | t }}</h2>
+        <span class="m-rule" aria-hidden="true"></span>
+        <app-price-summary [subtotal]="subtotal()" [deliveryFee]="store.deliveryFee()" [total]="total()" />
+        <div class="cod"><m-icon name="cash" />{{ 'cod' | t }}</div>
+        <a class="btn wide" routerLink="/checkout">
+          {{ 'checkout' | t }}
+          <m-icon name="arrow" class="m-flip" />
+        </a>
+        <a class="sec-link continue-link" routerLink="/shop">{{ 'continue' | t }}</a>
+      </aside>
+    </div>
+  }
+</div>

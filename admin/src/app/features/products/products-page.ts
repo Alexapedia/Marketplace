@@ -1,7 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { PageEvent } from '@angular/material/paginator';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
@@ -22,9 +28,12 @@ import {
   localizedOf,
   PageMeta,
   Product,
+  ProductVariant,
 } from '../../core/models/models';
 import { AsyncState } from '../../shared/async-state';
+import { ImageUploader } from '../../shared/image-uploader';
 import { asList, errMessage, UiService } from '../../shared/ui.service';
+import { ConfirmService } from '../../shared/confirm-dialog';
 
 @Component({
   selector: 'app-product-dialog',
@@ -36,65 +45,158 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
+    MatIconModule,
     TranslatePipe,
+    ImageUploader,
   ],
   template: `
     <h2 mat-dialog-title>{{ (data.product ? 'common.edit' : 'products.create') | t }}</h2>
     <mat-dialog-content [formGroup]="form" class="dlg">
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.nameEn' | t }}</mat-label>
-        <input matInput formControlName="nameEn" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.nameAr' | t }}</mat-label>
-        <input matInput formControlName="nameAr" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.price' | t }}</mat-label>
-        <input matInput type="number" formControlName="price" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'products.salePrice' | t }}</mat-label>
-        <input matInput type="number" formControlName="salePrice" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.stock' | t }}</mat-label>
-        <input matInput type="number" formControlName="stock" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.category' | t }}</mat-label>
-        <mat-select formControlName="categoryId">
-          @for (c of data.categories; track entityId(c)) {
-            <mat-option [value]="entityId(c)">{{ locName(c) }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="wide">
-        <mat-label>{{ 'common.images' | t }}</mat-label>
-        <textarea matInput rows="3" formControlName="images"></textarea>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'products.gender' | t }}</mat-label>
-        <mat-select formControlName="gender">
-          <mat-option value="">—</mat-option>
-          <mat-option value="unisex">Unisex</mat-option>
-          <mat-option value="male">Male</mat-option>
-          <mat-option value="female">Female</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.status' | t }}</mat-label>
-        <mat-select formControlName="status">
-          <mat-option value="published">{{ 'products.published' | t }}</mat-option>
-          <mat-option value="unpublished">{{ 'products.unpublished' | t }}</mat-option>
-          <mat-option value="archived">{{ 'products.archived' | t }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <div class="flags">
-        <mat-checkbox formControlName="featured">{{ 'products.featured' | t }}</mat-checkbox>
-        <mat-checkbox formControlName="newArrival">{{ 'products.newArrival' | t }}</mat-checkbox>
-        <mat-checkbox formControlName="bestSeller">{{ 'products.bestSeller' | t }}</mat-checkbox>
-      </div>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.details' | t }}</h3>
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.nameEn' | t }}</mat-label>
+            <input matInput formControlName="nameEn" /><mat-error>{{ 'common.required' | t }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.nameAr' | t }}</mat-label>
+            <input matInput formControlName="nameAr" /><mat-error>{{ 'common.required' | t }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>{{ 'common.description' | t }} (EN)</mat-label>
+            <textarea matInput rows="2" formControlName="descEn"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>{{ 'common.description' | t }} (AR)</mat-label>
+            <textarea matInput rows="2" formControlName="descAr"></textarea>
+          </mat-form-field>
+        </div>
+      </section>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.price' | t }} · {{ 'common.stock' | t }}</h3>
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.price' | t }}</mat-label>
+            <input matInput type="number" formControlName="price" /><mat-error>{{ 'common.required' | t }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'products.salePrice' | t }}</mat-label>
+            <input matInput type="number" formControlName="salePrice" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.stock' | t }}</mat-label>
+            <input matInput type="number" formControlName="stock" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.category' | t }}</mat-label>
+            <mat-select formControlName="categoryId">
+              @for (c of data.categories; track entityId(c)) {
+                <mat-option [value]="entityId(c)">{{ locName(c) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </section>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.images' | t }}</h3>
+          <div class="wide">
+                    <app-image-uploader [images]="pics()" (imagesChange)="pics.set($event)" />
+          </div>
+      </section>
+      <section class="sec">
+        <h3 class="sec-t">{{ 'common.status' | t }}</h3>
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'products.gender' | t }}</mat-label>
+            <mat-select formControlName="gender">
+              <mat-option value="">—</mat-option>
+              <mat-option value="unisex">Unisex</mat-option>
+              <mat-option value="male">Male</mat-option>
+              <mat-option value="female">Female</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'common.status' | t }}</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="published">{{ 'products.published' | t }}</mat-option>
+              <mat-option value="unpublished">{{ 'products.unpublished' | t }}</mat-option>
+              <mat-option value="archived">{{ 'products.archived' | t }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>{{ 'products.sizes' | t }}</mat-label>
+            <input matInput formControlName="sizes" placeholder="S, M, L" />
+            <mat-hint>{{ 'products.sizesHint' | t }}</mat-hint>
+          </mat-form-field>
+          <div class="flags">
+            <mat-checkbox formControlName="featured">{{ 'products.featured' | t }}</mat-checkbox>
+            <mat-checkbox formControlName="newArrival">{{ 'products.newArrival' | t }}</mat-checkbox>
+            <mat-checkbox formControlName="bestSeller">{{ 'products.bestSeller' | t }}</mat-checkbox>
+          </div>
+        </div>
+      </section>
+      <section class="sec">
+          <div class="wide variants">
+            <div class="v-head">
+              <h3 class="sec-t">{{ 'products.variants' | t }}</h3>
+              <button mat-stroked-button type="button" (click)="addVariant()">
+                <mat-icon>add</mat-icon>{{ 'products.addVariant' | t }}
+              </button>
+            </div>
+            @if (!variants().length) {
+              <p class="hint">{{ 'products.variantsHint' | t }}</p>
+            }
+            @for (v of variants(); track $index; let i = $index) {
+              <div class="v-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'common.name' | t }}</mat-label>
+                  <input
+                    matInput
+                    [value]="v.name || ''"
+                    (input)="patchVariant(i, 'name', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>SKU</mat-label>
+                  <input
+                    matInput
+                    [value]="v.sku || ''"
+                    (input)="patchVariant(i, 'sku', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'common.price' | t }}</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    [value]="v.price ?? ''"
+                    (input)="patchVariant(i, 'price', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'common.stock' | t }}</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    [value]="v.stock ?? 0"
+                    (input)="patchVariant(i, 'stock', $any($event.target).value)"
+                  />
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeVariant(i)"
+                  [attr.aria-label]="'common.delete' | t"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+      </section>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>{{ 'common.cancel' | t }}</button>
@@ -102,10 +204,81 @@ import { asList, errMessage, UiService } from '../../shared/ui.service';
     </mat-dialog-actions>
   `,
   styles: `
-    .dlg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; min-width: min(640px, 90vw); padding-top: 8px; }
-    .wide { grid-column: 1 / -1; }
-    .flags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
-    @media (max-width: 640px) { .dlg { grid-template-columns: 1fr; } }
+    .dlg {
+      display: grid;
+      gap: 16px;
+      min-width: min(720px, 92vw);
+      padding-top: 12px;
+    }
+    .sec {
+      padding: 20px 20px 8px;
+      border-radius: var(--m-r-md);
+      border: 1px solid var(--m-line);
+      background: color-mix(in srgb, var(--m-surface-2) 35%, var(--m-surface));
+    }
+    .sec-t {
+      margin: 0 0 14px;
+      font-family: var(--m-font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--m-accent-ink);
+    }
+    :host-context([dir='rtl']) .sec-t {
+      letter-spacing: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 14px;
+      padding-bottom: 12px;
+    }
+    .wide {
+      grid-column: 1 / -1;
+    }
+    .sec > .wide {
+      padding-bottom: 12px;
+    }
+    .flags {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
+    .v-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .v-head .sec-t {
+      margin: 0;
+    }
+    .v-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr auto;
+      gap: 8px;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+    .hint {
+      font-size: 13px;
+      color: var(--m-ink-muted);
+      margin: 0 0 12px;
+    }
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .sec {
+        padding: 16px 14px 4px;
+      }
+      .v-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
   `,
 })
 export class ProductDialog {
@@ -114,21 +287,40 @@ export class ProductDialog {
   private readonly fb = inject(FormBuilder);
   private readonly i18n = inject(I18nService);
   readonly entityId = entityId;
+  readonly pics = signal<string[]>(this.data.product?.images ?? []);
+  readonly variants = signal<ProductVariant[]>(
+    (this.data.product?.variants ?? []).map((v) => ({ ...v })),
+  );
 
   readonly form = this.fb.nonNullable.group({
     nameEn: [loc(localizedOf(this.data.product ?? {}), 'en'), Validators.required],
     nameAr: [loc(localizedOf(this.data.product ?? {}), 'ar'), Validators.required],
+    descEn: [loc(this.data.product?.description ?? this.data.product?.descriptions, 'en')],
+    descAr: [loc(this.data.product?.description ?? this.data.product?.descriptions, 'ar')],
     price: [this.data.product?.price ?? 0, Validators.required],
     salePrice: [this.data.product?.salePrice ?? 0],
     stock: [this.data.product?.stock ?? 0],
     categoryId: [this.categoryValue()],
-    images: [(this.data.product?.images ?? []).join('\n')],
     gender: [this.data.product?.gender ?? ''],
     status: [this.data.product?.status ?? 'published'],
     featured: [!!this.data.product?.flags?.featured],
     newArrival: [!!this.data.product?.flags?.newArrival],
     bestSeller: [!!this.data.product?.flags?.bestSeller],
+    sizes: [(this.data.product?.sizes ?? []).join(', ')],
   });
+
+  addVariant(): void {
+    this.variants.update((list) => [...list, { name: '', stock: 0 }]);
+  }
+
+  removeVariant(index: number): void {
+    this.variants.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  patchVariant(index: number, key: 'name' | 'sku' | 'price' | 'stock', raw: string): void {
+    const value = key === 'price' || key === 'stock' ? (raw === '' ? undefined : Number(raw)) : raw;
+    this.variants.update((list) => list.map((v, i) => (i === index ? { ...v, [key]: value } : v)));
+  }
 
   locName(c: Category): string {
     return loc(localizedOf(c), this.i18n.lang());
@@ -141,21 +333,32 @@ export class ProductDialog {
     }
     const v = this.form.getRawValue();
     const name = { en: v.nameEn, ar: v.nameAr };
-    const images = v.images
-      .split(/\n|,/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const description = { en: v.descEn, ar: v.descAr };
     this.ref.close({
       name,
       names: name,
+      description,
+      descriptions: description,
       price: Number(v.price),
       salePrice: v.salePrice ? Number(v.salePrice) : undefined,
       stock: Number(v.stock),
       categoryId: v.categoryId || undefined,
-      images,
+      images: this.pics(),
       gender: v.gender || undefined,
       status: v.status,
       flags: { featured: v.featured, newArrival: v.newArrival, bestSeller: v.bestSeller },
+      sizes: v.sizes
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      variants: this.variants()
+        .filter((x) => (x.name || x.sku || '').trim())
+        .map((x) => ({
+          name: x.name?.trim() || undefined,
+          sku: x.sku?.trim() || undefined,
+          price: x.price != null && !Number.isNaN(x.price) ? x.price : undefined,
+          stock: Math.max(0, Math.trunc(Number(x.stock) || 0)),
+        })),
     });
   }
 
@@ -172,6 +375,7 @@ export class ProductDialog {
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
@@ -186,7 +390,9 @@ export class ProductsPage implements OnInit {
   private readonly api = inject(ProductsApi);
   private readonly categoriesApi = inject(CategoriesApi);
   private readonly dialog = inject(MatDialog);
+  private readonly confirm = inject(ConfirmService);
   private readonly ui = inject(UiService);
+  private readonly route = inject(ActivatedRoute);
   readonly i18n = inject(I18nService);
 
   readonly loading = signal(true);
@@ -194,41 +400,76 @@ export class ProductsPage implements OnInit {
   readonly rows = signal<Product[]>([]);
   readonly meta = signal<PageMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   readonly search = signal('');
+  readonly status = signal('');
   readonly categories = signal<Category[]>([]);
-  readonly displayedColumns = ['name', 'price', 'stock', 'status', 'flags', 'actions'];
+  readonly displayedColumns = [
+    'image',
+    'name',
+    'price',
+    'rating',
+    'stock',
+    'status',
+    'flags',
+    'actions',
+  ];
   readonly entityId = entityId;
   readonly localizedOf = localizedOf;
+  private searchTimer?: ReturnType<typeof setTimeout>;
+  private openedId = '';
 
   ngOnInit(): void {
     this.categoriesApi.list({ limit: 200 }).subscribe({
       next: (res) => this.categories.set(asList(res.data)),
     });
     this.load();
+    this.route.queryParamMap.subscribe((q) => {
+      const id = q.get('open') || '';
+      if (id && id !== this.openedId) {
+        this.openedId = id;
+        this.openById(id);
+      }
+    });
   }
 
   load(page = this.meta().page, limit = this.meta().limit): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list({ page, limit, search: this.search() || undefined }).subscribe({
-      next: (res) => {
-        this.rows.set(asList(res.data));
-        if (res.meta) {
-          this.meta.set(res.meta);
-        } else {
-          this.meta.set({ page, limit, total: asList(res.data).length, totalPages: 1 });
-        }
-        this.loading.set(false);
-      },
-      error: (err: unknown) => {
-        this.error.set(errMessage(err));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .list({ page, limit, search: this.search() || undefined, status: this.status() || undefined })
+      .subscribe({
+        next: (res) => {
+          this.rows.set(asList(res.data));
+          if (res.meta) {
+            this.meta.set(res.meta);
+          } else {
+            this.meta.set({ page, limit, total: asList(res.data).length, totalPages: 1 });
+          }
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.error.set(errMessage(err));
+          this.loading.set(false);
+        },
+      });
   }
 
   onSearch(value: string): void {
     this.search.set(value);
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.load(1), 400);
+  }
+
+  filterStatus(status: string): void {
+    this.status.set(status);
     this.load(1);
+  }
+
+  openById(id: string): void {
+    this.api.get(id).subscribe({
+      next: (res) => {
+        if (res.data) this.open(res.data);
+      },
+    });
   }
 
   page(ev: PageEvent): void {
@@ -238,15 +479,14 @@ export class ProductsPage implements OnInit {
   open(product?: Product): void {
     const ref = this.dialog.open(ProductDialog, {
       data: { product, categories: this.categories() },
-      width: '720px',
+      width: '760px',
+      maxWidth: '94vw',
     });
     ref.afterClosed().subscribe((body: unknown) => {
       if (!body) {
         return;
       }
-      const req = product
-        ? this.api.update(entityId(product), body)
-        : this.api.create(body);
+      const req = product ? this.api.update(entityId(product), body) : this.api.create(body);
       req.subscribe({
         next: () => {
           this.ui.success(this.i18n.t('common.save'));
@@ -258,12 +498,22 @@ export class ProductsPage implements OnInit {
   }
 
   remove(product: Product): void {
-    this.api.remove(entityId(product)).subscribe({
-      next: () => {
-        this.ui.success(this.i18n.t('common.delete'));
-        this.load();
-      },
-      error: (err: unknown) => this.ui.error(errMessage(err)),
-    });
+    this.confirm
+      .ask({
+        title: 'common.delete',
+        message: 'products.deleteConfirm',
+        confirmKey: 'common.delete',
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.api.remove(entityId(product)).subscribe({
+          next: () => {
+            this.ui.success(this.i18n.t('common.delete'));
+            this.load();
+          },
+          error: (err: unknown) => this.ui.error(errMessage(err)),
+        });
+      });
   }
 }

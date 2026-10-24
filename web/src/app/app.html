@@ -1,0 +1,18 @@
+@if (store.blocked()) {
+  <div class="maintenance">
+    <h1>{{ store.brandName() || ('brand' | t) }}</h1>
+    <span class="m-rule" aria-hidden="true"></span>
+    <p>{{ store.blockedKey() | t }}</p>
+  </div>
+} @else {
+  <router-outlet />
+}
+<div class="toast-wrap" aria-live="polite">
+  @if (toast.message()) {
+    <div class="toast" role="status" animate.leave="toast-leave">
+      <span class="toast-dot"><m-icon name="check" [stroke]="2.2" /></span>
+      {{ toast.message() }}
+    </div>
+  }
+</div>
+<app-dialog-host />

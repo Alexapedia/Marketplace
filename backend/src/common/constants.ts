@@ -31,10 +31,14 @@ export const ALL_PERMISSIONS = [
   'notifications.write',
   'app-config.read',
   'app-config.write',
+  'ads.read',
+  'ads.write',
   'reports.read',
   'audit-logs.read',
   'roles.read',
   'roles.write',
+  'reviews.read',
+  'reviews.write',
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];
@@ -88,5 +92,13 @@ export const ALLOWED_UPLOAD_MIMES = [
   'image/webp',
   'application/pdf',
 ];
+
+/** Stored extension per allowed MIME type; never taken from the client filename. */
+export const MIME_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'application/pdf': '.pdf',
+};
 
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
