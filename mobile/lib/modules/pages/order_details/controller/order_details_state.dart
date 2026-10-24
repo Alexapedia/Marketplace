@@ -15,9 +15,10 @@ class OrderDetailsState extends Equatable {
     RequestStatus? status,
     OrderModel? current,
     String? error,
-  }) => OrderDetailsState(
-    status: status ?? this.status,
-    current: current ?? this.current,
-    error: error ?? this.error,
-  );
+  }) =>
+      OrderDetailsState(
+        status: status ?? this.status,
+        current: current ?? this.current,
+        error: error ?? this.error,
+      );
 }

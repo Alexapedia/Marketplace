@@ -148,8 +148,7 @@ class TenantPublic {
     final branding = asMap(map['branding']);
     return TenantPublic(
       status: asString(map['status'], 'active'),
-      mobileEnabled:
-          !channels.containsKey('mobile') || asBool(channels['mobile'], true),
+      mobileEnabled: !channels.containsKey('mobile') || asBool(channels['mobile'], true),
       brandName: asString(branding['name'], asString(map['name'])),
       primary: asString(branding['primary']),
       accent: asString(branding['accent']),
@@ -187,9 +186,7 @@ class AppConfigModel {
         map['onboarding'],
       ).map(OnboardingSlide.fromJson).toList(),
       settings: asMap(map['settings']),
-      tenant: map['tenant'] == null
-          ? null
-          : TenantPublic.fromJson(map['tenant']),
+      tenant: map['tenant'] == null ? null : TenantPublic.fromJson(map['tenant']),
     );
   }
 }
@@ -251,15 +248,15 @@ class NotificationModel {
   });
 
   NotificationModel markedRead() => NotificationModel(
-    id: id,
-    title: title,
-    body: body,
-    isRead: true,
-    createdAt: createdAt,
-    type: type,
-    referenceId: referenceId,
-    data: data,
-  );
+        id: id,
+        title: title,
+        body: body,
+        isRead: true,
+        createdAt: createdAt,
+        type: type,
+        referenceId: referenceId,
+        data: data,
+      );
 
   factory NotificationModel.fromJson(dynamic json) {
     final map = asMap(json);
@@ -268,8 +265,7 @@ class NotificationModel {
       id: asString(map['_id'] ?? map['id']),
       title: localized(map['title']),
       body: localized(map['body'] ?? map['message']),
-      isRead:
-          asBool(map['isRead'] ?? map['read']) ||
+      isRead: asBool(map['isRead'] ?? map['read']) ||
           asString(map['readAt']).isNotEmpty,
       createdAt: DateTime.tryParse(asString(map['createdAt'])),
       type: map['type']?.toString(),

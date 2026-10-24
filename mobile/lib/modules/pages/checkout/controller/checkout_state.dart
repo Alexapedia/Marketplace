@@ -18,10 +18,11 @@ class CheckOutState extends Equatable {
     List<AddressModel>? addresses,
     String? selectedId,
     String? error,
-  }) => CheckOutState(
-    status: status ?? this.status,
-    addresses: addresses ?? this.addresses,
-    selectedId: selectedId ?? this.selectedId,
-    error: error ?? this.error,
-  );
+  }) =>
+      CheckOutState(
+        status: status ?? this.status,
+        addresses: addresses ?? this.addresses,
+        selectedId: selectedId ?? this.selectedId,
+        error: error ?? this.error,
+      );
 }

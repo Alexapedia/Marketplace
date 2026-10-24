@@ -12,7 +12,6 @@ import '../../../../core/utils/functions/safe_emit.dart';
 part 'profile_state.dart';
 part 'profile_account_mixin.dart';
 
-class ProfileCubit extends Cubit<ProfileState>
-    with SafeEmitMixin<ProfileState>, ProfileAccountMixin {
+class ProfileCubit extends Cubit<ProfileState> with SafeEmitMixin<ProfileState>, ProfileAccountMixin {
   ProfileCubit() : super(const ProfileState());
 }

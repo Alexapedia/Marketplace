@@ -5,7 +5,11 @@ mixin ProfileAccountMixin on Cubit<ProfileState> {
     emit(state.copyWith(status: RequestStatus.loading));
     final res = await sl.get<ApiConsumer>().post(
       EndPoints.reviews,
-      body: {'targetType': 'app', 'rating': rating, 'comment': comment},
+      body: {
+        'targetType': 'app',
+        'rating': rating,
+        'comment': comment,
+      },
     );
     res.fold(
       (l) {

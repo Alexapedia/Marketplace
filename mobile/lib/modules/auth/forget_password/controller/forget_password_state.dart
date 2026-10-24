@@ -21,9 +21,10 @@ class ForgetPasswordState extends Equatable {
     RequestStatus? status,
     ForgetPasswordStep? step,
     bool? done,
-  }) => ForgetPasswordState(
-    status: status ?? this.status,
-    step: step ?? this.step,
-    done: done ?? this.done,
-  );
+  }) =>
+      ForgetPasswordState(
+        status: status ?? this.status,
+        step: step ?? this.step,
+        done: done ?? this.done,
+      );
 }

@@ -11,8 +11,7 @@ import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'order_details_state.dart';
 
-class OrderDetailsCubit extends Cubit<OrderDetailsState>
-    with SafeEmitMixin<OrderDetailsState> {
+class OrderDetailsCubit extends Cubit<OrderDetailsState> with SafeEmitMixin<OrderDetailsState> {
   OrderDetailsCubit() : super(const OrderDetailsState());
 
   Future<void> load(String id) async {
@@ -58,11 +57,7 @@ class OrderDetailsCubit extends Cubit<OrderDetailsState>
     });
   }
 
-  Future<void> rateProduct(
-    String productId,
-    double rating,
-    String comment,
-  ) async {
+  Future<void> rateProduct(String productId, double rating, String comment) async {
     final response = await sl.get<ApiConsumer>().post(
       EndPoints.reviews,
       body: {

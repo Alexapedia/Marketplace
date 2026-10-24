@@ -8,10 +8,9 @@ import '../../../../core/utils/functions/safe_emit.dart';
 
 part 'force_upgrade_state.dart';
 
-class ForceUpgradeCubit extends Cubit<ForceUpgradeState>
-    with SafeEmitMixin<ForceUpgradeState> {
+class ForceUpgradeCubit extends Cubit<ForceUpgradeState> with SafeEmitMixin<ForceUpgradeState> {
   ForceUpgradeCubit(AppVersionModel version)
-    : super(ForceUpgradeState(version: version));
+      : super(ForceUpgradeState(version: version));
 
   Future<void> copyStoreUrl() async {
     final url = state.version.storeUrl;
