@@ -8,6 +8,9 @@ abstract class ChatSocket {
   bool get connected;
   void on(String event, void Function(dynamic data) handler);
   void emit(String event, dynamic data);
+
+  /// Emits and calls [ack] with the server's acknowledgement.
+  void emitWithAck(String event, dynamic data, void Function(dynamic) ack);
   void connect();
   void dispose();
 }
@@ -39,6 +42,9 @@ class _IoChatSocket implements ChatSocket {
       _socket.on(event, handler);
   @override
   void emit(String event, dynamic data) => _socket.emit(event, data);
+  @override
+  void emitWithAck(String event, dynamic data, void Function(dynamic) ack) =>
+      _socket.emitWithAck(event, data, ack: ack);
   @override
   void connect() => _socket.connect();
   @override

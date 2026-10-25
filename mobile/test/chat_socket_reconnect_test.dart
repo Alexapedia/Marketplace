@@ -17,6 +17,16 @@ class _FakeSocket implements ChatSocket {
       handlers[event] = handler;
   @override
   void emit(String event, dynamic data) => emitted.add(event);
+
+  /// What the server answers to the next acknowledged emit (null: never).
+  dynamic ackReply = {'ok': true};
+  final acked = <String, dynamic>{};
+  @override
+  void emitWithAck(String event, dynamic data, void Function(dynamic) ack) {
+    acked[event] = data;
+    if (ackReply != null) ack(ackReply);
+  }
+
   @override
   void connect() => connectCalled = true;
   @override
@@ -39,12 +49,14 @@ void main() {
   late List<_FakeSocket> sockets;
   late List<String> tokens;
   late int refreshes;
+  late List<String> httpSent;
   late ChatCubit cubit;
 
   setUp(() {
     sockets = [];
     tokens = ['token-1'];
     refreshes = 0;
+    httpSent = [];
     cubit = ChatCubit(
       socketFactory: (token) {
         final s = _FakeSocket(token);
@@ -57,6 +69,11 @@ void main() {
         tokens.add('token-${tokens.length + 1}');
       },
       retryDelay: Duration.zero,
+      ackTimeout: const Duration(milliseconds: 50),
+      postText: (orderId, text) async {
+        httpSent.add(text);
+        return {'_id': 'h${httpSent.length}', 'text': text};
+      },
     );
   });
   tearDown(() => cubit.close());
@@ -94,6 +111,63 @@ void main() {
     await pumpEventQueue();
     expect(refreshes, 1);
     expect(sockets.last.token, 'token-2');
+  });
+
+  test(
+    'an expired token refused at the handshake (connect_error) is renewed',
+    () async {
+      await cubit.connectSocket('order-1');
+      sockets.first.serverSends('connect_error', {'message': 'Unauthorized'});
+      await pumpEventQueue();
+      expect(refreshes, 1);
+      expect(sockets.last.token, 'token-2');
+      expect(sockets.last.connectCalled, isTrue);
+    },
+  );
+
+  test('a connect_error that is not about auth is left to socket.io', () async {
+    await cubit.connectSocket('order-1');
+    sockets.first.serverSends('connect_error', 'websocket error');
+    await pumpEventQueue();
+    expect(refreshes, 0);
+    expect(sockets, hasLength(1));
+  });
+
+  test('sending over the socket waits for the server to accept it', () async {
+    await cubit.connectSocket('order-1');
+    sockets.single.serverConnects();
+    cubit.text.text = 'Hello';
+    await cubit.send();
+    expect(sockets.single.acked['message'], {
+      'customOrderId': 'order-1',
+      'text': 'Hello',
+    });
+    expect(httpSent, isEmpty);
+    expect(cubit.text.text, isEmpty);
+  });
+
+  test(
+    'a message the socket refuses is sent over HTTP instead of lost',
+    () async {
+      await cubit.connectSocket('order-1');
+      sockets.single
+        ..serverConnects()
+        ..ackReply = {'ok': false};
+      cubit.text.text = 'Hello';
+      await cubit.send();
+      expect(httpSent, ['Hello']);
+      expect(cubit.state.messages.map((m) => m.text), ['Hello']);
+    },
+  );
+
+  test('a message the socket never answers is sent over HTTP', () async {
+    await cubit.connectSocket('order-1');
+    sockets.single
+      ..serverConnects()
+      ..ackReply = null;
+    cubit.text.text = 'Hello';
+    await cubit.send();
+    expect(httpSent, ['Hello']);
   });
 
   test('a network drop is left to socket.io auto-reconnect', () async {

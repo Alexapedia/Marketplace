@@ -25,15 +25,25 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
     ChatSocket Function(String token)? socketFactory,
     Future<String?> Function()? currentToken,
     Future<void> Function()? refreshToken,
+    Future<Object?> Function(String orderId, String text)? postText,
     this.retryDelay = const Duration(seconds: 1),
+    this.ackTimeout = const Duration(seconds: 5),
   }) : _socketFactory = socketFactory ?? ioChatSocket,
        _currentToken = currentToken ?? _storedToken,
        _refreshToken = refreshToken ?? _renewSession,
+       _postText = postText ?? _postTextOverHttp,
        super(const ChatState());
 
   final ChatSocket Function(String token) _socketFactory;
   final Future<String?> Function() _currentToken;
   final Future<void> Function() _refreshToken;
+
+  /// Posts a text message over HTTP; the created message, or null on failure.
+  final Future<Object?> Function(String orderId, String text) _postText;
+
+  /// How long to wait for the server to accept a socket message before
+  /// sending it over HTTP instead.
+  final Duration ackTimeout;
 
   /// Pause before reconnecting with a renewed token.
   final Duration retryDelay;
@@ -54,6 +64,17 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
   /// access token.
   static Future<void> _renewSession() async {
     await sl.get<ApiConsumer>().get(EndPoints.me);
+  }
+
+  static Future<Object?> _postTextOverHttp(String orderId, String text) async {
+    final response = await sl.get<ApiConsumer>().post(
+      EndPoints.customOrderMessages(orderId),
+      body: FormData.fromMap({'text': text, 'type': 'text'}),
+    );
+    return response.fold<Object?>((l) {
+      AppToast(l, isError: true);
+      return null;
+    }, (s) => unwrapData(s.response) ?? const <String, dynamic>{});
   }
 
   Future<void> load(String orderId) async {
@@ -88,26 +109,33 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
     if (orderId.isEmpty) return;
     final bodyText = text.text.trim();
     if (bodyText.isEmpty && imagePath == null) return;
-    if (imagePath == null && _socket?.connected == true) {
+    if (imagePath == null) {
       text.clear();
-      _socket!.emit('message', {'customOrderId': orderId, 'text': bodyText});
+      // The server broadcasts an accepted message back to this room, so it
+      // shows up through the socket; HTTP covers a refused or silent socket.
+      if (await _sendOverSocket(orderId, bodyText)) return;
+      final sent = await _postText(orderId, bodyText);
+      if (sent != null) {
+        _append(sent);
+      } else if (!isClosed && text.text.isEmpty) {
+        text.text = bodyText;
+      }
       return;
     }
+    // Images always go over HTTP.
     final form = FormData.fromMap({
       if (bodyText.isNotEmpty) 'text': bodyText,
-      'type': imagePath != null ? 'image' : 'text',
+      'type': 'image',
     });
-    if (imagePath != null) {
-      form.files.add(
-        MapEntry(
-          'files',
-          await MultipartFile.fromFile(
-            imagePath,
-            filename: imagePath.split('/').last,
-          ),
+    form.files.add(
+      MapEntry(
+        'files',
+        await MultipartFile.fromFile(
+          imagePath,
+          filename: imagePath.split('/').last,
         ),
-      );
-    }
+      ),
+    );
     text.clear();
     final response = await sl.get<ApiConsumer>().post(
       EndPoints.customOrderMessages(orderId),
@@ -116,6 +144,20 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
     await response.fold((l) async => AppToast(l, isError: true), (_) async {
       await load(orderId);
     });
+  }
+
+  Future<bool> _sendOverSocket(String orderId, String bodyText) {
+    final socket = _socket;
+    if (socket == null || !socket.connected) return Future.value(false);
+    final done = Completer<bool>();
+    socket.emitWithAck(
+      'message',
+      {'customOrderId': orderId, 'text': bodyText},
+      (ack) {
+        if (!done.isCompleted) done.complete(ack is Map && ack['ok'] == true);
+      },
+    );
+    return done.future.timeout(ackTimeout, onTimeout: () => false);
   }
 
   Future<void> pickImage() async {
@@ -130,6 +172,7 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
   Future<void> connectSocket(String orderId) async {
     _socket?.dispose();
     _socket = null;
+    if (state.orderId != orderId) emit(state.copyWith(orderId: orderId));
     final token = await _currentToken();
     if (isClosed || token == null || token.isEmpty) return;
     final socket = _socketFactory(token);
@@ -145,11 +188,20 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
         unawaited(_reconnectWithFreshToken(orderId, socket));
       }
     });
-    socket.on('connect_error', (_) {
+    socket.on('connect_error', (error) {
       if (!isClosed) emit(state.copyWith(socketReady: false));
+      // Refused at the handshake (expired token): socket.io will not retry.
+      if (_isUnauthorized(error)) {
+        unawaited(_reconnectWithFreshToken(orderId, socket));
+      }
     });
     socket.on('message', (data) => _append(data));
     socket.connect();
+  }
+
+  static bool _isUnauthorized(dynamic error) {
+    final message = error is Map ? error['message'] : error;
+    return '$message'.contains('Unauthorized');
   }
 
   Future<void> _reconnectWithFreshToken(String orderId, ChatSocket from) async {
