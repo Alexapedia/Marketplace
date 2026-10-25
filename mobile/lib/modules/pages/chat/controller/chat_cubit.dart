@@ -154,8 +154,7 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
       'message',
       {'customOrderId': orderId, 'text': bodyText},
       (ack) {
-        debugPrint('[chat] send -> $ack'); // TEMP chat debug
-      if (!done.isCompleted) done.complete(ack is Map && ack['ok'] == true);
+        if (!done.isCompleted) done.complete(ack is Map && ack['ok'] == true);
       },
     );
     return done.future.timeout(ackTimeout, onTimeout: () => false);
@@ -180,31 +179,23 @@ class ChatCubit extends Cubit<ChatState> with SafeEmitMixin<ChatState> {
     _socket = socket;
     socket.on('connect', (_) {
       _renewals = 0;
-      debugPrint('[chat] connected'); // TEMP chat debug
-      socket.emitWithAck('join', {'customOrderId': orderId}, (ack) {
-        debugPrint('[chat] join $orderId -> $ack'); // TEMP chat debug
-      });
+      socket.emit('join', {'customOrderId': orderId});
       if (!isClosed) emit(state.copyWith(socketReady: true));
     });
     socket.on('disconnect', (reason) {
-      debugPrint('[chat] disconnected: $reason'); // TEMP chat debug
       if (!isClosed) emit(state.copyWith(socketReady: false));
       if (reason == 'io server disconnect') {
         unawaited(_reconnectWithFreshToken(orderId, socket));
       }
     });
     socket.on('connect_error', (error) {
-      debugPrint('[chat] connect_error: $error'); // TEMP chat debug
       if (!isClosed) emit(state.copyWith(socketReady: false));
       // Refused at the handshake (expired token): socket.io will not retry.
       if (_isUnauthorized(error)) {
         unawaited(_reconnectWithFreshToken(orderId, socket));
       }
     });
-    socket.on('message', (data) {
-      debugPrint('[chat] received: $data'); // TEMP chat debug
-      _append(data);
-    });
+    socket.on('message', (data) => _append(data));
     socket.connect();
   }
 
