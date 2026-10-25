@@ -5,6 +5,7 @@ import {
   computed,
   ElementRef,
   inject,
+  Injector,
   OnDestroy,
   OnInit,
   signal,
@@ -17,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
 import { ChatSocket } from '../../core/api/chat-socket';
 import { ChatsApi } from '../../core/api/chats.api';
+import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ChatMessage, Conversation, entityId, PageMeta, User } from '../../core/models/models';
@@ -35,6 +37,8 @@ export class ChatPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly ui = inject(UiService);
   private readonly i18n = inject(I18nService);
+  private readonly injector = inject(Injector);
+  private readonly auth = inject(AuthService);
   private readonly subs: Subscription[] = [];
   private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
 
@@ -47,6 +51,10 @@ export class ChatPage implements OnInit, OnDestroy {
   readonly activeId = signal<string | null>(null);
   readonly draft = signal('');
   readonly sending = signal(false);
+  /** Messages that arrived while the reader was scrolled up. */
+  readonly newCount = signal(0);
+  /** Whether the thread is scrolled to (near) the latest message. */
+  private atBottom = true;
   readonly query = signal('');
   readonly entityId = entityId;
 
@@ -135,6 +143,8 @@ export class ChatPage implements OnInit, OnDestroy {
     this.conversations.update((list) =>
       list.map((c) => (entityId(c) === id ? { ...c, unreadByStaff: 0 } : c)),
     );
+    this.newCount.set(0);
+    this.atBottom = true;
     this.api.messages(id).subscribe({
       next: (res) => {
         this.messages.set(asList(res.data));
@@ -253,6 +263,30 @@ export class ChatPage implements OnInit, OnDestroy {
     }
     if (id && this.messages().some((m) => entityId(m) === id)) return;
     this.messages.update((list) => [...list, msg]);
+    // Follow the thread when reading the latest messages or sending one;
+    // otherwise do not pull the reader away from older messages.
+    const mine = !!msg.senderId && msg.senderId === entityId(this.auth.user());
+    if (mine || this.atBottom) {
+      this.scrollToEnd();
+    } else {
+      this.newCount.update((n) => n + 1);
+    }
+  }
+
+  onScroll(): void {
+    const el = this.scroller()?.nativeElement;
+    if (!el) return;
+    this.atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    if (this.atBottom) this.newCount.set(0);
+  }
+
+  /** Images grow the thread after it was scrolled; stay at the bottom. */
+  onMediaLoad(): void {
+    if (this.atBottom) this.scrollToEnd();
+  }
+
+  jumpToLatest(): void {
+    this.newCount.set(0);
     this.scrollToEnd();
   }
 
@@ -285,10 +319,16 @@ export class ChatPage implements OnInit, OnDestroy {
     });
   }
 
+  /** After Angular has rendered the new messages, so their height counts. */
   private scrollToEnd(): void {
-    queueMicrotask(() => {
-      const el = this.scroller()?.nativeElement;
-      if (el) el.scrollTop = el.scrollHeight;
-    });
+    afterNextRender(
+      () => {
+        const el = this.scroller()?.nativeElement;
+        if (!el) return;
+        el.scrollTop = el.scrollHeight;
+        this.atBottom = true;
+      },
+      { injector: this.injector },
+    );
   }
 }
