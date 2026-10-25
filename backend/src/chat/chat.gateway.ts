@@ -42,25 +42,48 @@ export class ChatGateway
 
   afterInit(server: Server) {
     this.realtime.attach(server);
+    // Authenticate during the handshake: the client only gets `connect` once
+    // the user is known, so a `join` sent straight away is never refused.
+    server.use((client, next) => {
+      void this.authMiddleware(client, next);
+    });
+  }
+
+  /** Handshake middleware: sets `client.data.user`, or fails with connect_error. */
+  async authMiddleware(client: Socket, next: (err?: Error) => void) {
+    try {
+      await this.authenticate(client);
+      next();
+    } catch (err) {
+      this.logger.warn(`Chat socket rejected: ${(err as Error).message}`);
+      next(new Error('Unauthorized'));
+    }
+  }
+
+  private async authenticate(client: Socket) {
+    const header = client.handshake.headers.authorization;
+    const fromHeader =
+      typeof header === 'string' && header.startsWith('Bearer ')
+        ? header.slice(7)
+        : '';
+    const token =
+      (client.handshake.auth?.token as string | undefined) ||
+      (client.handshake.query?.token as string | undefined) ||
+      fromHeader;
+    if (!token) {
+      throw new Error('Missing token');
+    }
+    client.data.user = await this.auth.userFromToken(token);
+    client.data.token = token;
   }
 
   async handleConnection(client: Socket) {
     try {
-      const header = client.handshake.headers.authorization;
-      const fromHeader =
-        typeof header === 'string' && header.startsWith('Bearer ')
-          ? header.slice(7)
-          : '';
-      const token =
-        (client.handshake.auth?.token as string | undefined) ||
-        (client.handshake.query?.token as string | undefined) ||
-        fromHeader;
-      if (!token) {
-        throw new Error('Missing token');
+      if (!client.data.user) {
+        await this.authenticate(client);
       }
-      const user = await this.auth.userFromToken(token);
-      client.data.user = user;
-      this.expireWithToken(client, token);
+      const user = client.data.user as AuthUser;
+      this.expireWithToken(client, client.data.token as string);
       if (user.type === 'staff') {
         await client.join(`staff:${user.tenantId}`);
       }
