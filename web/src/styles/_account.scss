@@ -313,6 +313,30 @@ app-map-picker > .muted {
   width: 48px;
   margin: 4px 0 16px;
 }
+.chat {
+  position: relative;
+}
+
+.chat-new {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 84px;
+  margin-inline: auto;
+  width: max-content;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--m-r-pill);
+  background: var(--m-accent);
+  color: var(--m-on-accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--m-shadow-2);
+  cursor: pointer;
+  z-index: 1;
+}
+
 .chat-log {
   display: flex;
   flex-direction: column;

@@ -1,4 +1,15 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  ElementRef,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ApiClient } from '../../core/api/api-client';
@@ -33,6 +44,13 @@ export class CustomDetailPage implements OnInit, OnDestroy {
   readonly i18n = inject(I18nService);
   private readonly toast = inject(ToastService);
   private readonly dialog = inject(DialogService);
+  private readonly injector = inject(Injector);
+  private readonly chatLog = viewChild<ElementRef<HTMLElement>>('chatLog');
+  private readonly subs: Subscription[] = [];
+  /** Whether the chat is scrolled to (near) the latest message. */
+  private atBottom = true;
+  /** Messages that arrived while the reader was scrolled up. */
+  readonly newCount = signal(0);
   busy = signal(false);
 
   order = signal<CustomOrder | null>(null);
@@ -44,7 +62,7 @@ export class CustomDetailPage implements OnInit, OnDestroy {
   readonly media = media;
 
   ngOnInit(): void {
-    this.chat.incoming.subscribe((msg) => this.appendMessage(msg));
+    this.subs.push(this.chat.incoming.subscribe((msg) => this.appendMessage(msg)));
     this.api.get<Address[]>('/addresses').subscribe({
       next: (res) => {
         const list = asItems<Address>(res.data);
@@ -53,14 +71,17 @@ export class CustomDetailPage implements OnInit, OnDestroy {
         this.confirmAddressId = String(def?._id || def?.id || '');
       },
     });
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id') || '';
-      this.load(id);
-      this.chat.connect(id);
-    });
+    this.subs.push(
+      this.route.paramMap.subscribe((params) => {
+        const id = params.get('id') || '';
+        this.load(id);
+        this.chat.join(id);
+      }),
+    );
   }
 
   ngOnDestroy(): void {
+    for (const sub of this.subs) sub.unsubscribe();
     this.chat.disconnect();
   }
 
@@ -120,12 +141,14 @@ export class CustomDetailPage implements OnInit, OnDestroy {
     this.chatFiles = input.files ? Array.from(input.files) : [];
   }
 
-  sendChat(ev: Event): void {
+  async sendChat(ev: Event): Promise<void> {
     ev.preventDefault();
     const id = this.route.snapshot.paramMap.get('id') || '';
     const text = this.text.trim();
     if (!text && !this.chatFiles.length) return;
-    if (text && this.chat.send(id, text)) {
+    // Text alone goes over the socket once the server accepts it (it comes
+    // back as a live message); files, or a refused socket, go over HTTP.
+    if (text && !this.chatFiles.length && (await this.chat.send(id, text))) {
       this.text = '';
       return;
     }
@@ -151,7 +174,11 @@ export class CustomDetailPage implements OnInit, OnDestroy {
       next: (res) => this.order.set(res.data),
     });
     this.api.get<ChatMessage[]>(`/custom-orders/${id}/messages`).subscribe({
-      next: (res) => this.messages.set(asItems<ChatMessage>(res.data)),
+      next: (res) => {
+        this.messages.set(asItems<ChatMessage>(res.data));
+        this.newCount.set(0);
+        this.scrollToEnd();
+      },
       error: () => this.messages.set([]),
     });
   }
@@ -160,5 +187,42 @@ export class CustomDetailPage implements OnInit, OnDestroy {
     const mid = String(message._id || message.id || '');
     if (mid && this.messages().some((m) => String(m._id || m.id) === mid)) return;
     this.messages.update((list) => [...list, message]);
+    // Follow the chat when reading the latest messages or sending one;
+    // otherwise do not pull the reader away from older messages.
+    if (this.isMine(message) || this.atBottom) {
+      this.scrollToEnd();
+    } else {
+      this.newCount.update((n) => n + 1);
+    }
+  }
+
+  onChatScroll(): void {
+    const el = this.chatLog()?.nativeElement;
+    if (!el) return;
+    this.atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    if (this.atBottom) this.newCount.set(0);
+  }
+
+  /** Images grow the chat after it was scrolled; stay at the bottom. */
+  onChatMediaLoad(): void {
+    if (this.atBottom) this.scrollToEnd();
+  }
+
+  jumpToLatest(): void {
+    this.newCount.set(0);
+    this.scrollToEnd();
+  }
+
+  /** After Angular has rendered the new messages, so their height counts. */
+  private scrollToEnd(): void {
+    afterNextRender(
+      () => {
+        const el = this.chatLog()?.nativeElement;
+        if (!el) return;
+        el.scrollTop = el.scrollHeight;
+        this.atBottom = true;
+      },
+      { injector: this.injector },
+    );
   }
 }

@@ -52,7 +52,7 @@
     <section class="panel chat" [mReveal]="1">
       <h2 class="panel-title">{{ 'chat' | t }}</h2>
       <span class="m-rule" aria-hidden="true"></span>
-      <div class="chat-log" aria-live="polite">
+      <div class="chat-log" aria-live="polite" #chatLog (scroll)="onChatScroll()">
         @for (m of messages(); track m._id || m.id) {
           <div class="msg m-enter" [class.mine]="isMine(m)">
             {{ m.text || '' }}
@@ -60,7 +60,7 @@
               <div class="msg-files">
                 @for (src of m.attachments; track src) {
                   <a [href]="media(src)" target="_blank" rel="noopener">
-                    <img [src]="media(src)" alt="" />
+                    <img [src]="media(src)" alt="" (load)="onChatMediaLoad()" />
                   </a>
                 }
               </div>
@@ -70,6 +70,9 @@
           <p class="muted chat-empty"><m-icon name="chat" />{{ 'chat' | t }}</p>
         }
       </div>
+      @if (newCount() > 0) {
+        <button type="button" class="chat-new" (click)="jumpToLatest()">{{ 'newMessages' | t }}</button>
+      }
       <form class="composer" (submit)="sendChat($event)">
         <label class="composer-file" [title]="'attachments' | t">
           <m-icon name="clip" />

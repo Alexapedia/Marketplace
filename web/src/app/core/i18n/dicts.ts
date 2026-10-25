@@ -95,6 +95,7 @@ export const en: Dict = {
   confirmQuote: 'Confirm quote',
   rejectQuote: 'Reject',
   chat: 'Chat',
+  newMessages: 'New messages',
   send: 'Send',
   items: 'Items',
   rateOrderHint:
@@ -308,6 +309,7 @@ export const ar: Dict = {
   confirmQuote: 'تأكيد العرض',
   rejectQuote: 'رفض',
   chat: 'محادثة',
+  newMessages: 'رسائل جديدة',
   send: 'إرسال',
   items: 'العناصر',
   rateOrderHint: 'التقييم ده هيتحسب كمان لكل منتج في الطلب ما قيّمتوش قبل كده.',
