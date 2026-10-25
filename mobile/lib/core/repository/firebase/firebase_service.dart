@@ -27,9 +27,9 @@ class FirebaseService {
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       await PushNotificationService.instance.init();
-    } catch (e, st) {
+    } catch (_) {
+      // Push and crash reporting stay off; the app works without them.
       initialized = false;
-      debugPrint('Firebase init skipped: $e\n$st');
     }
   }
 }

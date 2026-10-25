@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 
@@ -100,8 +99,8 @@ class PushNotificationService {
         EndPoints.me,
         body: {'fcmToken': fcm},
       );
-    } catch (e) {
-      debugPrint('FCM register skipped: $e');
+    } catch (_) {
+      // Retried on the next launch; not worth interrupting the user.
     }
   }
 

@@ -1,5 +1,4 @@
 import '../utils/functions/json_helpers.dart';
-import '../utils/functions/print_state.dart';
 
 class CustomFieldModel {
   final String id;
@@ -95,9 +94,6 @@ class ChatMessageModel {
       // sender['_id'] ?? sender['id'] ?? map['senderId'] ?? map['userId'],
     );
     final files = asList(map['files'] ?? map['images'] ?? map['attachments']);
-    printState(
-      'ChatMessageModel.fromJson: senderId: $senderId, myId: $myId ${myId != null && myId.isNotEmpty && senderId == myId}',
-    );
     return ChatMessageModel(
       id: asString(map['_id'] ?? map['id']),
       text: asString(map['text'] ?? map['message'] ?? map['body']),
