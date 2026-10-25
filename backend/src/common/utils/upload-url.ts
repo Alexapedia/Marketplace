@@ -1,3 +1,5 @@
+import { resolve } from 'path';
+
 /**
  * Public path of an uploaded file. It carries no host: web clients load it
  * through their own `/uploads` proxy on whatever domain serves the store, and
@@ -42,4 +44,12 @@ export function relativizeUploads(value: unknown): unknown {
     return changed ? next : value;
   }
   return value;
+}
+
+/**
+ * Where uploads are stored: UPLOAD_DIR as an absolute path (a Docker volume)
+ * or relative to the working directory; ./uploads by default.
+ */
+export function resolveUploadDir(raw?: string, cwd = process.cwd()): string {
+  return resolve(cwd, raw?.trim() || './uploads');
 }

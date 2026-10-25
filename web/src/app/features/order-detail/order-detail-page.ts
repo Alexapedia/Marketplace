@@ -65,6 +65,13 @@ export class OrderDetailPage implements OnInit {
     return o.subtotal ?? (o.items ?? []).reduce((n, i) => n + (i.unitPrice ?? 0) * (i.quantity ?? 1), 0);
   }
 
+  /** The code to give the courier, while the order is still on its way. */
+  deliveryCode(): string {
+    const open = ['pending', 'accepted', 'preparing', 'ready', 'out_for_delivery'];
+    const code = this.order()?.deliveryCode?.trim() ?? '';
+    return code && open.includes(this.status()) ? code : '';
+  }
+
   status(): string {
     return this.order()?.orderStatus || this.order()?.status || 'pending';
   }

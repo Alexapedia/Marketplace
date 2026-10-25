@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { relativizeUploads, uploadPath } from './upload-url';
+import { relativizeUploads, resolveUploadDir, uploadPath } from './upload-url';
 
 const FILE = '817fdec8-fbef-4ee6-9943-4dc294abb565.png';
 
@@ -55,5 +55,23 @@ describe('relativizeUploads', () => {
     expect(out._id).toBe(id);
     expect(out.at).toBe(date);
     expect(out.image).toBe(`/uploads/${FILE}`);
+  });
+});
+
+describe('resolveUploadDir', () => {
+  it('keeps an absolute UPLOAD_DIR as is (e.g. a Docker volume)', () => {
+    expect(resolveUploadDir('/app/uploads', '/app')).toBe('/app/uploads');
+  });
+
+  it('resolves a relative UPLOAD_DIR against the working directory', () => {
+    expect(resolveUploadDir('./uploads', '/srv/api')).toBe('/srv/api/uploads');
+    expect(resolveUploadDir('data/files', '/srv/api')).toBe(
+      '/srv/api/data/files',
+    );
+  });
+
+  it('defaults to ./uploads', () => {
+    expect(resolveUploadDir(undefined, '/srv/api')).toBe('/srv/api/uploads');
+    expect(resolveUploadDir('  ', '/srv/api')).toBe('/srv/api/uploads');
   });
 });

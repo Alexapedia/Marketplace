@@ -81,6 +81,17 @@ export class TenantService {
       }
     }
 
+    // With API_HOSTS set (production), a host that is neither a store domain
+    // nor the API host is a mistyped or stale store address: say so instead of
+    // serving the default store under someone else's name.
+    const apiHosts = (this.config.get<string>('API_HOSTS') || '')
+      .split(',')
+      .map((h) => this.normalizeHost(h))
+      .filter(Boolean);
+    if (apiHosts.length > 0 && hosts.some((h) => !apiHosts.includes(h))) {
+      return null;
+    }
+
     const requested = String(input.tenantSlug || '').trim();
     const fallback =
       requested || this.config.get<string>('DEFAULT_TENANT_SLUG') || 'zezo';
