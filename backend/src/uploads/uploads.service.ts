@@ -2,24 +2,20 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
 import { randomUUID } from 'crypto';
 import {
   ALLOWED_UPLOAD_MIMES,
   MAX_UPLOAD_BYTES,
   MIME_EXTENSIONS,
 } from '../common/constants';
-import { uploadPath } from '../common/utils/upload-url';
+import { resolveUploadDir, uploadPath } from '../common/utils/upload-url';
 
 @Injectable()
 export class UploadsService {
   readonly dest: string;
 
   constructor(private readonly config: ConfigService) {
-    this.dest = join(
-      process.cwd(),
-      this.config.get<string>('UPLOAD_DIR') || './uploads',
-    );
+    this.dest = resolveUploadDir(this.config.get<string>('UPLOAD_DIR'));
     if (!existsSync(this.dest)) {
       mkdirSync(this.dest, { recursive: true });
     }

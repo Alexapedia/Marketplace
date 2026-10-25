@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { resolveUploadDir } from './common/utils/upload-url';
 
 /**
  * HTTP pipeline shared by main.ts and the integration-test harness, so tests
@@ -29,10 +29,7 @@ export function configureApp(app: NestExpressApplication): void {
 
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
-  const uploadDir = join(
-    process.cwd(),
-    config.get<string>('UPLOAD_DIR') || './uploads',
-  );
+  const uploadDir = resolveUploadDir(config.get<string>('UPLOAD_DIR'));
   if (!existsSync(uploadDir)) {
     mkdirSync(uploadDir, { recursive: true });
   }

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
-import { join } from 'path';
+import { resolveUploadDir } from '../common/utils/upload-url';
 import { UploadsController } from './uploads.controller';
 import { multerOptions, UploadsService } from './uploads.service';
 
@@ -10,9 +10,7 @@ import { multerOptions, UploadsService } from './uploads.service';
     MulterModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) =>
-        multerOptions(
-          join(process.cwd(), config.get<string>('UPLOAD_DIR') || './uploads'),
-        ),
+        multerOptions(resolveUploadDir(config.get<string>('UPLOAD_DIR'))),
     }),
   ],
   controllers: [UploadsController],
