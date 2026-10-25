@@ -1,4 +1,5 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Directionality } from '@angular/cdk/bidi';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Dict, Lang, ar, en } from './dicts';
 
 const LANG_KEY = 'pm_lang';
@@ -7,6 +8,7 @@ const LANG_KEY = 'pm_lang';
 export class I18nService {
   readonly lang = signal<Lang>(this.readLang());
   readonly dir = computed(() => (this.lang() === 'ar' ? 'rtl' : 'ltr'));
+  private readonly bidi = inject(Directionality);
 
   constructor() {
     this.apply();
@@ -45,7 +47,14 @@ export class I18nService {
   }
 
   private apply(): void {
+    const dir = this.dir();
     document.documentElement.lang = this.lang();
-    document.documentElement.dir = this.dir();
+    document.documentElement.dir = dir;
+    // Material (sidenav margins, menus, dialogs) reads the app Directionality,
+    // which only looks at <html dir> once at startup; tell it about the switch.
+    if (this.bidi.value !== dir) {
+      this.bidi.valueSignal.set(dir);
+      this.bidi.change.emit(dir);
+    }
   }
 }
