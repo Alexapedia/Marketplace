@@ -12,6 +12,16 @@ class EndPoints {
     return 'http://127.0.0.1:3000/api/v1';
   }
 
+  /// The store this build belongs to (`--dart-define=TENANT_SLUG=...`).
+  /// Empty: the API's default store.
+  static const String tenantSlug = String.fromEnvironment('TENANT_SLUG');
+
+  /// Headers every API call sends: the client, and the store when one is set.
+  static Map<String, String> clientHeaders({String slug = tenantSlug}) => {
+    'X-Client': 'mobile',
+    if (slug.trim().isNotEmpty) 'X-Tenant': slug.trim(),
+  };
+
   static const String register = '/auth/register';
   static const String login = '/auth/login';
   static const String forgotPassword = '/auth/forgot-password';

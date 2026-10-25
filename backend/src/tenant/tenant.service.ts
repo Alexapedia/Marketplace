@@ -51,6 +51,8 @@ export class TenantService {
     referer?: string;
     host?: string;
     client?: string;
+    /** `X-Tenant` slug; used only when no host matched (mobile, direct API calls). */
+    tenantSlug?: string;
     path?: string;
   }): Promise<{
     tenant: TenantDocument;
@@ -79,7 +81,10 @@ export class TenantService {
       }
     }
 
-    const fallback = this.config.get<string>('DEFAULT_TENANT_SLUG') || 'zezo';
+    const requested = String(input.tenantSlug || '').trim();
+    const fallback =
+      requested || this.config.get<string>('DEFAULT_TENANT_SLUG') || 'zezo';
+    // An unknown requested slug resolves to nothing (404), never the default.
     const tenant = await this.findBySlug(fallback);
     if (!tenant) return null;
     if (!channel) {

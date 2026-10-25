@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { AuthService } from '../src/auth/auth.service';
 import { ChatGateway } from '../src/chat/chat.gateway';
 import { bootApp, TestCtx } from './helpers/app';
@@ -81,6 +82,46 @@ describe('chat gateway authorization', () => {
     expect(await gateway.message(socket as never, { conversationId, text: 'hi there' })).toEqual({
       ok: true,
     });
+  });
+
+  it('authenticates in the handshake, so the client only sees connect once it is known', async () => {
+    const { token, user } = await ctx.createUser();
+    const socket = fakeSocket(token);
+    const next = jest.fn();
+
+    await gateway.authMiddleware(socket as never, next);
+
+    expect(next).toHaveBeenCalledWith();
+    expect((socket.data.user as { userId: string }).userId).toBe(String(user._id));
+  });
+
+  it('rejects a bad token in the handshake with connect_error', async () => {
+    const socket = fakeSocket('not-a-token');
+    const next = jest.fn();
+
+    await gateway.authMiddleware(socket as never, next);
+
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'Unauthorized' }));
+    expect(socket.data.user).toBeUndefined();
+  });
+
+  it('a customer joins their custom order chat right after connecting (mobile flow)', async () => {
+    const { token, user } = await ctx.createUser();
+    const order = await ctx.inTenant(async () =>
+      ctx.model('CustomOrder').create({
+        userId: user._id,
+        categoryId: new Types.ObjectId(),
+        fields: {},
+      }),
+    );
+    const socket = fakeSocket(token);
+    await gateway.authMiddleware(socket as never, jest.fn());
+    await gateway.handleConnection(socket as never);
+
+    const res = await gateway.join(socket as never, { customOrderId: String(order._id) });
+
+    expect(res).toMatchObject({ ok: true });
+    expect(socket.join).toHaveBeenCalledWith(`conversation:${(res as { conversationId: string }).conversationId}`);
   });
 
   it('the socket is disconnected when its access token expires', async () => {

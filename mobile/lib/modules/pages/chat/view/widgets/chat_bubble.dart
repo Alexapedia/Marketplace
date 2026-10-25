@@ -59,16 +59,18 @@ class ChatBubble extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: Text(
-                message.createdAt!.toLocal().toString().substring(11, 16),
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: fg.withValues(alpha: 0.72))
-                    .tabular,
+            if (message.createdAt != null) ...[
+              const SizedBox(height: 4),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Text(
+                  message.createdAt!.toLocal().toString().substring(11, 16),
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: fg.withValues(alpha: 0.72))
+                      .tabular,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

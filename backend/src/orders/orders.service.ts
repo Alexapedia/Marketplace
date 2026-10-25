@@ -16,6 +16,7 @@ import { CartService } from '../cart/cart.service';
 import { ProductsService } from '../catalog/products.service';
 import { ORDER_STATUSES, OrderStatus } from '../common/constants';
 import { canTransition } from './order-status';
+import { deliveryCodeMatches, newDeliveryCode } from './delivery-code';
 import { paginationMeta } from '../common/dto/pagination.dto';
 import { generateOrderNumber, toObjectId, searchRegex } from '../common/utils/mongo';
 import { runMigrationOnce } from '../database/migrations';
@@ -151,6 +152,7 @@ export class OrdersService implements OnModuleInit {
             paymentMethod: 'COD',
             paymentStatus: 'pending',
             orderStatus: 'pending',
+            deliveryCode: newDeliveryCode(),
             channel: this.resolveChannel(dto.channel ?? clientHeader),
             notes: dto.notes,
             ...(idempotencyKey ? { idempotencyKey } : {}),
@@ -262,6 +264,7 @@ export class OrdersService implements OnModuleInit {
       paymentMethod: 'COD',
       paymentStatus: 'pending',
       orderStatus: 'pending',
+      deliveryCode: newDeliveryCode(),
       channel: this.resolveChannel(params.channel),
       customOrderId: toObjectId(params.customOrderId, 'customOrderId'),
       idempotencyKey: `custom-order:${params.customOrderId}`,
@@ -322,12 +325,24 @@ export class OrdersService implements OnModuleInit {
   }
 
   async findMine(userId: string, id: string) {
-    const doc = await this.orderModel.findOne({
-      _id: toObjectId(id),
-      userId: new Types.ObjectId(userId),
-    });
+    const filter = { _id: toObjectId(id), userId: new Types.ObjectId(userId) };
+    const doc = await this.orderModel.findOne(filter).select('+deliveryCode');
     if (!doc) {
       throw new NotFoundException('Order not found');
+    }
+    // Orders placed before delivery codes existed get one the first time
+    // their customer opens them (only if still undelivered).
+    if (
+      !doc.deliveryCode &&
+      canTransition(doc.orderStatus as OrderStatus, 'completed')
+    ) {
+      await this.orderModel.updateOne(
+        { ...filter, deliveryCode: { $exists: false } },
+        { $set: { deliveryCode: newDeliveryCode() } },
+      );
+      return (
+        (await this.orderModel.findOne(filter).select('+deliveryCode')) ?? doc
+      );
     }
     return doc;
   }
@@ -427,7 +442,61 @@ export class OrdersService implements OnModuleInit {
     if (dto.status === 'rejected' && !dto.rejectionReason) {
       throw new BadRequestException('rejectionReason is required');
     }
+    if (dto.status === 'delivered' || dto.status === 'completed') {
+      throw new BadRequestException(
+        "Confirm the delivery with the customer's delivery code",
+      );
+    }
     const current = await this.findAdmin(id);
+    return this.applyStatus(
+      current,
+      dto.status,
+      actorId,
+      ip,
+      dto.rejectionReason,
+    );
+  }
+
+  /** Completes an order once the customer's delivery code is given. */
+  async confirmDelivery(
+    id: string,
+    code: string,
+    actorId: string,
+    ip?: string,
+  ) {
+    const current = await this.orderModel
+      .findById(toObjectId(id))
+      .select('+deliveryCode');
+    if (!current) {
+      throw new NotFoundException('Order not found');
+    }
+    if (!canTransition(current.orderStatus as OrderStatus, 'completed')) {
+      throw new BadRequestException(
+        `Order cannot be completed from ${current.orderStatus}`,
+      );
+    }
+    if (!deliveryCodeMatches(current.deliveryCode ?? '', code)) {
+      throw new BadRequestException('Wrong delivery code');
+    }
+    return this.applyStatus(
+      current,
+      'completed',
+      actorId,
+      ip,
+      undefined,
+      'Delivery confirmed with the customer code',
+    );
+  }
+
+  private async applyStatus(
+    current: OrderDocument,
+    status: string,
+    actorId: string,
+    ip?: string,
+    rejectionReason?: string,
+    note?: string,
+  ) {
+    const dto = { status, rejectionReason };
     const old = current.orderStatus;
     if (!canTransition(old as OrderStatus, dto.status as OrderStatus)) {
       throw new BadRequestException(`Order cannot move from ${old} to ${dto.status}`);
@@ -449,7 +518,7 @@ export class OrdersService implements OnModuleInit {
       status: dto.status,
       at: new Date(),
       actorId: new Types.ObjectId(actorId),
-      note: dto.rejectionReason,
+      note: note ?? dto.rejectionReason,
     });
     await this.restoreStockIfNeeded(order, old, dto.status);
 

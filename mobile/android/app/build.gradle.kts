@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -10,7 +12,7 @@ plugins {
 }
 
 android {
-    namespace = "RK.Alexapedia.zezo_store"
+    namespace = "RK.Marketplace.zezo_store"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -25,7 +27,7 @@ android {
     }
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "RK.Alexapedia.zezo_store"
+        applicationId = "RK.Marketplace.zezo_store"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -34,11 +36,32 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+    // Each store's upload key lives in android/keys/<store>.properties
+    // (storeFile, storePassword, keyAlias, keyPassword; never committed).
+    // Without one, release builds fall back to the debug key.
+    fun storeSigning(store: String) =
+        rootProject.file("keys/$store.properties").let { file ->
+            if (!file.exists()) {
+                signingConfigs.getByName("debug")
+            } else {
+                val props = Properties().apply { file.inputStream().use { load(it) } }
+                signingConfigs.create(store) {
+                    storeFile = rootProject.file(props.getProperty("storeFile"))
+                    storePassword = props.getProperty("storePassword")
+                    keyAlias = props.getProperty("keyAlias")
+                    keyPassword = props.getProperty("keyPassword")
+                }
+            }
+        }
+
+    // One flavor per store: build with `--flavor <store>` (see docs/new-store.md).
+    flavorDimensions += "store"
+    productFlavors {
+        create("zezo") {
+            dimension = "store"
+            applicationId = "RK.Marketplace.zezo_store"
+            resValue("string", "app_name", "Zezo Store")
+            signingConfig = storeSigning("zezo")
         }
     }
 }

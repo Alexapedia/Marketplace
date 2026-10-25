@@ -19,7 +19,6 @@ import '../../utils/constant/app_string.dart';
 import '../../utils/constant/storage_key.dart';
 import '../../utils/functions/camil_case.dart';
 import '../../utils/functions/handle_multi_callback.dart';
-import '../../utils/functions/print_state.dart';
 import '../../utils/functions/service_locator.dart';
 import '../../utils/functions/shared_preferance_utils.dart';
 import '../concept/end_points.dart';
@@ -92,8 +91,7 @@ class DioConsumer implements ApiConsumer {
       return handleResponseStatus(response);
     } on DioException catch (e) {
       return left(handleDioError(e).toString());
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       return left('unexpected_error'.tr());
     }
   }
@@ -118,8 +116,7 @@ class DioConsumer implements ApiConsumer {
       return handleResponseStatus(response);
     } on DioException catch (e) {
       return left(handleDioError(e).toString());
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       return left('unexpected_error'.tr());
     }
   }
@@ -148,8 +145,7 @@ class DioConsumer implements ApiConsumer {
       return left(handleError(response));
     } on DioException catch (e) {
       return left(handleDioError(e).toString());
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       return left('unexpected_error'.tr());
     }
   }
@@ -171,8 +167,7 @@ class DioConsumer implements ApiConsumer {
       return handleResponseStatus(response);
     } on DioException catch (e) {
       return left(handleDioError(e).toString());
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       return left('unexpected_error'.tr());
     }
   }
@@ -194,8 +189,7 @@ class DioConsumer implements ApiConsumer {
       return handleResponseStatus(response);
     } on DioException catch (e) {
       return left(handleDioError(e).toString());
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       return left('unexpected_error'.tr());
     }
   }
@@ -212,8 +206,7 @@ class DioConsumer implements ApiConsumer {
       return handleResponseStatus(response);
     } on DioException catch (e) {
       return left(handleDioError(e).toString());
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       return left('unexpected_error'.tr());
     }
   }
@@ -310,7 +303,7 @@ class DioConsumer implements ApiConsumer {
       onRequest: (options, handler) async {
         options.headers[AppString.headerAcceptLanguage] =
             PreferenceUtils.getString(StorageKey.lang, AppString.localeEn);
-        options.headers['X-Client'] = 'mobile';
+        options.headers.addAll(EndPoints.clientHeaders());
         if (options.extra[AppString.requiresTokenKey] != false) {
           final token = await sl<HandleMultiCallLocal>().getLocalData(
             keyType: LocalEnumKey.accessToken,
@@ -386,7 +379,7 @@ class DioConsumer implements ApiConsumer {
           baseUrl: client.options.baseUrl,
           connectTimeout: client.options.connectTimeout,
           receiveTimeout: client.options.receiveTimeout,
-          headers: {'X-Client': 'mobile'},
+          headers: EndPoints.clientHeaders(),
         ),
       );
       final res = await bare.post(EndPoints.refresh, data: {'refreshToken': refresh});

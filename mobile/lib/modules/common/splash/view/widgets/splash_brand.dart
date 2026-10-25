@@ -7,6 +7,7 @@ import '../../../../../config/theme/typography.dart';
 import '../../../../../core/components/app_logo.dart';
 import '../../../../../core/components/maison.dart';
 import '../../../../../core/utils/functions/motion.dart';
+import '../../../../../core/utils/functions/store_name.dart';
 
 class SplashBrand extends StatelessWidget {
   const SplashBrand({
@@ -69,7 +70,7 @@ class SplashBrand extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  'app_name'.tr(),
+                  storeName(context),
                   textAlign: TextAlign.center,
                   style: displayStyle(size: 36, color: onBand),
                 ),

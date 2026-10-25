@@ -62,11 +62,14 @@ describe('order status transitions', () => {
     await setStatus(orderId, { status: 'preparing' }).expect(200);
   });
 
-  it('a delivered order can still be completed but not cancelled', async () => {
+  it('a delivered order cannot be cancelled, and is completed only with the delivery code', async () => {
     const { orderId } = await placeOrder(5, 1);
-    await setStatus(orderId, { status: 'delivered' }).expect(200);
+    // Delivered is no longer set by staff by hand (see delivery-code e2e).
+    await ctx.inTenant(async () => {
+      await ctx.model('Order').updateOne({ _id: orderId }, { orderStatus: 'delivered' });
+    });
 
     expect((await setStatus(orderId, { status: 'cancelled' })).status).toBe(400);
-    await setStatus(orderId, { status: 'completed' }).expect(200);
+    expect((await setStatus(orderId, { status: 'completed' })).status).toBe(400);
   });
 });

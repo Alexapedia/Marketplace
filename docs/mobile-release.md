@@ -1,5 +1,7 @@
 # Mobile store builds
 
+Each store is its own app (flavor). To add a store, or for per-store build commands, see [new-store.md](new-store.md).
+
 ## Android
 
 1. Place `google-services.json` in `mobile/android/app/` when Firebase is ready.

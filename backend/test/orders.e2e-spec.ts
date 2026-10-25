@@ -45,6 +45,17 @@ describe('orders (characterization)', () => {
   const stockOf = async (id: string) =>
     (await ctx.inTenant(async () => await ctx.model('Product').findById(id)))!.stock;
 
+  /** Completes an order the new way: the customer's delivery code. */
+  const deliver = async (id: string, customerToken: string) => {
+    const mine = await ctx.http().get(`${api}/orders/${id}`).set(auth(customerToken)).expect(200);
+    return ctx
+      .http()
+      .post(`${api}/admin/orders/${id}/confirm-delivery`)
+      .set(auth(admin.token))
+      .send({ code: mine.body.data.deliveryCode })
+      .expect(201);
+  };
+
   const setStatus = (id: string, body: any) =>
     ctx
       .http()
@@ -114,9 +125,10 @@ describe('orders (characterization)', () => {
 
     await addToCart(c.token, p._id, 1);
     const o2 = (await checkout(c.token, c.addressId).expect(201)).body.data;
-    for (const status of ['accepted', 'preparing', 'ready', 'out_for_delivery', 'delivered']) {
+    for (const status of ['accepted', 'preparing', 'ready', 'out_for_delivery']) {
       await setStatus(o2._id, { status }).expect(200);
     }
+    await deliver(o2._id, c.token);
     await ctx
       .http()
       .post(`${api}/orders/${o2._id}/cancel`)
@@ -124,7 +136,7 @@ describe('orders (characterization)', () => {
       .expect(400);
   });
 
-  it('admin status flow to delivered marks COD paid', async () => {
+  it('admin status flow then delivery confirmation marks COD paid', async () => {
     const c = await newCustomer();
     const p = await createProduct(ctx, { price: 50, stock: 5 });
     await addToCart(c.token, p._id, 1);
@@ -132,10 +144,13 @@ describe('orders (characterization)', () => {
     expect(o.paymentStatus).toBe('pending');
 
     let last: any;
-    for (const status of ['accepted', 'preparing', 'ready', 'out_for_delivery', 'delivered']) {
+    for (const status of ['accepted', 'preparing', 'ready', 'out_for_delivery']) {
       last = await setStatus(o._id, { status }).expect(200);
       expect(last.body.data.orderStatus).toBe(status);
     }
+    expect(last.body.data.paymentStatus).toBe('pending');
+    last = await deliver(o._id, c.token);
+    expect(last.body.data.orderStatus).toBe('completed');
     expect(last.body.data.paymentStatus).toBe('paid');
   });
 

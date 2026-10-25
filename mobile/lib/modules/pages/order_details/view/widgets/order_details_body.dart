@@ -14,6 +14,7 @@ import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_string.dart';
 import '../../../../../core/utils/functions/status_label.dart';
 import '../../controller/order_details_cubit.dart';
+import 'delivery_code_card.dart';
 import 'order_info_card.dart';
 import 'order_item_tile.dart';
 import 'order_kv.dart';
@@ -73,9 +74,14 @@ class OrderDetailsBody extends StatelessWidget {
               status: order.status,
               steps: _flow,
               labelOf: statusLabel,
+              reached: order.timeline,
             ),
           ),
           const SizedBox(height: 20),
+          if (DeliveryCodeCard.shownFor(order)) ...[
+            DeliveryCodeCard(order: order),
+            const SizedBox(height: 16),
+          ],
           OrderInfoCard(
             children: [
               OrderKv(

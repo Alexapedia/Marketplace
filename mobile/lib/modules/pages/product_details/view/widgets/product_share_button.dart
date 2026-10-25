@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../../core/models/catalog_models.dart';
 import '../../../../../core/utils/constant/app_string.dart';
 import 'product_circle_action.dart';
+import '../../../../../core/utils/functions/store_name.dart';
 
 class ProductShareButton extends StatelessWidget {
   const ProductShareButton({
@@ -19,7 +20,7 @@ class ProductShareButton extends StatelessWidget {
   void _share(BuildContext context) {
     final box = context.findRenderObject() as RenderBox?;
     Share.share(
-      '${'share_product'.tr()} ${product.name} — '
+      '${'share_product'.tr(namedArgs: {'store': storeName(context)})} ${product.name} — '
       '${product.displayPrice.toStringAsFixed(0)} ${AppString.currency}',
       subject: product.name,
       // Anchors the share popover on iPad.

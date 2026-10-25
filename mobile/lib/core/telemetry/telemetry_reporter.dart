@@ -13,7 +13,7 @@ class TelemetryReporter {
       baseUrl: EndPoints.baseUrl,
       connectTimeout: const Duration(seconds: 4),
       receiveTimeout: const Duration(seconds: 4),
-      headers: {'X-Client': 'mobile'},
+      headers: EndPoints.clientHeaders(),
     ),
   );
 

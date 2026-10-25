@@ -55,14 +55,17 @@ class PlaceMarketApp extends StatelessWidget {
           buildWhen: (prev, curr) =>
               prev.themeMode != curr.themeMode ||
               prev.brandPrimary != curr.brandPrimary ||
-              prev.brandAccent != curr.brandAccent,
+              prev.brandAccent != curr.brandAccent ||
+              prev.brandName != curr.brandName,
           builder: (context, state) {
             return MaterialApp.router(
               localizationsDelegates: context.localizationDelegates,
               supportedLocales: context.supportedLocales,
               locale: context.locale,
               debugShowCheckedModeBanner: false,
-              title: AppString.appName,
+              title: state.brandName.isNotEmpty
+                  ? state.brandName
+                  : AppString.appName,
               theme: _theme(false, state.brandPrimary, state.brandAccent),
               darkTheme: _theme(true, state.brandPrimary, state.brandAccent),
               themeMode: state.themeMode,

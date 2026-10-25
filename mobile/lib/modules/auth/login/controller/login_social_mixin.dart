@@ -27,8 +27,7 @@ mixin LoginSocialMixin on Cubit<LoginState> {
       if (idToken == null) throw Exception('no token');
       if (!context.mounted) return;
       await _firebaseBackend(context, idToken);
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       AppToast('auth_failed'.tr(), isError: true);
       emit(state.copyWith(loginStatus: RequestStatus.failed));
     }
@@ -47,8 +46,7 @@ mixin LoginSocialMixin on Cubit<LoginState> {
       if (idToken == null) throw Exception('no token');
       if (!context.mounted) return;
       await _firebaseBackend(context, idToken);
-    } catch (e) {
-      printState(e);
+    } catch (_) {
       AppToast('auth_failed'.tr(), isError: true);
       emit(state.copyWith(loginStatus: RequestStatus.failed));
     }

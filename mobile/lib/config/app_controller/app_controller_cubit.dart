@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,7 +12,6 @@ import '../../core/repository/push/push_notification_service.dart';
 import '../../core/utils/constant/app_enum.dart';
 import '../../core/utils/constant/storage_key.dart';
 import '../../core/utils/functions/app_toast.dart';
-import '../../core/utils/functions/bloc_observer.dart';
 import '../../core/utils/functions/handle_multi_callback.dart';
 import '../../core/utils/functions/json_helpers.dart';
 import '../../core/utils/functions/require_auth.dart';
@@ -29,9 +27,6 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
   static AppControllerCubit get(context) => BlocProvider.of(context);
 
   Future<void> initServices() async {
-    if (kDebugMode) {
-      Bloc.observer = MyBlocObserver();
-    }
     _loadTheme();
     await loadSession();
     await loadConfig();
@@ -146,6 +141,8 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
       PreferenceUtils.setString(StorageKey.brandLogoDark, logoDark);
       final splash = (config.tenant?.splash ?? '').trim();
       PreferenceUtils.setString(StorageKey.brandSplash, splash);
+      final name = (config.tenant?.brandName ?? '').trim();
+      PreferenceUtils.setString(StorageKey.brandName, name);
       emit(
         state.copyWith(
           brandPrimary: primary,
@@ -153,6 +150,7 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
           brandLogo: logo,
           brandLogoDark: logoDark,
           brandSplash: splash,
+          brandName: name,
           supportEmail: asString(settings['supportEmail']),
           supportPhone: asString(settings['supportPhone']),
           currency: asString(settings['currency']).toUpperCase().isEmpty
@@ -176,6 +174,7 @@ class AppControllerCubit extends Cubit<AppControllerState> with SafeEmitMixin<Ap
       brandLogo: PreferenceUtils.getString(StorageKey.brandLogo, ''),
       brandLogoDark: PreferenceUtils.getString(StorageKey.brandLogoDark, ''),
       brandSplash: PreferenceUtils.getString(StorageKey.brandSplash, ''),
+      brandName: PreferenceUtils.getString(StorageKey.brandName, ''),
     ));
   }
 

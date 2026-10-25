@@ -125,6 +125,10 @@ export class Order {
   @Prop({ type: [StatusHistoryEntrySchema], default: [] })
   statusHistory: StatusHistoryEntry[];
 
+  /** Read out by the customer to confirm delivery; only they can see it. */
+  @Prop({ select: false })
+  deliveryCode?: string;
+
   @Prop({ sparse: true })
   idempotencyKey?: string;
 

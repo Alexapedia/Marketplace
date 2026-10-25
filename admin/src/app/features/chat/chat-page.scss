@@ -165,11 +165,39 @@
 // ---- Thread -------------------------------------------------------------------
 
 .pane {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   background: var(--m-canvas);
+}
+.new-msgs {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 88px;
+  margin-inline: auto;
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--m-r-pill);
+  background: var(--m-accent);
+  color: var(--m-on-accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--m-shadow-2);
+  cursor: pointer;
+  z-index: 1;
+}
+.new-msgs mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 .pane-h {
   display: flex;

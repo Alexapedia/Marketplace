@@ -14,6 +14,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { RouterLink } from '@angular/router';
 import { OrdersApi } from '../../core/api/orders.api';
+import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { entityId, loc, Order, ORDER_STATUSES, OrderStatus, PageMeta, productRef } from '../../core/models/models';
@@ -54,6 +55,53 @@ export class RejectDialog {
 }
 
 @Component({
+  selector: 'app-delivery-code-dialog',
+  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, TranslatePipe],
+  template: `
+    <h2 mat-dialog-title>{{ 'orders.confirmDelivery' | t }}</h2>
+    <mat-dialog-content [formGroup]="form">
+      <p>{{ 'orders.deliveryCodeHint' | t }}</p>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>{{ 'orders.deliveryCode' | t }}</mat-label>
+        <input
+          matInput
+          formControlName="code"
+          inputmode="numeric"
+          autocomplete="off"
+          maxlength="6"
+          dir="ltr"
+          (keyup.enter)="ok()"
+        />
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>{{ 'common.cancel' | t }}</button>
+      <button mat-flat-button (click)="ok()">{{ 'common.confirm' | t }}</button>
+    </mat-dialog-actions>
+  `,
+  styles: `.full{width:100%;min-width:min(420px,80vw)} input{letter-spacing:.3em;font-size:1.25rem}`,
+})
+export class DeliveryCodeDialog {
+  private readonly fb = inject(FormBuilder);
+  private readonly ref = inject(MatDialogRef<DeliveryCodeDialog, string>);
+  readonly form = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.pattern(/^\s*\d{6}\s*$/)]],
+  });
+
+  ok(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.ref.close(this.form.controls.code.value.trim());
+  }
+}
+
+/** Set only with the customer's delivery code, never from the status menu. */
+const CODE_ONLY: OrderStatus[] = ['delivered', 'completed'];
+const CONFIRMABLE: OrderStatus[] = ['pending', 'accepted', 'preparing', 'ready', 'out_for_delivery'];
+
+@Component({
   selector: 'app-orders-page',
   imports: [
     DatePipe,
@@ -77,6 +125,7 @@ export class OrdersPage implements OnInit {
   private readonly api = inject(OrdersApi);
   private readonly dialog = inject(MatDialog);
   private readonly ui = inject(UiService);
+  private readonly auth = inject(AuthService);
   readonly i18n = inject(I18nService);
 
   readonly loading = signal(true);
@@ -88,6 +137,7 @@ export class OrdersPage implements OnInit {
   readonly channel = signal('');
   readonly selected = signal<Order | null>(null);
   readonly statuses = ORDER_STATUSES;
+  readonly manualStatuses = ORDER_STATUSES.filter((s) => !CODE_ONLY.includes(s));
   readonly cols = ['orderNumber', 'customer', 'channel', 'total', 'status', 'createdAt', 'actions'];
   readonly entityId = entityId;
   readonly productRef = productRef;
@@ -158,6 +208,34 @@ export class OrdersPage implements OnInit {
 
   itemName(name: unknown): string {
     return loc(name as never, this.i18n.lang());
+  }
+
+  /** Admins confirm deliveries for now (a driver app will later). */
+  canConfirmDelivery(order: Order): boolean {
+    const role = this.auth.user()?.role;
+    return (
+      (role === 'super_admin' || role === 'admin') &&
+      CONFIRMABLE.includes(this.orderStatus(order) as OrderStatus)
+    );
+  }
+
+  confirmDelivery(order: Order): void {
+    this.dialog
+      .open(DeliveryCodeDialog)
+      .afterClosed()
+      .subscribe((code: string | undefined) => {
+        if (!code) {
+          return;
+        }
+        this.api.confirmDelivery(entityId(order), code).subscribe({
+          next: (res) => {
+            this.ui.success(this.i18n.t('orders.deliveryConfirmed'));
+            this.selected.set(res.data);
+            this.load();
+          },
+          error: (err: unknown) => this.ui.error(errMessage(err)),
+        });
+      });
   }
 
   changeStatus(order: Order, status: OrderStatus): void {

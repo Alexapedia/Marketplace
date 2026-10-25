@@ -53,8 +53,8 @@ export class FirebasePushService {
         playNotificationSound();
         this.toast.show(body ? `${title}: ${body}` : title, 3200);
       });
-    } catch (err) {
-      console.warn('Firebase web push skipped', err);
+    } catch {
+      // Web push stays off; the app works without it.
       this.started = false;
     }
   }

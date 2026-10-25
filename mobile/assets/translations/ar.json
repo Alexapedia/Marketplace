@@ -7,7 +7,7 @@
   "sign_in": "أهلاً بيك",
   "sign_in_subtitle": "سجّل دخولك وكمّل طلبك",
   "register": "إنشاء حساب",
-  "register_subtitle": "انضم إلى متجر زيزو خلال لحظات",
+  "register_subtitle": "انضم إلى {store} خلال لحظات",
   "forgot_password": "هل نسيت كلمة المرور؟",
   "forgot_password_title": "إعادة تعيين كلمة المرور",
   "forgot_password_subtitle": "أدخل بريدك الإلكتروني وسنرسل رابط إعادة التعيين",
@@ -79,6 +79,7 @@
   "empty_products": "لا توجد منتجات",
   "empty_categories": "لا توجد تصنيفات بعد",
   "empty_messages": "لا توجد رسائل. ابدأ المحادثة.",
+  "new_messages": "رسائل جديدة",
   "empty_custom_orders": "لا توجد طلبات مخصصة بعد",
   "retry": "إعادة المحاولة",
   "refresh": "تحديث",
@@ -116,7 +117,7 @@
   "email_support": "إيميل عبر Gmail",
   "version": "الإصدار",
   "force_upgrade_title": "تحديث مطلوب",
-  "force_upgrade_body": "يلزم إصدار أحدث من متجر زيزو للمتابعة.",
+  "force_upgrade_body": "يلزم إصدار أحدث من {store} للمتابعة.",
   "channel_disabled_title": "المتجر غير متاح",
   "channel_disabled_mobile": "تطبيق الموبايل متوقف مؤقتاً.",
   "channel_disabled_suspended": "هذا المتجر موقوف.",
@@ -178,7 +179,7 @@
   "google_unavailable": "تسجيل الدخول بجوجل غير متاح في هذا الإصدار",
   "apple_unavailable": "تسجيل الدخول بآبل غير متاح",
   "auth_failed": "فشل تسجيل الدخول",
-  "share_product": "شاهد هذا على متجر زيزو",
+  "share_product": "شاهد هذا على {store}",
   "status_pending": "قيد الانتظار",
   "status_accepted": "مقبول",
   "status_rejected": "مرفوض",
@@ -325,5 +326,7 @@
   "secure_checkout": "دفع آمن",
   "delivery_fee": "التوصيل",
   "order_number": "طلب {}",
-  "track_order": "رحلة الطلب"
+  "track_order": "رحلة الطلب",
+  "delivery_code": "كود الاستلام",
+  "delivery_code_hint": "أعطِ هذا الكود للمندوب فقط عند استلام طلبك."
 }
