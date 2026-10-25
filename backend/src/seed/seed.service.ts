@@ -19,6 +19,7 @@ import {
 import { TenantContext } from '../tenant/tenant.context';
 import { TenantService } from '../tenant/tenant.service';
 import { resolveSeedPassword } from './seed-credentials';
+import { shouldSeedDemo } from './seed-demo';
 import { MIGRATIONS_COLLECTION, runMigrationOnce } from '../database/migrations';
 import { relativizeUploads } from '../common/utils/upload-url';
 
@@ -68,19 +69,25 @@ export class SeedService implements OnApplicationBootstrap {
       await this.ensureAdsPermissions();
       const empty = (await this.roleModel.countDocuments()) === 0;
       const force = this.config.get<string>('SEED') === 'true';
+      const demo = shouldSeedDemo({
+        NODE_ENV: this.config.get<string>('NODE_ENV'),
+        SEED_DEMO: this.config.get<string>('SEED_DEMO'),
+      });
       if (!empty && !force) {
-        await this.seedAdsIfEmpty();
+        if (demo) await this.seedAdsIfEmpty();
         return;
       }
       this.logger.log('Seeding database...');
       await this.seedRoles();
       await this.seedAdmin();
-      const cats = await this.seedCategories();
-      await this.seedCustomFields(cats);
-      await this.seedProducts(cats);
-      await this.seedAppConfig();
-      await this.seedAdsIfEmpty();
-      await this.seedReviews();
+      if (demo) {
+        const cats = await this.seedCategories();
+        await this.seedCustomFields(cats);
+        await this.seedProducts(cats);
+        await this.seedAppConfig();
+        await this.seedAdsIfEmpty();
+        await this.seedReviews();
+      }
       this.logger.log('Seed complete');
     });
   }
