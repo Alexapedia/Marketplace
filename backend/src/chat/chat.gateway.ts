@@ -145,6 +145,7 @@ export class ChatGateway
           }
         }
         await client.join(`conversation:${String(convo._id)}`);
+        this.logger.log(`[chat] ${user.userId} joined conversation:${String(convo._id)}`); // TEMP chat debug
         return { ok: true, conversationId: String(convo._id) };
       });
     } catch (err) {
@@ -167,6 +168,7 @@ export class ChatGateway
         return { ok: false, message: 'Insufficient permissions' };
       }
       const text = (body.text || '').trim();
+      this.logger.log(`[chat] message from ${user.userId}: ${JSON.stringify(body)}`); // TEMP chat debug
       if (!text) return { ok: false, message: 'text required' };
       return TenantContext.run({ kind: 'tenant', tenantId: user.tenantId }, async () => {
         if (body.customOrderId) {

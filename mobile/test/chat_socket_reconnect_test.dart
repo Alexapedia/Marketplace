@@ -23,6 +23,7 @@ class _FakeSocket implements ChatSocket {
   final acked = <String, dynamic>{};
   @override
   void emitWithAck(String event, dynamic data, void Function(dynamic) ack) {
+    emitted.add(event);
     acked[event] = data;
     if (ackReply != null) ack(ackReply);
   }

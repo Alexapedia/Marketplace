@@ -50,22 +50,30 @@ export class ChatSocket {
     });
     this.socket.on('connect', () => {
       this.renewals = 0;
+      console.log('[chat] connected'); // TEMP chat debug
       this.connected.set(true);
       if (this.pendingJoin) {
-        this.socket?.emit('join', { conversationId: this.pendingJoin });
+        this.socket?.emit('join', { conversationId: this.pendingJoin }, (ack: unknown) =>
+          console.log('[chat] join', this.pendingJoin, '->', ack), // TEMP chat debug
+        );
       }
     });
     // An expired token is refused at the handshake (connect_error) or the
     // server drops the socket when it expires; socket.io retries neither.
     this.socket.on('disconnect', (reason) => {
+      console.log('[chat] disconnected:', reason); // TEMP chat debug
       this.connected.set(false);
       if (reason === 'io server disconnect') this.renewAndReconnect();
     });
     this.socket.on('connect_error', (err) => {
+      console.log('[chat] connect_error:', err.message); // TEMP chat debug
       this.connected.set(false);
       if (err.message === 'Unauthorized') this.renewAndReconnect();
     });
-    this.socket.on('message', (message: ChatMessage) => this.incoming.next(message));
+    this.socket.on('message', (message: ChatMessage) => {
+      console.log('[chat] received:', message); // TEMP chat debug
+      this.incoming.next(message);
+    });
     this.socket.on('conversation:updated', (payload: ConversationUpdate) =>
       this.conversationUpdated.next(payload),
     );
@@ -85,7 +93,9 @@ export class ChatSocket {
     this.connect();
     if (!conversationId || !this.socket) return;
     if (this.socket.connected) {
-      this.socket.emit('join', { conversationId });
+      this.socket.emit('join', { conversationId }, (ack: unknown) =>
+        console.log('[chat] join', conversationId, '->', ack), // TEMP chat debug
+      );
     }
   }
 
@@ -101,6 +111,7 @@ export class ChatSocket {
         { conversationId, text: text.trim() },
         (ack?: { ok?: boolean }) => {
           window.clearTimeout(timer);
+          console.log('[chat] send ->', ack); // TEMP chat debug
           resolve(!!ack?.ok);
         },
       );

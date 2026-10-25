@@ -52,25 +52,34 @@ export class ChatSocket {
     this.socket = socket;
     socket.on('connect', () => {
       this.renewals = 0;
+      console.log('[chat] connected'); // TEMP chat debug
       this.connected.set(true);
       this.emitJoin();
     });
     // An expired token is refused at the handshake (connect_error) or the
     // server drops the socket when it expires; socket.io retries neither.
     socket.on('disconnect', (reason) => {
+      console.log('[chat] disconnected:', reason); // TEMP chat debug
       this.connected.set(false);
       if (reason === 'io server disconnect') this.renewAndReconnect();
     });
     socket.on('connect_error', (err) => {
+      console.log('[chat] connect_error:', err.message); // TEMP chat debug
       this.connected.set(false);
       if (err.message === 'Unauthorized') this.renewAndReconnect();
     });
-    socket.on('message', (message: ChatMessage) => this.incoming.next(message));
+    socket.on('message', (message: ChatMessage) => {
+      console.log('[chat] received:', message); // TEMP chat debug
+      this.incoming.next(message);
+    });
   }
 
   private emitJoin(): void {
     if (this.customOrderId) {
-      this.socket?.emit('join', { customOrderId: this.customOrderId });
+      const id = this.customOrderId;
+      this.socket?.emit('join', { customOrderId: id }, (ack: unknown) =>
+        console.log('[chat] join', id, '->', ack), // TEMP chat debug
+      );
     }
   }
 
@@ -96,6 +105,7 @@ export class ChatSocket {
         { customOrderId, text: text.trim() },
         (ack?: { ok?: boolean }) => {
           window.clearTimeout(timer);
+          console.log('[chat] send ->', ack); // TEMP chat debug
           resolve(!!ack?.ok);
         },
       );
