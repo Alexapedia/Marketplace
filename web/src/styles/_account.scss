@@ -451,3 +451,12 @@ app-map-picker > .muted {
     transform: scale(0.92);
   }
 }
+
+.delivery-code .code {
+  margin: 4px 0 6px;
+  font-family: var(--m-font-display);
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-align: start;
+}

@@ -176,6 +176,8 @@ export interface Order {
   notes?: string;
   address?: OrderAddress;
   rejectionReason?: string;
+  /** Given to the courier on delivery; only the customer receives it. */
+  deliveryCode?: string;
 }
 
 export interface CustomField {

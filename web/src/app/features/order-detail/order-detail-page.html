@@ -20,6 +20,14 @@
           }
         </section>
 
+        @if (deliveryCode(); as code) {
+          <section class="panel delivery-code m-enter">
+            <h2 class="panel-title">{{ 'deliveryCode' | t }}</h2>
+            <p class="code m-num" dir="ltr" [attr.aria-label]="code.split('').join(' ')">{{ code }}</p>
+            <p class="muted">{{ 'deliveryCodeHint' | t }}</p>
+          </section>
+        }
+
         <section class="panel" [mReveal]="1">
           <h2 class="panel-title">{{ 'items' | t }}</h2>
           <span class="m-rule" aria-hidden="true"></span>
