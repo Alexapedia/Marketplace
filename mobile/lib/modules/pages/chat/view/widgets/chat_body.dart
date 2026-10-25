@@ -9,8 +9,8 @@ import '../../../../../core/components/failed_shape.dart';
 import '../../../../../core/components/skeleton_placeholders.dart';
 import '../../../../../core/utils/constant/app_enum.dart';
 import '../../controller/chat_cubit.dart';
-import 'chat_bubble.dart';
 import 'chat_composer.dart';
+import 'chat_message_list.dart';
 
 class ChatBody extends StatelessWidget {
   const ChatBody({super.key, required this.orderId});
@@ -67,12 +67,7 @@ class ChatBody extends StatelessWidget {
                 }
                 return AdaptivePage(
                   maxWidth: 720,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: state.messages.length,
-                    itemBuilder: (context, i) =>
-                        ChatBubble(message: state.messages[i]),
-                  ),
+                  child: ChatMessageList(messages: state.messages),
                 );
               },
             ),
