@@ -19,3 +19,13 @@ google-services.json
 GoogleService-Info.plist
 staging/bin/
 **/.angular
+
+# Production secrets and generated deploy files (see docs/production.md).
+deploy/.env
+deploy/certs/*
+!deploy/certs/.gitkeep
+deploy/backups/
+deploy/.worktrees/
+.env.production
+deploy/clients/*.yml
+deploy/proxy/clients/*.map
